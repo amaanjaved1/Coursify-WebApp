@@ -90,13 +90,15 @@ export function GradeDistributionMockup({ compact = false }: { compact?: boolean
 
 function RedditIcon({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#FF4500" />
-      <path d="M19.5 12a1.5 1.5 0 00-2.55-1.07 7.35 7.35 0 00-4-1.25l.68-3.2 2.22.47a1.07 1.07 0 101.12-1.02l-2.5-.53a.6.6 0 00-.7.47L13 9.68a7.4 7.4 0 00-4.08 1.25A1.5 1.5 0 006 12.93a3.26 3.26 0 00-.05.57c0 2.9 3.38 5.25 7.55 5.25s7.55-2.35 7.55-5.25a3.38 3.38 0 00-.05-.57A1.5 1.5 0 0019.5 12z" fill="white" />
-      <circle cx="9.5" cy="13" r="1" fill="#FF4500" />
-      <circle cx="14.5" cy="13" r="1" fill="#FF4500" />
-      <path d="M9.8 15.8a3.56 3.56 0 004.4 0" stroke="#FF4500" strokeWidth=".8" strokeLinecap="round" fill="none" />
-    </svg>
+    <div
+      className="shrink-0 rounded-full bg-cover bg-center bg-no-repeat"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: "url('/reddit.png')",
+      }}
+      aria-hidden
+    />
   );
 }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { useMotionTier } from "@/lib/motion-prefs";
 import {
   Brain,
   BarChart3,
@@ -53,12 +54,14 @@ const featurePanelVariants = {
 };
 
 function SectionGlow({ className, gradient }: { className: string; gradient: string }) {
-  return <div aria-hidden className={`pointer-events-none absolute rounded-full ${className}`} style={{ background: gradient }} />;
+  return <div aria-hidden className={`pointer-events-none absolute rounded-full hidden md:block ${className}`} style={{ background: gradient }} />;
 }
 
 export default function Home() {
   const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
+  const motionTier = useMotionTier();
+  const lite = motionTier === "lite";
 
   const stepsRef = useRef<HTMLElement>(null);
 
@@ -159,22 +162,22 @@ export default function Home() {
           100% { background-position: 0% 50%; }
         }
         .gradient-text-animated {
+          color: #00305f;
           background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
           background-size: 300% 300%;
           animation: gradient-shift 6s ease infinite;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          color: transparent;
         }
         :is(.dark) .gradient-text-animated {
+          color: #4a9eff;
           background: linear-gradient(-45deg, #4a9eff, #ff4d5e, #ffc940, #4a9eff);
           background-size: 300% 300%;
           animation: gradient-shift 6s ease infinite;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          color: transparent;
         }
         @keyframes bounce-slow {
           0%, 100% { transform: translateY(0); }
@@ -258,7 +261,7 @@ export default function Home() {
         </div>
 
         <div
-          className="absolute bottom-8 left-0 right-0 flex justify-center cursor-pointer"
+          className="absolute bottom-8 left-0 right-0 hidden md:flex justify-center cursor-pointer"
           onClick={handleScrollClick}
         >
           <div className="glass-pill rounded-full p-2 hover:bg-white/70 dark:hover:bg-white/10">
@@ -349,7 +352,7 @@ export default function Home() {
                         ? "text-white"
                         : "text-gray-700 hover:text-brand-navy dark:text-gray-300 dark:hover:text-white",
                       i !== activeFeatureTab &&
-                        "bg-gray-100/95 hover:bg-gray-200/90 dark:bg-white/[0.07] dark:hover:bg-white/[0.11]"
+                        "glass-pill border border-brand-navy/12 dark:border-white/12 bg-white/72 hover:bg-white/84 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] shadow-[0_2px_10px_rgba(0,48,95,0.08)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.22)]"
                     )}
                   >
                     {i === activeFeatureTab && (
@@ -373,17 +376,17 @@ export default function Home() {
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={activeFeatureTab}
-                variants={featurePanelVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+                variants={lite ? undefined : featurePanelVariants}
+                initial={lite ? false : "initial"}
+                animate={lite ? undefined : "animate"}
+                exit={lite ? undefined : "exit"}
                 className="glass-card overflow-hidden rounded-3xl p-6 sm:p-10"
               >
                 <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.06, ease: [0.25, 0.1, 0.25, 1] }}
+                    initial={lite ? false : { opacity: 0, y: 8 }}
+                    animate={lite ? undefined : { opacity: 1, y: 0 }}
+                    transition={lite ? { duration: 0 } : { duration: 0.4, delay: 0.06, ease: [0.25, 0.1, 0.25, 1] }}
                   >
                     <h3 className="mb-4 text-xl font-bold leading-snug text-brand-navy dark:text-white sm:text-2xl">
                       {activeTab.title}
@@ -399,9 +402,9 @@ export default function Home() {
                   </motion.div>
                   <motion.div
                     className="flex items-center justify-center rounded-2xl"
-                    initial={{ opacity: 0, y: 10, scale: 0.985 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.48, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                    initial={lite ? false : { opacity: 0, y: 10, scale: 0.985 }}
+                    animate={lite ? undefined : { opacity: 1, y: 0, scale: 1 }}
+                    transition={lite ? { duration: 0 } : { duration: 0.48, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
                   >
                     {activeFeatureTab === 0 && <GradeDistributionMockup compact />}
                     {activeFeatureTab === 1 && <StudentReviewsMockup compact />}
@@ -524,7 +527,7 @@ export default function Home() {
                           height: activeAccordion === index ? "auto" : 0,
                           opacity: activeAccordion === index ? 1 : 0,
                         }}
-                        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: lite ? 0.15 : 0.45, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden [overflow-anchor:none]"
                       >
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>

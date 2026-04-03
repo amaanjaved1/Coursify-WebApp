@@ -6,12 +6,14 @@ import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { ArrowLeft } from "lucide-react";
+import { useMotionTier } from "@/lib/motion-prefs";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const supabase = getSupabaseClient();
+  const lite = useMotionTier() === "lite";
 
   const isQueensEmail = (email: string) => {
     return email.endsWith("@queensu.ca");
@@ -71,16 +73,16 @@ export default function ForgotPassword() {
 
       <motion.div
         className="w-full max-w-md relative z-10"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        initial={false}
+        animate={lite ? undefined : { opacity: 1, y: 0 }}
+        transition={lite ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex flex-col gap-7">
           {/* Back link */}
           <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            initial={false}
+            animate={lite ? undefined : { opacity: 1, x: 0 }}
+            transition={lite ? { duration: 0 } : { duration: 0.4, delay: 0.1 }}
           >
             <Link
               href="/sign-in"
@@ -93,9 +95,9 @@ export default function ForgotPassword() {
 
           {/* Heading */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={false}
+            animate={lite ? undefined : { opacity: 1, y: 0 }}
+            transition={lite ? { duration: 0 } : { duration: 0.6, delay: 0.2 }}
           >
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-brand-navy dark:text-white">
               Reset Password
@@ -107,9 +109,9 @@ export default function ForgotPassword() {
 
           {isSuccess ? (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              initial={false}
+              animate={lite ? undefined : { opacity: 1, y: 0 }}
+              transition={lite ? { duration: 0 } : { duration: 0.5 }}
               className="space-y-5"
             >
               <div className="glass-card rounded-2xl p-6 border-l-4 border-brand-navy dark:border-blue-400">
@@ -129,9 +131,9 @@ export default function ForgotPassword() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                initial={false}
+                animate={lite ? undefined : { opacity: 1, y: 0 }}
+                transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.3 }}
               >
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                   Email Address
@@ -151,9 +153,9 @@ export default function ForgotPassword() {
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
+                initial={false}
+                animate={lite ? undefined : { opacity: 1, y: 0 }}
+                transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.4 }}
                 className="liquid-btn-red w-full rounded-2xl py-4 font-medium text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
@@ -175,9 +177,9 @@ export default function ForgotPassword() {
           {!isSuccess && (
             <motion.p
               className="text-center text-sm text-gray-500 dark:text-gray-400"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
+              initial={false}
+              animate={lite ? undefined : { opacity: 1 }}
+              transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.5 }}
             >
               Remember your password?{" "}
               <Link

@@ -10,6 +10,6 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL("/", requestUrl));
+  // Redirect to onboarding; the page skips to "/" if already completed
+  return NextResponse.redirect(new URL("/onboarding", requestUrl));
 } 

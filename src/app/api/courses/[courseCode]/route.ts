@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import type { CourseWithStats, GradeDistribution } from "@/types"
+import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -35,7 +36,14 @@ export async function GET(
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
   }
 
+  const cacheKey = `course:${courseCode}`
+
   try {
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return NextResponse.json({ course: cached })
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const { data: courseData, error: courseError } = await supabase
@@ -77,6 +85,10 @@ export async function GET(
       course_code: String(courseData.course_code),
       course_name: String(courseData.course_name),
       description: courseData.course_description ? String(courseData.course_description) : undefined,
+      course_requirements:
+        courseData.course_requirements !== null && courseData.course_requirements !== undefined
+          ? String(courseData.course_requirements)
+          : null,
       credits: Number(courseData.course_units || 0),
       department: String(courseData.offering_faculty || ""),
       distributions: uniqueDistributions,
@@ -84,6 +96,7 @@ export async function GET(
       totalEnrollment: avgEnrollment,
     }
 
+    await redis.set(cacheKey, course, { ex: 7200 }) // 2 hours
     return NextResponse.json({ course })
   } catch (err) {
     console.error("Course by code API error:", err)

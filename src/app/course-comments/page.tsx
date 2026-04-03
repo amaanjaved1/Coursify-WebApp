@@ -6,18 +6,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ExternalLink, MessageSquare, User } from 'lucide-react';
 import { getCommentsForCourse } from '@/lib/db';
 import type { RedditComment, RmpComment } from '@/lib/db';
+import { useMotionTier, type MotionTier } from '@/lib/motion-prefs';
 
 type CommentItem = (RedditComment & { _type: 'reddit' }) | (RmpComment & { _type: 'rmp' });
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } }
-};
-
-const cardVariant = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } }
-};
+function listMotionVariants(tier: MotionTier) {
+  const lite = tier === 'lite';
+  return {
+    staggerContainer: lite
+      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: 0 } } }
+      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } },
+    cardVariant: lite
+      ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
+      : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } },
+  };
+}
 
 const RedditIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" className={className}>
@@ -29,6 +32,9 @@ const RedditIcon = ({ className }: { className?: string }) => (
 export default function CourseCommentsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const motionTier = useMotionTier();
+  const liteMotion = motionTier === 'lite';
+  const { staggerContainer, cardVariant } = listMotionVariants(motionTier);
   const courseCode = searchParams.get('courseCode') || '';
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'reddit' | 'rmp'>('all');
@@ -165,6 +171,7 @@ export default function CourseCommentsPage() {
         }
         :is(.dark) .tab-pill:hover { background: rgba(50,50,50,0.80); }
         :is(.dark) .tab-pill.active-all { background: rgba(59,130,246,0.9); border-color: rgba(59,130,246,0.3); }
+        :is(.dark) .tab-pill.active-reddit { background: rgba(255,69,0,0.9); border-color: rgba(255,69,0,0.3); color: white; }
         :is(.dark) .tab-pill.active-rmp { background: rgba(59,130,246,0.9); border-color: rgba(59,130,246,0.3); }
       ` }} />
 
@@ -173,9 +180,9 @@ export default function CourseCommentsPage() {
         {/* ── Hero Header ── */}
         <motion.div
           className="glass-hero rounded-2xl overflow-hidden relative mb-8"
-          initial={{ opacity: 0, y: 20 }}
+          initial={liteMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: liteMotion ? 0 : 0.5 }}
         >
           <div className="relative px-8 py-7">
             <button
@@ -218,16 +225,16 @@ export default function CourseCommentsPage() {
 
         {/* ── Tabs ── */}
         <motion.div
-          className="flex gap-2 mb-7"
-          initial={{ opacity: 0, y: -8 }}
+          className="flex flex-wrap gap-2 mb-7"
+          initial={liteMotion ? false : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          transition={{ duration: liteMotion ? 0 : 0.4, delay: liteMotion ? 0 : 0.2 }}
         >
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`tab-pill rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 ${
+              className={`tab-pill rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 min-w-0 shrink ${
                 activeTab === tab.id ? `active-${tab.id}` : 'text-gray-600 dark:text-gray-400'
               }`}
             >
@@ -254,8 +261,17 @@ export default function CourseCommentsPage() {
                   </svg>
                 </div>
               )}
-              {tab.label}
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+              {tab.id === 'rmp' ? (
+                <>
+                  <span className="inline lg:hidden" aria-hidden="true">
+                    RMP
+                  </span>
+                  <span className="sr-only lg:not-sr-only lg:inline">{tab.label}</span>
+                </>
+              ) : (
+                tab.label
+              )}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${
                 activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-200/70 dark:bg-white/10 text-gray-500 dark:text-gray-400'
               }`}>
                 {tab.count}
@@ -274,17 +290,17 @@ export default function CourseCommentsPage() {
 
         {/* ── Content: sidebar + comments ── */}
         {!loading && (
-          <div className={`flex gap-6 items-start ${activeTab === 'rmp' && tabProfessors.length > 0 ? '' : ''}`}>
+          <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
 
             {/* Professor sidebar — only on RateMyProfessors tab */}
             {activeTab === 'rmp' && tabProfessors.length > 0 && (
               <motion.aside
-                className="w-52 flex-shrink-0 sticky top-24"
-                initial={{ opacity: 0, x: -12 }}
+                className="w-full lg:w-52 lg:flex-shrink-0 lg:sticky lg:top-24"
+                initial={liteMotion ? false : { opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.35, delay: 0.15 }}
+                transition={{ duration: liteMotion ? 0 : 0.35, delay: liteMotion ? 0 : 0.15 }}
               >
-                <div className="glass-card-deep rounded-2xl px-4 py-4">
+                <div className="glass-card-deep rounded-2xl px-4 py-4 border border-brand-navy/10 dark:border-white/10 shadow-[0_4px_14px_rgba(0,48,95,0.08)] dark:shadow-none">
                   <div className="flex items-center gap-2 mb-3">
                     <User className="h-3.5 w-3.5 text-brand-navy/60 dark:text-white/60" />
                     <span className="text-xs font-semibold text-brand-navy dark:text-white uppercase tracking-wider">Professor</span>
@@ -311,7 +327,7 @@ export default function CourseCommentsPage() {
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 text-left ${
                             isActive
                               ? 'bg-brand-navy dark:bg-blue-600 text-white shadow-md shadow-[#00305f]/20 dark:shadow-blue-900/30'
-                              : 'bg-white/50 dark:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:bg-white/90 dark:hover:bg-white/[0.12] border border-white/70 dark:border-white/10'
+                              : 'bg-white/80 dark:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/[0.12] border border-brand-navy/15 dark:border-white/10 shadow-[0_1px_4px_rgba(0,48,95,0.08)] dark:shadow-none'
                           }`}
                         >
                           <span className="truncate mr-2">{prof}</span>
@@ -349,8 +365,8 @@ export default function CourseCommentsPage() {
                     variants={cardVariant}
                   >
                     {/* Card Header */}
-                    <div className="flex items-start justify-between mb-3 gap-3">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         {isReddit ? (
                           <RedditIcon className="w-8 h-8 flex-shrink-0" />
                         ) : (
@@ -360,8 +376,8 @@ export default function CourseCommentsPage() {
                             </svg>
                           </div>
                         )}
-                        <div>
-                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 break-words">
                             {isReddit ? 'r/queensuniversity' : 'Anonymous'}
                           </div>
                           {!isReddit && (
@@ -388,11 +404,11 @@ export default function CourseCommentsPage() {
                       </div>
 
                       {/* Source badge + sentiment */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${sentimentBadge(comment.sentiment_label)}`}>
+                      <div className="flex flex-wrap gap-2 justify-start sm:justify-end sm:flex-shrink-0">
+                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize glass-pill ${sentimentBadge(comment.sentiment_label)}`}>
                           {comment.sentiment_label}
                         </span>
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium glass-pill ${
                           isReddit
                             ? 'bg-[#FF4500]/10 text-[#FF4500] border border-[#FF4500]/20'
                             : 'bg-brand-navy/10 dark:bg-blue-400/10 text-brand-navy dark:text-white border border-brand-navy/20 dark:border-blue-400/20'
@@ -425,17 +441,13 @@ export default function CourseCommentsPage() {
                     {/* Comment text */}
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">{comment.text}</p>
 
-                    {/* Tags */}
-                    {comment.tags && comment.tags.length > 0 && (
+                    {/* RMP Tags (official site chips only) */}
+                    {!isReddit && comment.tags && comment.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {comment.tags.map((tag, idx) => (
                           <span
-                            key={idx}
-                            className={`text-xs px-2.5 py-0.5 rounded-full border ${
-                              isReddit
-                                ? 'bg-[#FF4500]/6 text-[#FF4500]/80 border-[#FF4500]/15'
-                                : 'bg-brand-navy/6 dark:bg-blue-400/6 text-brand-navy/80 dark:text-white/80 border-brand-navy/15 dark:border-blue-400/15'
-                            }`}
+                            key={`${tag}-${idx}`}
+                            className="text-xs glass-pill px-2.5 py-0.5 rounded-full text-brand-navy dark:text-white"
                           >
                             {tag}
                           </span>
@@ -444,8 +456,8 @@ export default function CourseCommentsPage() {
                     )}
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/60 dark:border-white/[0.06]">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-white/60 dark:border-white/[0.06]">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         {isReddit && (
                           <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-[#FF4500]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -455,11 +467,11 @@ export default function CourseCommentsPage() {
                           </div>
                         )}
                         {!isReddit && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-navy/8 dark:bg-blue-400/8 text-brand-navy dark:text-white font-medium">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="glass-pill text-xs px-2.5 py-0.5 rounded-full text-brand-navy dark:text-white font-medium">
                               Quality: {(comment as RmpComment).quality_rating}/5
                             </span>
-                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-red/8 text-brand-red font-medium">
+                            <span className="glass-pill text-xs px-2.5 py-0.5 rounded-full text-brand-red font-medium">
                               Difficulty: {(comment as RmpComment).difficulty_rating}/5
                             </span>
                           </div>
@@ -471,7 +483,7 @@ export default function CourseCommentsPage() {
                           href={comment.source_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`text-xs font-medium flex items-center gap-1 hover:underline ${
+                          className={`glass-pill px-2.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 hover:underline self-start sm:self-auto shrink-0 ${
                             isReddit ? 'text-[#FF4500]' : 'text-brand-navy dark:text-white'
                           }`}
                         >
@@ -519,8 +531,9 @@ export default function CourseCommentsPage() {
         {filteredComments.length === 0 && (
           <motion.div
             className="glass-card-deep rounded-2xl p-12 text-center"
-            initial={{ opacity: 0 }}
+            initial={liteMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: liteMotion ? 0 : 0.35 }}
           >
             <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400 text-base mb-2">

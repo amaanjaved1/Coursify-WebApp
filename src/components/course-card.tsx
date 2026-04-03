@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { useMotionTier } from "@/lib/motion-prefs"
 
 interface Course {
   code: string
@@ -20,6 +21,7 @@ interface CourseCardProps {
 }
 
 export const CourseCard = ({ course, index, total }: CourseCardProps) => {
+  const lite = useMotionTier() === "lite";
   // Get color based on GPA
   const getGpaColor = (gpa: number) => {
     if (gpa >= 3.7) return "text-green-600"
@@ -38,9 +40,9 @@ export const CourseCard = ({ course, index, total }: CourseCardProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      initial={lite ? false : { opacity: 0, y: 20 }}
+      animate={lite ? undefined : { opacity: 1, y: 0 }}
+      transition={lite ? { duration: 0 } : { duration: 0.5, delay: Math.min(index * 0.1, 0.5) }}
       className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1"
     >
       <div className="p-5">

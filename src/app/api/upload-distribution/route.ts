@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { extractTextFromPdf, validateSolusFormat, parseCourseRows } from "@/lib/pdf/parse-distribution";
 import type { UploadDistributionResponse } from "@/types";
+import { redis } from "@/lib/redis";
 
 export const runtime = "nodejs";
 
@@ -70,13 +71,37 @@ export async function POST(request: NextRequest) {
 
   const term = validation.term!;
 
-  // 6. Parse course rows
+  // 6. Check if this user already has a processed upload for this term
+  const { data: existingUserUpload } = await supabase
+    .from("distribution_uploads")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("term", term)
+    .eq("status", "processed")
+    .maybeSingle();
+
+  if (existingUserUpload) {
+    await supabase.from("distribution_uploads").insert({
+      user_id: user.id,
+      file_path: `${user.id}/${Date.now()}_${file.name}`,
+      original_filename: file.name,
+      term,
+      status: "rejected",
+      processed_at: new Date().toISOString(),
+    });
+    return NextResponse.json({
+      success: false,
+      errors: [`You have already submitted a grade distribution for ${term}. Each term can only be submitted once.`],
+    }, { status: 400 });
+  }
+
+  // 7. Parse course rows
   const parsedCourses = parseCourseRows(text);
   if (parsedCourses.length === 0) {
     return NextResponse.json({ success: false, errors: ["No course data could be extracted from the PDF."] }, { status: 400 });
   }
 
-  // 7. Look up course codes in database
+  // 8. Look up course codes in database
   const courseCodes = parsedCourses.map((c) => c.course_code);
   const { data: matchedCourses, error: lookupError } = await supabase
     .from("courses")
@@ -90,7 +115,7 @@ export async function POST(request: NextRequest) {
   const codeToId = new Map<string, string>();
   matchedCourses?.forEach((c) => codeToId.set(c.course_code, c.id));
 
-  // 8. Check for existing distributions for this term
+  // 9. Check for existing distributions for this term
   const matchedIds = Array.from(codeToId.values());
   let existingSet = new Set<string>();
 
@@ -104,7 +129,7 @@ export async function POST(request: NextRequest) {
     existingSet = new Set(existingDists?.map((d) => d.course_id) || []);
   }
 
-  // 9. Build insert batch
+  // 10. Build insert batch
   const skipped: string[] = [];
   const duplicates: string[] = [];
   const toInsert: Array<{
@@ -134,7 +159,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // 10. Insert distributions
+  // 11. Insert distributions
   let inserted = 0;
   const errors: string[] = [];
 
@@ -150,11 +175,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 11. Record the upload
+  // 12. Record the upload
   await supabase.from("distribution_uploads").insert({
     user_id: user.id,
     file_path: `${user.id}/${Date.now()}_${file.name}`,
     original_filename: file.name,
+    term,
     status: errors.length > 0 ? "rejected" : "processed",
     processed_at: new Date().toISOString(),
   });
@@ -167,6 +193,18 @@ export async function POST(request: NextRequest) {
     duplicates,
     errors,
   };
+
+  // Invalidate user-specific and affected course caches on successful upload
+  if (errors.length === 0) {
+    const invalidations: Promise<unknown>[] = [
+      redis.del(`access_status:${user.id}`),
+      redis.del(`uploads:${user.id}`),
+    ];
+    for (const code of courseCodes) {
+      invalidations.push(redis.del(`course:${code}`));
+    }
+    await Promise.all(invalidations);
+  }
 
   return NextResponse.json(response);
 }

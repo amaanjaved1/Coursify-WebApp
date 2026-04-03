@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
+const CACHE_KEY = "departments:list"
+const CACHE_TTL = 86400 // 24 hours
+
 export async function GET() {
   try {
+    const cached = await redis.get<string[]>(CACHE_KEY)
+    if (cached) {
+      return NextResponse.json({ departments: cached })
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const { data, error } = await supabase
@@ -25,6 +34,8 @@ export async function GET() {
           .filter(Boolean)
       ),
     ].sort() as string[]
+
+    await redis.set(CACHE_KEY, departments, { ex: CACHE_TTL })
 
     return NextResponse.json({ departments })
   } catch (err) {

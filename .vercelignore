@@ -1,8 +1,0 @@
-.git
-node_modules
-.next
-.vscode
-README.md
-.gitignore
-.env.local
-.DS_Store 

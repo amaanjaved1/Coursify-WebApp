@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { filterRmpTagsForDisplay } from "@/lib/rmp-comment-tags"
+import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -24,7 +25,14 @@ export async function GET(
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
   }
 
+  const cacheKey = `course_comments:${courseCode}`
+
   try {
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached)
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const [redditResult, rmpResult] = await Promise.all([
@@ -74,7 +82,9 @@ export async function GET(
       sentiment_label: String(row.sentiment_label ?? "neutral"),
     }))
 
-    return NextResponse.json({ redditComments, rmpComments })
+    const payload = { redditComments, rmpComments }
+    await redis.set(cacheKey, payload, { ex: 43200 }) // 12 hours
+    return NextResponse.json(payload)
   } catch (err) {
     console.error("Course comments API error:", err)
     return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 })

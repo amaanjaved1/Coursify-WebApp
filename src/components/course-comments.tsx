@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
+import { Brain, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { getCommentsForCourse } from "@/lib/db";
 import type { RedditComment, RmpComment } from "@/lib/db";
@@ -163,7 +163,7 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                   </div>
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300">r/queensuniversity</div>
                   <span
-                    className={`ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full capitalize shrink-0 ${sentimentBadge(currentRedditComment.sentiment_label)}`}
+                    className={`ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full capitalize shrink-0 glass-pill ${sentimentBadge(currentRedditComment.sentiment_label)}`}
                   >
                     {currentRedditComment.sentiment_label}
                   </span>
@@ -178,22 +178,20 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
 
                 <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4">{currentRedditComment.text}</p>
 
-                {currentRedditComment.tags && currentRedditComment.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {currentRedditComment.tags.map((tag, index) => (
-                      <span key={index} className="text-xs glass-pill px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-400">{tag}</span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
+                <div className="mt-auto flex items-center text-xs text-gray-400 dark:text-gray-500">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-[#FF4500]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                   </svg>
                   <span className="mr-3">{currentRedditComment.upvotes} upvotes</span>
                   {currentRedditComment.source_url && (
-                    <a href={currentRedditComment.source_url} target="_blank" rel="noopener noreferrer" className="text-[#FF4500] hover:underline ml-auto">
-                      View post
+                    <a
+                      href={currentRedditComment.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="glass-pill px-2.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 hover:underline ml-auto text-[#FF4500]"
+                    >
+                      View on Reddit
+                      <ExternalLink className="h-3 w-3" />
                     </a>
                   )}
                 </div>
@@ -296,44 +294,64 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                     </div>
                   </div>
                   <span
-                    className={`ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full capitalize shrink-0 ${sentimentBadge(currentRmpComment.sentiment_label)}`}
+                    className={`ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full capitalize shrink-0 glass-pill ${sentimentBadge(currentRmpComment.sentiment_label)}`}
                   >
                     {currentRmpComment.sentiment_label}
                   </span>
                 </div>
 
-                <div className="flex items-center">
-                  <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">Professor:</span>
-                  <a
-                    href={currentRmpComment.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-brand-navy dark:text-white hover:underline font-medium flex items-center"
-                  >
-                    {currentRmpComment.professor_name}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </a>
-                </div>
-
-                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4">{currentRmpComment.text}</p>
-
-                {currentRmpComment.tags && currentRmpComment.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {currentRmpComment.tags.map((tag, index) => (
-                      <span key={index} className="text-xs glass-pill px-2 py-0.5 rounded-full text-brand-navy dark:text-white">{tag}</span>
-                    ))}
+                {currentRmpComment.professor_name && (
+                  <div className="flex items-center">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">Professor:</span>
+                    <a
+                      href={currentRmpComment.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-brand-navy dark:text-white hover:underline font-medium flex items-center"
+                    >
+                      {currentRmpComment.professor_name}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </a>
                   </div>
                 )}
 
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="glass-pill px-2.5 py-1 rounded-full text-brand-navy dark:text-white font-medium">
-                    Quality: {currentRmpComment.quality_rating}/5
-                  </span>
-                  <span className="glass-pill px-2.5 py-1 rounded-full text-brand-red font-medium">
-                    Difficulty: {currentRmpComment.difficulty_rating}/5
-                  </span>
+                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4">{currentRmpComment.text}</p>
+
+                <div className="mt-auto flex flex-col gap-2">
+                  {currentRmpComment.tags?.length ? (
+                    <div className="flex flex-wrap gap-1">
+                      {currentRmpComment.tags.map((tag, index) => (
+                        <span
+                          key={`${tag}-${index}`}
+                          className="text-xs glass-pill px-2 py-0.5 rounded-full text-brand-navy dark:text-white"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="glass-pill px-2.5 py-1 rounded-full text-brand-navy dark:text-white font-medium">
+                      Quality: {currentRmpComment.quality_rating}/5
+                    </span>
+                    <span className="glass-pill px-2.5 py-1 rounded-full text-brand-red font-medium">
+                      Difficulty: {currentRmpComment.difficulty_rating}/5
+                    </span>
+                    {currentRmpComment.source_url && (
+                      <a
+                        href={currentRmpComment.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="glass-pill px-2.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 hover:underline text-brand-navy dark:text-white ml-auto"
+                      >
+                        View on RateMyProfessors
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ) : (

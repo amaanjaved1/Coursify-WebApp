@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, LogOut, User, Sun, Moon } from "lucide-react"
+import { Menu, X, LogOut, User, Sun, Moon, Settings, UploadCloud } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAuth } from "@/lib/auth/auth-context"
 import {
@@ -14,22 +14,43 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/use-toast"
+import { getSupabaseClient } from "@/lib/supabase/client"
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
   const { user, signOut } = useAuth()
+  const [pendingSeasonal, setPendingSeasonal] = useState(false)
+  const [dueTerm, setDueTerm] = useState<string | null>(null)
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   /** After pointer interaction, ignore scroll-up–based nav reveal (avoids layout/anchoring jumps from accordions, etc.). */
   const ignoreRevealUntilRef = useRef(0)
+  const lastYRef = useRef(0)
+  const scrollRafRef = useRef<number | null>(null)
+  const scrolledRef = useRef(false)
+  const hiddenRef = useRef(false)
+  const isMenuOpenRef = useRef(false)
+
+  scrolledRef.current = scrolled
+  hiddenRef.current = hidden
+  isMenuOpenRef.current = isMenuOpen
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const syncMobile = () => setIsMobileViewport(mq.matches)
+    syncMobile()
+    mq.addEventListener("change", syncMobile)
+    return () => mq.removeEventListener("change", syncMobile)
   }, [])
 
   useEffect(() => {
@@ -43,31 +64,87 @@ const Navigation = () => {
   }, [])
 
   useEffect(() => {
-    let lastY = window.scrollY
-    /** Ignore small deltas from layout/scroll-anchoring so fixed UI (e.g. accordions) doesn’t fake a “scroll up” and pop the bar in. */
-    const DIRECTION_THRESHOLD = 14
+    lastYRef.current = window.scrollY
+    const mqMobile = window.matchMedia("(max-width: 767px)")
 
-    const onScroll = () => {
+    const flushScroll = () => {
+      scrollRafRef.current = null
       const currentY = window.scrollY
+      const lastY = lastYRef.current
       const delta = currentY - lastY
+      const directionThreshold = mqMobile.matches ? 22 : 14
 
-      setScrolled(currentY > 20)
+      const nextScrolled = currentY > 20
+      let nextHidden = hiddenRef.current
 
       if (currentY < 80) {
-        setHidden(false)
-      } else if (delta > DIRECTION_THRESHOLD) {
-        setHidden(true)
-        setIsMenuOpen(false)
-      } else if (delta < -DIRECTION_THRESHOLD && Date.now() >= ignoreRevealUntilRef.current) {
-        setHidden(false)
+        nextHidden = false
+      } else if (delta > directionThreshold) {
+        nextHidden = true
+      } else if (delta < -directionThreshold && Date.now() >= ignoreRevealUntilRef.current) {
+        nextHidden = false
       }
 
-      lastY = currentY
+      if (nextScrolled !== scrolledRef.current) {
+        scrolledRef.current = nextScrolled
+        setScrolled(nextScrolled)
+      }
+      if (nextHidden !== hiddenRef.current) {
+        hiddenRef.current = nextHidden
+        setHidden(nextHidden)
+      }
+      if (delta > directionThreshold && nextHidden && isMenuOpenRef.current) {
+        isMenuOpenRef.current = false
+        setIsMenuOpen(false)
+      }
+
+      lastYRef.current = currentY
+    }
+
+    const onScroll = () => {
+      if (scrollRafRef.current !== null) return
+      scrollRafRef.current = window.requestAnimationFrame(flushScroll)
     }
 
     window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current)
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    const checkSeasonal = async () => {
+      try {
+        const { data: session } = await getSupabaseClient().auth.getSession()
+        const token = session?.session?.access_token
+        if (!token) return
+        const res = await fetch("/api/me/access-status", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const status = await res.json()
+        if (!status.pending_seasonal_upload) return
+        setPendingSeasonal(true)
+        setDueTerm(status.due_term)
+        // Toast once per browser session
+        const sessionKey = `seasonal_toast_${status.due_term}`
+        if (!sessionStorage.getItem(sessionKey)) {
+          sessionStorage.setItem(sessionKey, "1")
+          toast({
+            title: `${status.due_term} grades are available on SOLUS`,
+            description: "Upload your grade distribution to keep Queen's Answers access and help your peers.",
+          })
+        }
+      } catch {
+        // non-critical, silently fail
+      }
+    }
+    void checkSeasonal()
+  }, [user])
 
   const handleSignOut = async () => {
     toast({
@@ -100,8 +177,16 @@ const Navigation = () => {
         className="max-w-4xl mx-auto rounded-full px-5 py-2.5 motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22_1_0.36_1)] motion-reduce:duration-200"
         style={{
           background: scrolled ? "var(--nav-bg-scrolled)" : "var(--nav-bg)",
-          backdropFilter: scrolled ? "blur(48px) saturate(220%)" : "blur(32px) saturate(200%)",
-          WebkitBackdropFilter: scrolled ? "blur(48px) saturate(220%)" : "blur(32px) saturate(200%)",
+          backdropFilter: isMobileViewport
+            ? "none"
+            : scrolled
+              ? "blur(48px) saturate(220%)"
+              : "blur(32px) saturate(200%)",
+          WebkitBackdropFilter: isMobileViewport
+            ? "none"
+            : scrolled
+              ? "blur(48px) saturate(220%)"
+              : "blur(32px) saturate(200%)",
           border: "1px solid var(--nav-border)",
           boxShadow: scrolled
             ? `0 16px 48px var(--nav-shadow-scrolled), 0 4px 12px var(--nav-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05)`
@@ -144,13 +229,10 @@ const Navigation = () => {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+              className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
               aria-label="Toggle theme"
             >
-              {mounted && theme === "dark"
-                ? <><Sun size={15} /><span className="hidden nav:inline text-xs">Light</span></>
-                : <><Moon size={15} /><span className="hidden nav:inline text-xs">Dark</span></>
-              }
+              {mounted && theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
             {user ? (
@@ -160,7 +242,12 @@ const Navigation = () => {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200 border border-white/60 dark:border-white/10"
                     style={{ background: "var(--nav-bg)" }}
                   >
-                    <User className="w-4 h-4" strokeWidth={1.5} />
+                    <span className="relative">
+                      <User className="w-4 h-4" strokeWidth={1.5} />
+                      {pendingSeasonal && (
+                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-brand-red rounded-full border-2 border-white dark:border-gray-900" />
+                      )}
+                    </span>
                     <span className="hidden nav:block max-w-[80px] truncate text-xs">
                       {user.email?.split("@")[0]}
                     </span>
@@ -171,6 +258,23 @@ const Navigation = () => {
                   className="rounded-2xl border-0 shadow-xl mt-2 glass-card"
                 >
                   <div className="p-2 text-xs font-medium text-gray-500 dark:text-white/50">{user.email}</div>
+                  <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
+                  {pendingSeasonal && dueTerm && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/add-courses")}
+                        className="cursor-pointer text-sm text-brand-red rounded-xl mx-1 font-medium"
+                      >
+                        <UploadCloud className="mr-2 h-4 w-4" />
+                        Upload {dueTerm} data
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer text-sm text-gray-600 dark:text-white/80 hover:text-brand-navy dark:hover:text-white rounded-xl mx-1">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-sm text-gray-600 dark:text-white/80 hover:text-brand-red rounded-xl mx-1">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -238,18 +342,24 @@ const Navigation = () => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                  className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                  aria-label="Toggle theme"
                 >
-                  {mounted && theme === "dark"
-                    ? <><Sun size={15} /><span className="text-xs">Light mode</span></>
-                    : <><Moon size={15} /><span className="text-xs">Dark mode</span></>
-                  }
+                  {mounted && theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
                 </button>
               </div>
 
               {user ? (
                 <div className="pt-2 mt-1 border-t border-black/5 dark:border-white/5">
                   <div className="text-xs font-medium text-gray-400 dark:text-white/45 mb-1 px-4">{user.email}</div>
+                  <button
+                    type="button"
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-white/80 hover:text-brand-navy dark:hover:text-white rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
+                    onClick={() => { router.push("/settings"); setIsMenuOpen(false); }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </button>
                   <button
                     type="button"
                     className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-white/80 hover:text-brand-red rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"

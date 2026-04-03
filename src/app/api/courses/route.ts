@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { computeDataAvailability } from "@/lib/course-availability"
+import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+
+const CACHE_TTL = 600 // 10 minutes
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -25,7 +28,19 @@ export async function GET(request: NextRequest) {
     searchParams.get("availability")?.split(",").filter(Boolean) ?? []
   ).filter((x): x is "data" | "comments" => x === "data" || x === "comments")
 
+  // Build a stable cache key from sorted params
+  const sortedParams = Array.from(searchParams.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&")
+  const cacheKey = `courses:${sortedParams}`
+
   try {
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached)
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     let query = supabase
@@ -141,7 +156,9 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ courses, total, page, totalPages })
+    const payload = { courses, total, page, totalPages }
+    await redis.set(cacheKey, payload, { ex: CACHE_TTL })
+    return NextResponse.json(payload)
   } catch (err) {
     console.error("Courses API error:", err)
     return NextResponse.json(

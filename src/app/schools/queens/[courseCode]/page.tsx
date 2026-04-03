@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTheme } from "next-themes";
+import { useMotionTier, type MotionTier } from "@/lib/motion-prefs";
 
 const GRADE_LABELS = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
 
@@ -32,20 +33,20 @@ const GRADE_COLORS = {
   'F': '#D32F2F',
 };
 
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.5 } }
-};
-
-const slideUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+function pageMotionVariants(tier: MotionTier) {
+  const lite = tier === "lite";
+  return {
+    fadeIn: lite
+      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { duration: 0 } } }
+      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.5 } } },
+    slideUp: lite
+      ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
+      : { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } } },
+    staggerContainer: lite
+      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: 0 } } }
+      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } },
+  };
+}
 
 const GPA_SCALE_MIN = 1;
 const GPA_SCALE_MAX = 4.3;
@@ -156,8 +157,11 @@ const GPA_TREND_Y_TICKS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.3];
 
 export default function CourseDetailPage() {
   const params = useParams();
+  const motionTier = useMotionTier();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  const { fadeIn, slideUp, staggerContainer } = pageMotionVariants(motionTier);
+  const chartsAnimate = motionTier === "full";
   const courseCode = params?.courseCode ? (params.courseCode as string).replace(/-/g, ' ').toUpperCase() : '';
   const [selectedTerm, setSelectedTerm] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -210,8 +214,6 @@ export default function CourseDetailPage() {
 
   const selectedDistribution = course.distributions.find(dist => dist.term === selectedTerm);
   const hasDistributions = course.distributions && course.distributions.length > 0;
-  const courseCodeParts = courseCode.split(' ');
-  const department = courseCodeParts[0];
 
   const enrollmentRounded = Math.round(course.totalEnrollment);
   const enrollmentBarMax = 600;
@@ -229,26 +231,28 @@ export default function CourseDetailPage() {
     ? course.distributions.map(dist => ({ term: dist.term, gpa: dist.average_gpa })).reverse()
     : [];
 
-  const createDistributionBreakdown = (distribution: any) => {
-    if (!distribution) return [];
-    return [
-      { label: 'A+: ' + Math.round(distribution.grade_counts[0]) + '%', color: '#4CAF50' },
-      { label: 'A: ' + Math.round(distribution.grade_counts[1]) + '%', color: '#4CAF50' },
-      { label: 'A-: ' + Math.round(distribution.grade_counts[2]) + '%', color: '#8BC34A' },
-      { label: 'B+: ' + Math.round(distribution.grade_counts[3]) + '%', color: '#CDDC39' },
-      { label: 'B: ' + Math.round(distribution.grade_counts[4]) + '%', color: '#CDDC39' },
-      { label: 'B-: ' + Math.round(distribution.grade_counts[5]) + '%', color: '#FFEB3B' },
-      { label: 'C+: ' + Math.round(distribution.grade_counts[6]) + '%', color: '#FFC107' },
-      { label: 'C: ' + Math.round(distribution.grade_counts[7]) + '%', color: '#FFC107' },
-      { label: 'C-: ' + Math.round(distribution.grade_counts[8]) + '%', color: '#FF9800' },
-      { label: 'D+: ' + Math.round(distribution.grade_counts[9]) + '%', color: '#FF5722' },
-      { label: 'D: ' + Math.round(distribution.grade_counts[10]) + '%', color: '#F44336' },
-      { label: 'D-: ' + Math.round(distribution.grade_counts[11]) + '%', color: '#E91E63' },
-      { label: 'F: ' + Math.round(distribution.grade_counts[12]) + '%', color: '#D32F2F' },
-    ];
-  };
-
   const facultyName = course.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
+
+  const liteMotion = motionTier === "lite";
+  const heroBreadcrumb = liteMotion
+    ? { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0, transition: { duration: 0 } } }
+    : { hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { duration: 0.4, delay: 0.1 } } };
+  const heroFaculty = liteMotion
+    ? { hidden: { opacity: 1, x: 0 }, visible: { opacity: 1, x: 0, transition: { duration: 0 } } }
+    : { hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { duration: 0.5, delay: 0.2 } } };
+  const heroH1 = liteMotion
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
+    : { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.3 } } };
+  const heroH2 = liteMotion
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
+    : { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.4 } } };
+  const heroDesc = liteMotion
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
+    : { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.5 } } };
+  const barMotionTransition = chartsAnimate ? { duration: 1, delay: 0.5 } : { duration: 0, delay: 0 };
+  const barMotionShort = chartsAnimate ? { duration: 0.8, delay: 0.2 } : { duration: 0, delay: 0 };
+  const barMotionEnroll = chartsAnimate ? { duration: 0.8, delay: 0.25 } : { duration: 0, delay: 0 };
+  const tooltipGlass = chartsAnimate ? ("blur(12px)" as const) : ("none" as const);
 
   return (
     <div className="relative min-h-screen overflow-hidden pb-16 pt-20 course-detail-bg">
@@ -368,24 +372,24 @@ export default function CourseDetailPage() {
         button.course-detail-inset-glass[role="combobox"]:active,
         button.course-detail-inset-glass[role="combobox"][data-state="open"] {
           outline: none;
-          background: linear-gradient(165deg, rgba(255,255,255,0.9) 0%, rgba(244,247,252,0.68) 42%, rgba(255,255,255,0.55) 100%);
+          background: linear-gradient(165deg, rgba(255,255,255,0.96) 0%, rgba(250,251,255,0.86) 48%, rgba(255,255,255,0.78) 100%);
           border-color: rgba(255,255,255,0.95);
           box-shadow:
-            0 4px 24px rgba(0,48,95,0.1),
-            0 1px 4px rgba(0,48,95,0.06),
+            0 6px 20px rgba(15,23,42,0.1),
+            0 1px 4px rgba(15,23,42,0.06),
             inset 0 1px 0 rgba(255,255,255,1),
-            inset 0 -1px 0 rgba(0,48,95,0.07);
+            inset 0 -1px 0 rgba(15,23,42,0.04);
         }
         :is(.dark) button.course-detail-inset-glass[role="combobox"]:focus,
         :is(.dark) button.course-detail-inset-glass[role="combobox"]:focus-visible,
         :is(.dark) button.course-detail-inset-glass[role="combobox"]:active,
         :is(.dark) button.course-detail-inset-glass[role="combobox"][data-state="open"] {
-          background: linear-gradient(165deg, rgba(52,52,52,0.88) 0%, rgba(44,44,44,0.70) 42%, rgba(38,38,38,0.58) 100%);
-          border-color: rgba(255,255,255,0.1);
+          background: linear-gradient(165deg, rgba(56,56,56,0.95) 0%, rgba(48,48,48,0.84) 48%, rgba(42,42,42,0.72) 100%);
+          border-color: rgba(255,255,255,0.12);
           box-shadow:
-            0 4px 24px rgba(0,0,0,0.2),
-            0 1px 4px rgba(0,0,0,0.15),
-            inset 0 1px 0 rgba(255,255,255,0.04),
+            0 6px 20px rgba(0,0,0,0.25),
+            0 1px 4px rgba(0,0,0,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.05),
             inset 0 -1px 0 rgba(255,255,255,0.02);
         }
         button.course-detail-inset-glass[role="combobox"]:hover {
@@ -436,7 +440,7 @@ export default function CourseDetailPage() {
             {/* Breadcrumb */}
             <motion.div
               className="flex items-center gap-2 mb-5"
-              variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { duration: 0.4, delay: 0.1 } } }}
+              variants={heroBreadcrumb}
             >
               <Link href="/schools/queens" className="text-white/60 hover:text-white/90 text-sm transition-colors flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -449,9 +453,7 @@ export default function CourseDetailPage() {
             </motion.div>
 
             {/* Faculty badge */}
-            <motion.div
-              variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { duration: 0.5, delay: 0.2 } } }}
-            >
+            <motion.div variants={heroFaculty}>
               <span className="inline-block px-3 py-1 bg-brand-red text-white text-xs font-medium rounded-lg mb-4">
                 {facultyName}
               </span>
@@ -460,21 +462,19 @@ export default function CourseDetailPage() {
             {/* Course code + name */}
             <motion.h1
               className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight"
-              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.3 } } }}
+              variants={heroH1}
             >
               {course.course_code}
             </motion.h1>
             <motion.h2
               className="text-xl md:text-2xl font-medium text-white/80 mb-6"
-              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.4 } } }}
+              variants={heroH2}
             >
               {course.course_name}
             </motion.h2>
 
             {/* Description */}
-            <motion.div
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.5 } } }}
-            >
+            <motion.div variants={heroDesc}>
               <div className="flex items-center gap-2 mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -538,11 +538,16 @@ export default function CourseDetailPage() {
             </div>
             <div className="course-detail-inset-glass p-4 rounded-xl flex-1 flex items-start min-h-[5.5rem]">
               <p className="text-sm leading-relaxed text-brand-navy/85 dark:text-white/85">
-                {course.description && course.description.toString().toLowerCase().includes('prerequisite')
-                  ? course.description.toString().split(/\n/).find(line =>
-                      line.toLowerCase().includes('prerequisite') || line.toLowerCase().includes('prereq')
-                    )
-                  : `Prerequisite Level 2 or above and a minimum grade of C- in ${department.toLowerCase()} 124.`}
+                {course.course_requirements
+                  ? String(course.course_requirements)
+                  : course.description && course.description.toString().toLowerCase().includes('prerequisite')
+                    ? course.description
+                        .toString()
+                        .split(/\n/)
+                        .find(line =>
+                          line.toLowerCase().includes('prerequisite') || line.toLowerCase().includes('prereq')
+                        ) || 'No prerequisites on file.'
+                    : 'No prerequisites on file.'}
               </p>
             </div>
           </motion.div>
@@ -565,7 +570,7 @@ export default function CourseDetailPage() {
                     {course.averageGPA.toFixed(2)}
                   </span>
                 </div>
-                <GpaSpectrumBar gpa={course.averageGPA} heightClass="h-2" transition={{ duration: 1, delay: 0.5 }} />
+                <GpaSpectrumBar gpa={course.averageGPA} heightClass="h-2" transition={barMotionTransition} />
                 <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
                   <span>1.0</span>
                   <span>4.3</span>
@@ -583,7 +588,7 @@ export default function CourseDetailPage() {
                     className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
                     initial={{ width: 0 }}
                     animate={{ width: `${enrollmentBarPct}%` }}
-                    transition={{ duration: 1, delay: 0.55 }}
+                    transition={chartsAnimate ? { duration: 1, delay: 0.55 } : { duration: 0, delay: 0 }}
                   />
                 </div>
                 <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
@@ -695,7 +700,7 @@ export default function CourseDetailPage() {
                     ]}
                     contentStyle={{
                       backgroundColor: isDark ? 'rgba(32,32,32,0.97)' : 'rgba(255,255,255,0.92)',
-                      backdropFilter: 'blur(12px)',
+                      backdropFilter: tooltipGlass,
                       borderRadius: '10px',
                       border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.8)',
                       boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,48,95,0.12)',
@@ -704,6 +709,7 @@ export default function CourseDetailPage() {
                     }}
                   />
                   <Area
+                    isAnimationActive={chartsAnimate}
                     type="monotone"
                     dataKey="gpa"
                     stroke="#94a3b8"
@@ -775,22 +781,22 @@ export default function CourseDetailPage() {
             {course.distributions && course.distributions.length > 0 && (
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger
-                  className="course-detail-inset-glass inline-flex h-auto min-h-0 w-fit shrink-0 cursor-pointer items-center gap-1.5 rounded-full border-0 px-3 py-1.5 text-xs font-semibold leading-none text-brand-navy dark:text-white shadow-none outline-none ring-0 ring-offset-0 transition-[background,box-shadow,border-color] duration-200 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:ring-0 active:opacity-100 data-[placeholder]:text-brand-navy/55 dark:text-white/55 justify-start [&>span]:line-clamp-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:shrink-0 [&>svg]:opacity-60"
+                  className="course-detail-inset-glass inline-flex h-auto min-h-0 w-[4.75rem] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border-0 px-3 py-1.5 text-xs font-semibold leading-none text-brand-navy dark:text-white shadow-none outline-none ring-0 ring-offset-0 transition-[background,box-shadow,border-color] duration-200 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:ring-0 active:opacity-100 data-[placeholder]:text-brand-navy/55 dark:text-white/55 justify-between [&>span]:line-clamp-1 [&>span]:text-left [&>svg]:h-3 [&>svg]:w-3 [&>svg]:shrink-0 [&>svg]:opacity-60"
                   aria-label="Select term for grade distribution"
                 >
                   <SelectValue placeholder="Term" />
                 </SelectTrigger>
                 <SelectContent
-                  position="item-aligned"
+                  position="popper"
                   align="end"
-                  sideOffset={2}
-                  className="z-[100] max-h-72 overflow-hidden rounded-lg border border-gray-200/90 dark:border-white/10 bg-white dark:bg-slate-900 p-0.5 text-brand-navy dark:text-white shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:[--tw-enter-scale:1] data-[state=closed]:[--tw-exit-scale:1] data-[side=bottom]:slide-in-from-top-0 data-[side=top]:slide-in-from-bottom-0"
+                  sideOffset={6}
+                  className="z-[100] max-h-72 overflow-hidden rounded-lg border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-neutral-900/95 p-0.5 text-gray-800 dark:text-white shadow-md backdrop-blur-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:[--tw-enter-scale:1] data-[state=closed]:[--tw-exit-scale:1] data-[side=bottom]:slide-in-from-top-0 data-[side=top]:slide-in-from-bottom-0"
                 >
                   {course.distributions.map((dist) => (
                     <SelectItem
                       key={dist.term}
                       value={dist.term}
-                      className="cursor-pointer rounded-md py-2 pl-8 pr-3 text-xs font-semibold text-brand-navy dark:text-white outline-none focus:bg-gray-100 dark:focus:bg-white/10 focus:text-brand-navy dark:focus:text-white data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-white/10 data-[highlighted]:text-brand-navy dark:data-[highlighted]:text-white data-[state=checked]:bg-gray-50 dark:data-[state=checked]:bg-white/5"
+                      className="cursor-pointer rounded-md py-2 pl-8 pr-3 text-xs font-semibold text-gray-800 dark:text-white outline-none focus:bg-gray-100 dark:focus:bg-white/10 focus:text-gray-900 dark:focus:text-white data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-white/10 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-white data-[state=checked]:bg-gray-100 dark:data-[state=checked]:bg-white/10"
                     >
                       {dist.term}
                     </SelectItem>
@@ -826,17 +832,29 @@ export default function CourseDetailPage() {
                     <RechartsTooltip
                       formatter={(value) => [`${value}%`, 'Students']}
                       labelFormatter={(label) => `Grade ${label}`}
+                      itemStyle={{
+                        color: isDark ? '#e2e8f0' : '#0f172a',
+                      }}
+                      labelStyle={{
+                        color: isDark ? '#cbd5e1' : '#334155',
+                      }}
                       contentStyle={{
                         backgroundColor: isDark ? 'rgba(32,32,32,0.97)' : 'rgba(255,255,255,0.92)',
-                        backdropFilter: 'blur(12px)',
+                        backdropFilter: tooltipGlass,
                         borderRadius: '10px',
                         border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.8)',
                         boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,48,95,0.12)',
                         fontSize: '12px',
-                        color: isDark ? '#e2e8f0' : undefined,
+                        color: isDark ? '#e2e8f0' : '#0f172a',
                       }}
                     />
-                    <Bar dataKey="count" name="Students" animationDuration={1200} radius={[4, 4, 0, 0]}>
+                    <Bar
+                      dataKey="count"
+                      name="Students"
+                      isAnimationActive={chartsAnimate}
+                      animationDuration={chartsAnimate ? 1200 : 0}
+                      radius={[4, 4, 0, 0]}
+                    >
                       {gradeDistributionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} fillOpacity={0.85} />
                       ))}
@@ -856,7 +874,7 @@ export default function CourseDetailPage() {
                   <GpaSpectrumBar
                     gpa={selectedDistribution.average_gpa}
                     heightClass="h-1.5"
-                    transition={{ duration: 0.8, delay: 0.2 }}
+                    transition={barMotionShort}
                   />
                   <div className="flex justify-between w-full text-[10px] text-brand-navy/40 dark:text-white/40 mt-0.5">
                     <span>1.0</span>
@@ -871,7 +889,7 @@ export default function CourseDetailPage() {
                       className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min((selectedDistribution.enrollment / enrollmentBarMax) * 100, 100)}%` }}
-                      transition={{ duration: 0.8, delay: 0.25 }}
+                      transition={barMotionEnroll}
                     />
                   </div>
                   <div className="flex justify-between w-full text-[10px] text-brand-navy/40 dark:text-white/40 mt-0.5">
@@ -885,18 +903,6 @@ export default function CourseDetailPage() {
                 </div>
               </div>
 
-              {/* Grade breakdown — match GPA Trend legend: tight pills, flex-wrap, content-width */}
-              <div className="mt-3 shrink-0 flex flex-wrap justify-center gap-2">
-                {createDistributionBreakdown(selectedDistribution).map((item, index) => (
-                  <div
-                    key={index}
-                    className="course-detail-inset-glass inline-flex w-fit shrink-0 items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs max-w-full"
-                  >
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: item.color }} />
-                    <span className="text-brand-navy/80 dark:text-white/80 font-medium whitespace-nowrap">{item.label}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           ) : (
             <div

@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -38,6 +39,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 0 0% 9%;
     --foreground: 210 40% 98%;
     --card: 0 0% 11%;
@@ -78,6 +80,14 @@
     @apply text-foreground;
     background-color: var(--page-bg);
     background-image: none;
+    overflow-y: scroll;
+  }
+
+  html body[data-scroll-locked],
+  html body[data-scroll-locked="1"] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    --removed-body-scroll-bar-size: 0px !important;
   }
 }
 
@@ -94,6 +104,7 @@
 
 .gold-shine-text {
   display: inline-block;
+  color: #efb215;
   background: linear-gradient(
     90deg,
     #b8860b 0%,
@@ -110,7 +121,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: transparent;
   animation: gold-shine 3s linear infinite;
 }
 
@@ -462,17 +472,18 @@
 }
 
 .gradient-text {
+  color: #00305f;
   background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
   display: inline-block;
 }
 
 .dark .gradient-text {
+  color: #e5e7eb;
   background: linear-gradient(-45deg, #e5e7eb, #ff4d5e, #ffc940, #e5e7eb);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
@@ -483,17 +494,18 @@
 }
 
 .coursify-gradient-text {
+  color: #00305f;
   background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
   display: inline-block;
 }
 
 .dark .coursify-gradient-text {
+  color: #e5e7eb;
   background: linear-gradient(-45deg, #e5e7eb, #ff4d5e, #ffc940, #e5e7eb);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
@@ -503,17 +515,18 @@
 }
 
 .moving-gradient {
+  color: #00305f;
   background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
   display: inline-block;
 }
 
 .dark .moving-gradient {
+  color: #e5e7eb;
   background: linear-gradient(-45deg, #e5e7eb, #ff4d5e, #ffc940, #e5e7eb);
   background-size: 300% 300%;
   animation: coursify-gradient-shift 6s ease infinite;
@@ -869,4 +882,267 @@
   background: linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.08) 50%, rgba(30,30,30,0.65) 100%);
   border-bottom-color: #3b82f6;
   box-shadow: inset 0 -1px 0 rgba(59,130,246,0.15);
+}
+
+/* ===================== MOBILE GLASS TIER (scroll / GPU) =====================
+   Drop heavy backdrop-filter on small viewports; raise opacity so text stays readable. */
+@media (max-width: 767px) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dark .glass-card {
+    background: rgba(38, 38, 38, 0.96) !important;
+  }
+
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dark .glass-nav {
+    background: rgba(24, 24, 24, 0.96) !important;
+  }
+
+  .glass-btn {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dark .glass-btn {
+    background: rgba(38, 38, 38, 0.92) !important;
+  }
+
+  .glass-accordion {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dark .glass-accordion {
+    background: rgba(38, 38, 38, 0.94) !important;
+  }
+
+  .glass-pill {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dark .glass-pill {
+    background: rgba(42, 42, 42, 0.94) !important;
+  }
+
+  .glass-modal-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(8, 20, 44, 0.45) !important;
+  }
+
+  .dark .glass-modal-overlay {
+    background: rgba(0, 0, 0, 0.65) !important;
+  }
+
+  .glass-modal-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+  }
+
+  .dark .glass-modal-panel {
+    background: rgba(35, 35, 35, 0.98) !important;
+  }
+
+  .glass-modal-close {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .liquid-btn-red,
+  .liquid-btn-blue {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .auth-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .reddit-comment-header,
+  .rmp-comment-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  :is(.dark) .reddit-comment-header {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 69, 0, 0.2) 0%,
+      rgba(255, 120, 50, 0.1) 50%,
+      rgba(24, 24, 24, 0.96) 100%
+    ) !important;
+  }
+
+  :is(.dark) .rmp-comment-header {
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.2) 0%,
+      rgba(59, 130, 246, 0.1) 50%,
+      rgba(24, 24, 24, 0.96) 100%
+    ) !important;
+  }
+
+  /* Page-scoped glass (styled-jsx) — same class names */
+  .glass-card-deep {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  :is(.dark) .glass-card-deep {
+    background: rgba(38, 38, 38, 0.96) !important;
+  }
+
+  .glass-hero {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(0, 48, 95, 0.94) !important;
+  }
+
+  :is(.dark) .glass-hero {
+    background: rgba(0, 30, 60, 0.94) !important;
+  }
+
+  .course-detail-inset-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(248, 250, 255, 0.96) 45%,
+      rgba(255, 255, 255, 0.94) 100%
+    ) !important;
+    border: 1px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow:
+      0 4px 24px rgba(0, 48, 95, 0.08),
+      0 1px 4px rgba(0, 48, 95, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(0, 48, 95, 0.06) !important;
+  }
+
+  :is(.dark) .course-detail-inset-glass {
+    background: linear-gradient(
+      165deg,
+      rgba(48, 48, 48, 0.98) 0%,
+      rgba(40, 40, 40, 0.96) 45%,
+      rgba(32, 32, 32, 0.94) 100%
+    ) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.25),
+      0 1px 4px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.03) !important;
+  }
+
+  :is(.dark) .course-detail-inset-glass:hover {
+    background: linear-gradient(
+      165deg,
+      rgba(55, 55, 55, 0.98) 0%,
+      rgba(48, 48, 48, 0.96) 48%,
+      rgba(40, 40, 40, 0.94) 100%
+    ) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  :is(.dark) button.course-detail-inset-glass[role="combobox"]:focus,
+  :is(.dark) button.course-detail-inset-glass[role="combobox"]:focus-visible,
+  :is(.dark) button.course-detail-inset-glass[role="combobox"]:active,
+  :is(.dark) button.course-detail-inset-glass[role="combobox"][data-state="open"] {
+    background: linear-gradient(
+      165deg,
+      rgba(52, 52, 52, 0.98) 0%,
+      rgba(44, 44, 44, 0.94) 42%,
+      rgba(38, 38, 38, 0.92) 100%
+    ) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.22),
+      0 1px 4px rgba(0, 0, 0, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.03) !important;
+  }
+
+  .stat-pill {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .liquid-blob {
+    filter: blur(48px);
+    opacity: 0.06;
+  }
+
+  .liquid-blob-alt {
+    filter: blur(56px);
+    opacity: 0.05;
+  }
+
+  .blur-circle {
+    filter: blur(56px);
+    opacity: 0.35;
+  }
+}
+
+@media (max-width: 767px) and (pointer: coarse) {
+  .glass-card:hover,
+  .dark .glass-card:hover {
+    transform: none;
+  }
+}
+
+/* Course comments page — tab pills (defined in page inline styles) */
+@media (max-width: 767px) {
+  .tab-pill {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+  }
+
+  .tab-pill.active-all {
+    background: rgba(0, 48, 95, 0.9) !important;
+    border-color: rgba(0, 48, 95, 0.3) !important;
+    color: #fff !important;
+  }
+
+  .tab-pill.active-reddit {
+    background: rgba(255, 69, 0, 0.9) !important;
+    border-color: rgba(255, 69, 0, 0.3) !important;
+    color: #fff !important;
+  }
+
+  .tab-pill.active-rmp {
+    background: rgba(0, 48, 95, 0.9) !important;
+    border-color: rgba(0, 48, 95, 0.3) !important;
+    color: #fff !important;
+  }
+
+  :is(.dark) .tab-pill {
+    background: rgba(38, 38, 38, 0.94) !important;
+  }
+
+  :is(.dark) .tab-pill.active-all {
+    background: rgba(59, 130, 246, 0.9) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+  }
+
+  :is(.dark) .tab-pill.active-rmp {
+    background: rgba(59, 130, 246, 0.9) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+  }
 }

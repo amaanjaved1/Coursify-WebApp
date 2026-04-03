@@ -8,18 +8,23 @@ interface AuthModalProps {
   onClose: () => void;
   title?: string;
   description?: string;
+  /** Full path including query, e.g. from `buildAuthHref("/sign-in", redirectPath)` */
+  signInHref?: string;
+  signUpHref?: string;
 }
 
 export function AuthModal({
   isOpen,
   onClose,
   title = "Authentication Required",
-  description = "You need to sign in with your Queen's University account to access this feature."
+  description = "You need to sign in with your Queen's University account to access this feature.",
+  signInHref,
+  signUpHref,
 }: AuthModalProps) {
   const router = useRouter();
 
   const handleSignIn = () => {
-    router.push("/sign-in");
+    router.push(signInHref ?? "/sign-in");
     onClose();
   };
 
@@ -64,8 +69,25 @@ export function AuthModal({
                 </p>
               </div>
 
+              {signUpHref ? (
+                <p className="mb-4 text-center text-sm text-brand-navy/65 dark:text-white/60">
+                  New here?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(signUpHref);
+                      onClose();
+                    }}
+                    className="font-medium text-brand-red hover:text-brand-navy dark:hover:text-white"
+                  >
+                    Create an account
+                  </button>
+                </p>
+              ) : null}
+
               <div className="flex justify-end">
                 <button
+                  type="button"
                   onClick={handleSignIn}
                   className="liquid-btn-red rounded-2xl px-6 py-3 text-sm font-medium text-white"
                 >
