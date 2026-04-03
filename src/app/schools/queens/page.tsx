@@ -483,12 +483,6 @@ export default function QueensCourses() {
 
       <div className="container py-12 px-4 lg-filters:px-6 relative z-10">
         <div className="mb-12 text-center lg-filters:text-left">
-          <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full glass-pill mb-4">
-            <span className="text-brand-navy dark:text-white text-sm font-medium mr-2">
-              Course Explorer
-            </span>
-            <span className="inline-flex rounded-full h-1.5 w-1.5 bg-brand-red"></span>
-          </div>
           <h1 className="text-3xl lg-filters:text-4xl font-bold mb-4">
             <span className="text-brand-navy dark:text-white">
               Queen's University
