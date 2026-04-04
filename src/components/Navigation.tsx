@@ -161,8 +161,8 @@ const Navigation = () => {
 
   const links = [
     { href: "/", label: "Home" },
-    { href: "/schools/queens", label: "Queen's Courses" },
-    { href: "/add-courses", label: "Add Courses" },
+    { href: "/schools/queens", label: "View Courses" },
+    { href: "/add-courses", label: "Upload Distributions" },
     { href: "/queens-answers", label: "AI Assistant" },
     { href: "/about", label: "About" },
   ]
@@ -208,17 +208,11 @@ const Navigation = () => {
                   href={link.href}
                   className={
                     link.href === "/queens-answers"
-                      ? "px-3.5 py-1.5 rounded-full transition-all duration-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                      ? "px-3.5 py-1.5 rounded-full text-brand-gold font-semibold"
                       : "px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
                   }
                 >
-                  {link.href === "/queens-answers" ? (
-                    <span className="gradient-text">
-                      {link.label}
-                    </span>
-                  ) : (
-                    link.label
-                  )}
+                  {link.label}
                 </Link>
               </li>
             ))}
