@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       file_path: `${user.id}/${Date.now()}_${file.name}`,
       original_filename: file.name,
       term,
-      status: "rejected",
+      status: "already_uploaded",
       processed_at: new Date().toISOString(),
     });
     return NextResponse.json({

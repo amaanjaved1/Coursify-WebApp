@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Pencil, Check, X, UploadCloud, RefreshCw } from "lucide-react";
+import { Pencil, Check, X, UploadCloud, RefreshCw, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import type { UserProfile, AccessStatus } from "@/types";
+import type { UserProfile, AccessStatus, DistributionUploadStatus } from "@/types";
 
 type UploadRow = {
   id: string;
   original_filename: string;
-  status: string;
+  status: DistributionUploadStatus;
   term: string | null;
   processed_at: string | null;
 };
@@ -70,12 +70,20 @@ function StatusBadge({ status }: { status: AccessStatus }) {
   );
 }
 
-function UploadStatusBadge({ status }: { status: string }) {
+function UploadStatusBadge({ status }: { status: DistributionUploadStatus }) {
   if (status === "processed") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium px-2.5 py-0.5">
         <Check className="w-3 h-3" />
         Processed
+      </span>
+    );
+  }
+  if (status === "already_uploaded") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium px-2.5 py-0.5">
+        <Info className="w-3 h-3" />
+        Already uploaded
       </span>
     );
   }

@@ -101,6 +101,9 @@ export interface AccessStatus {
 }
 
 // PDF Upload Types
+/** Stored on `distribution_uploads.status` */
+export type DistributionUploadStatus = "processed" | "rejected" | "already_uploaded";
+
 export interface ParsedCourseRow {
   course_code: string;
   description: string;
