@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Brain, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { getCommentsForCourse } from "@/lib/db";
 import type { RedditComment, RmpComment } from "@/lib/db";
@@ -71,13 +71,6 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
         </h2>
         <div className="glass-card-deep rounded-xl p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">No student comments found for this course yet.</p>
-        </div>
-        <div className="mt-10 flex flex-col items-center justify-center">
-          <p className="text-base font-medium mb-4 text-gray-700 dark:text-gray-300">Talk with our chatbot to get more insights!</p>
-          <Link href="/queens-answers" className="liquid-btn-red text-white px-6 py-2.5 rounded-xl inline-flex items-center font-medium">
-            <Brain className="mr-2 h-4 w-4" />
-            <span className="text-sm">Try AI Assistant</span>
-          </Link>
         </div>
       </div>
     );
@@ -389,10 +382,8 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
           href={`/course-comments?courseCode=${encodeURIComponent(courseCode)}`}
           className="liquid-btn-blue text-white flex items-center gap-2 px-8 py-2.5 rounded-full"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-          See All Comments
+          <ExternalLink className="h-4 w-4" />
+          See More Details
         </Link>
       </motion.div>
 
@@ -402,17 +393,9 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.4 }}
       >
-        Comments are aggregated from public sources and may not reflect current course structure.
+        Click the button to filter reviews by professors.
       </motion.div>
 
-      {/* Chatbot CTA */}
-      <div className="mt-8 mb-4 flex flex-col items-center justify-center">
-        <p className="text-sm font-medium mb-3 text-gray-600 dark:text-gray-400">Talk with our chatbot to get more insights!</p>
-        <Link href="/queens-answers" className="liquid-btn-red text-white px-6 py-2.5 rounded-xl inline-flex items-center font-medium">
-          <Brain className="mr-2 h-4 w-4" />
-          <span className="text-sm">Try AI Assistant</span>
-        </Link>
-      </div>
     </div>
   );
 }
