@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 
 type Course = {
-  id: number
+  id: string
   code: string
   name: string
   description: string | null
