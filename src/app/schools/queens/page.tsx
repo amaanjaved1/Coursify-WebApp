@@ -124,18 +124,26 @@ export default function QueensCourses() {
     fetchSubjects().then(setSubjects);
   }, []);
 
-  // Debounce search input
+  // Debounce search input (only when live term differs from applied debounced value)
   useEffect(() => {
+    if (searchTerm === debouncedSearch) return;
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1);
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, debouncedSearch]);
 
   // Debounce GPA and enrollment sliders to avoid overloading requests
   useEffect(() => {
-    // Show loading state while we wait to apply debounced filter values
+    const gpaMatches =
+      debouncedGpaRange[0] === gpaRange[0] &&
+      debouncedGpaRange[1] === gpaRange[1];
+    const enrollmentMatches =
+      debouncedEnrollmentRange[0] === enrollmentRange[0] &&
+      debouncedEnrollmentRange[1] === enrollmentRange[1];
+    if (gpaMatches && enrollmentMatches) return;
+
     setLoading(true);
 
     const timer = setTimeout(() => {
@@ -145,7 +153,7 @@ export default function QueensCourses() {
     }, filterDebounceMs);
 
     return () => clearTimeout(timer);
-  }, [gpaRange, enrollmentRange]);
+  }, [gpaRange, enrollmentRange, debouncedGpaRange, debouncedEnrollmentRange]);
 
   // Sync URL params
   const updateUrl = useCallback(
