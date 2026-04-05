@@ -302,6 +302,10 @@ export default function QueensCourses() {
   }
 
   const resetFilters = () => {
+    const sortIsAtDefault =
+      sortConfig.key === "availability" && sortConfig.direction === "descending";
+    if (!hasActiveFilters && sortIsAtDefault && searchTerm === "" && currentPage === 1) return;
+
     setSearchTerm("");
     setDebouncedSearch("");
     setSelectedDepartments([]);
