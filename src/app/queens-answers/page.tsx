@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { usePathname, useSearchParams } from "next/navigation"
 import { QUEENS_ANSWERS_DRAFT_STORAGE_KEY } from "@/constants/queens-answers"
-import { ArrowUp, Bot, Search, MessageSquare, Target } from "lucide-react"
+import { ArrowUp, Bot, Brain, Search, MessageSquare, Target } from "lucide-react"
 import { useMotionTier } from "@/lib/motion-prefs"
 import { useAuth } from "@/lib/auth/auth-context"
 import { buildAuthHref } from "@/lib/auth/safe-redirect"
@@ -24,13 +24,31 @@ function QueensAnswersSuspenseFallback() {
   )
 }
 
+type ChatMessage = { role: "user" | "bot"; text: string }
+
+// TODO: Remove artificial delay and replace with real API call when backend is ready.
+// The 1.5–2.5s random timeout is purely cosmetic to simulate a realistic response time.
+function mockSendMessage(_question: string): Promise<string> {
+  const delay = 1500 + Math.random() * 1000 // 1.5–2.5s
+  return new Promise((resolve) =>
+    setTimeout(() => {
+      resolve(
+        "The AI is almost ready — we're putting it through its paces before course selection. For now, head over to the course explorer and upload your grade distros to get a head start!"
+      )
+    }, delay)
+  )
+}
+
 function AIFeatures() {
   const [question, setQuestion] = useState("")
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const [promptBuilderOpen, setPromptBuilderOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isBotTyping, setIsBotTyping] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const questionTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const messagesBottomRef = useRef<HTMLDivElement>(null)
   const controls = useAnimation()
   const motionTier = useMotionTier()
   const marqueeLite = motionTier === "lite"
@@ -120,6 +138,10 @@ function AIFeatures() {
     }
   }, [authLoading, user])
 
+  useEffect(() => {
+    messagesBottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isBotTyping])
+
   // Sample questions with emojis
   const sampleQuestions = [
     { emoji: "📊", text: "best electives for first-years" },
@@ -165,14 +187,24 @@ function AIFeatures() {
   };
 
   // Function to actually submit a question
-  const handleSubmitQuestion = (questionText: string = question) => {
+  const handleSubmitQuestion = async (questionText: string = question) => {
     if (needsAuthToAsk) {
       setAuthModalOpen(true)
       return
     }
-    // Handle question submission
-    console.log("Question submitted:", questionText);
-    // TODO: implement actual submission logic
+    if (!questionText.trim()) return
+
+    const userMsg: ChatMessage = { role: "user", text: questionText.trim() }
+    setMessages((prev) => [...prev, userMsg])
+    setQuestion("")
+    setIsBotTyping(true)
+
+    try {
+      const reply = await mockSendMessage(questionText)
+      setMessages((prev) => [...prev, { role: "bot", text: reply }])
+    } finally {
+      setIsBotTyping(false)
+    }
   };
 
   const openAuthModalForQuestion = () => {
@@ -183,71 +215,116 @@ function AIFeatures() {
       <ContributionGate>
     <div className="h-screen overflow-hidden bg-[var(--page-bg)] pt-20">
       <div className="h-full flex flex-col items-center justify-center px-4 overflow-hidden">
-        <div className="w-full max-w-2xl flex flex-col items-center">
-          {/* Header */}
-          <h1 className="text-5xl font-extrabold text-center mb-3 tracking-tight animated-title">
-            <span className="gradient-text">Queen's Answers</span>
-          </h1>
-          <p className="text-xl font-semibold text-center mb-10 text-brand-navy dark:text-white max-w-2xl">
-            Got a question? Ask it and get answers, perspectives, and recommendations from all of Queen's
-          </p>
+        <AnimatePresence>
+          {messages.length === 0 && (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
+              className="w-full max-w-2xl flex flex-col items-center"
+            >
+              {/* Header */}
+              <h1 className="text-5xl font-extrabold text-center mb-8 tracking-tight animated-title">
+                <span className="gradient-text">Queen's Answers</span>
+              </h1>
 
-          {/* Continuous Carousel */}
-          <div className="w-full mb-8 overflow-hidden relative carousel-container" ref={containerRef}>
-            <motion.div className="flex gap-4 px-4" animate={controls} style={{ width: "max-content" }}>
-              {duplicatedQuestions.map((q, i) => (
-                <motion.button
-                  key={i}
-                  type="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    handleSampleQuestionClick(q.text);
-                  }}
-                  className={`relative mx-0.5 flex items-center rounded-full px-6 py-3 text-base font-medium whitespace-nowrap box-border
-                    border border-brand-navy/28 dark:border-white/[0.12]
-                    ${marqueeLite ? "bg-white/95 dark:bg-zinc-800/95" : "bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md"}
-                    text-brand-navy dark:text-white
-                    shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)]
-                    transition-colors duration-[420ms] ease-in-out
-                    motion-reduce:transition-none
-                    hover:border-brand-navy/42 dark:hover:border-white/[0.18]
-                    hover:bg-white/92 dark:hover:bg-zinc-800/90
-                    hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]`}
-                  style={{ lineHeight: "1.2" }}
-                  aria-label={q.text}
-                  whileHover={{
-                    scale: 1.026,
-                    y: -2.5,
-                    zIndex: 20,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 320,
-                    damping: 26,
-                    mass: 0.95,
-                  }}
-                  whileTap={{ scale: 0.985 }}
-                >
-                  <span className="mr-2 text-lg">{q.emoji}</span>
-                  {q.text}
-                </motion.button>
-              ))}
+              {/* Continuous Carousel */}
+              <div className="w-full mb-8 overflow-hidden relative carousel-container" ref={containerRef}>
+                <motion.div className="flex gap-4 px-4" animate={controls} style={{ width: "max-content" }}>
+                  {duplicatedQuestions.map((q, i) => (
+                    <motion.button
+                      key={i}
+                      type="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        handleSampleQuestionClick(q.text);
+                      }}
+                      className={`relative mx-0.5 flex items-center rounded-full px-6 py-3 text-base font-medium whitespace-nowrap box-border
+                        border border-brand-navy/28 dark:border-white/[0.12]
+                        ${marqueeLite ? "bg-white/95 dark:bg-zinc-800/95" : "bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md"}
+                        text-brand-navy dark:text-white
+                        shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)]
+                        transition-colors duration-[420ms] ease-in-out
+                        motion-reduce:transition-none
+                        hover:border-brand-navy/42 dark:hover:border-white/[0.18]
+                        hover:bg-white/92 dark:hover:bg-zinc-800/90
+                        hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]`}
+                      style={{ lineHeight: "1.2" }}
+                      aria-label={q.text}
+                      whileHover={{
+                        scale: 1.026,
+                        y: -2.5,
+                        zIndex: 20,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 320,
+                        damping: 26,
+                        mass: 0.95,
+                      }}
+                      whileTap={{ scale: 0.985 }}
+                    >
+                      <span className="mr-2 text-lg">{q.emoji}</span>
+                      {q.text}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* How it works link */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPromptBuilderOpen(false)
+                  setShowHowItWorks(true)
+                }}
+                className="text-brand-navy dark:text-white underline text-base hover:text-brand-red transition cursor-pointer"
+                style={{ background: "none", border: "none", padding: 0 }}
+              >
+                Learn how Queen's Answers works &gt;
+              </button>
             </motion.div>
-          </div>
+          )}
+        </AnimatePresence>
 
-          {/* How it works link */}
-          <button
-            type="button"
-            onClick={() => {
-              setPromptBuilderOpen(false)
-              setShowHowItWorks(true)
-            }}
-            className="text-brand-navy dark:text-white underline text-base hover:text-brand-red transition cursor-pointer"
-            style={{ background: "none", border: "none", padding: 0 }}
-          >
-            Learn how Queen's Answers works &gt;
-          </button>
-        </div>
+        {messages.length > 0 && (
+          <div className="flex-1 w-full max-w-2xl mx-auto overflow-y-auto pb-32 pt-6 px-4 space-y-4">
+            {messages.map((m, i) =>
+              m.role === "user" ? (
+                <div key={i} className="flex justify-end">
+                  <div className="rounded-2xl px-4 py-2.5 max-w-[80%] text-[15px] bg-[#efb215] text-brand-navy dark:bg-[#efb215] dark:text-brand-navy font-medium">
+                    {m.text}
+                  </div>
+                </div>
+              ) : (
+                <div key={i} className="flex justify-start gap-2 items-start">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-red mt-0.5">
+                    <Brain className="h-4 w-4 text-white" strokeWidth={1.85} />
+                  </div>
+                  <div className="rounded-2xl px-4 py-2.5 max-w-[80%] text-[15px] bg-brand-navy text-white dark:bg-brand-navy dark:text-white">
+                    {m.text}
+                  </div>
+                </div>
+              )
+            )}
+            {isBotTyping && (
+              <div className="flex justify-start gap-2 items-start">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-red mt-0.5">
+                  <Brain className="h-4 w-4 text-white" strokeWidth={1.85} />
+                </div>
+                <div className="rounded-2xl px-4 py-2.5 text-[15px] bg-brand-navy text-white">
+                  <span className="typing-dots flex gap-1">
+                    <span className="h-2 w-2 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_infinite]" />
+                    <span className="h-2 w-2 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.2s_infinite]" />
+                    <span className="h-2 w-2 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
+                  </span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesBottomRef} />
+          </div>
+        )}
 
         {/* Ask a Question Input at the bottom — prompt builder + composer pill */}
         <div
@@ -284,7 +361,7 @@ function AIFeatures() {
               ref={questionTextareaRef}
               rows={1}
               className="min-h-[44px] min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent py-2.5 pl-0 pr-2 text-base sm:text-[17px] leading-normal text-[#222] shadow-none outline-none ring-0 ring-offset-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 dark:text-gray-100 placeholder:text-[#8e9196] dark:placeholder:text-gray-500 placeholder:font-normal transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
-              placeholder="Ask anything about courses or professors…"
+              placeholder="Ask anything"
               value={question}
               readOnly={showHowItWorks || needsAuthToAsk}
               onChange={(e) => setQuestion(e.target.value)}
@@ -500,6 +577,11 @@ function AIFeatures() {
         @keyframes fadeInModal {
           from { opacity: 0; transform: translateY(24px) scale(0.98); }
           to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes dotPulse {
+          0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </div>
