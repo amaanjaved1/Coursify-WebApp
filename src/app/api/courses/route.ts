@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { createHash } from "crypto"
 import { computeDataAvailability } from "@/lib/course-availability"
 import { redis } from "@/lib/redis"
 
@@ -28,12 +29,12 @@ export async function GET(request: NextRequest) {
     searchParams.get("availability")?.split(",").filter(Boolean) ?? []
   ).filter((x): x is "data" | "comments" => x === "data" || x === "comments")
 
-  // Build a stable cache key from sorted params
+  // Build a stable cache key from sorted params (hashed to prevent cache poisoning)
   const sortedParams = Array.from(searchParams.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
     .join("&")
-  const cacheKey = `courses:${sortedParams}`
+  const cacheKey = `courses:${createHash("sha256").update(sortedParams).digest("hex")}`
 
   try {
     const cached = await redis.get(cacheKey)

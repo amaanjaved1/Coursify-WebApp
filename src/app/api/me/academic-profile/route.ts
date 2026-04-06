@@ -16,7 +16,7 @@ async function authenticate(request: NextRequest) {
   if (!supabaseServiceKey) return { user: null, error: "Server configuration error" };
   const supabase = getServiceClient();
   const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.replace("Bearer ", "");
+  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
   if (!token) return { user: null, error: "Unauthorized" };
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return { user: null, error: "Authentication failed" };
