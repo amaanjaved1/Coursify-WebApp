@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   // 1. Authenticate user
   const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.replace("Bearer ", "");
+  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
   if (!token) {
     return NextResponse.json({ success: false, errors: ["Please sign in to upload."] }, { status: 401 });
   }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 3. Validate file type and size
-  if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+  if (file.type !== "application/pdf") {
     return NextResponse.json({ success: false, errors: ["File must be a PDF."] }, { status: 400 });
   }
 
@@ -57,6 +57,12 @@ export async function POST(request: NextRequest) {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    // Verify PDF magic bytes (%PDF) to prevent non-PDF files with a spoofed MIME type
+    if (buffer.length < 4 || buffer.subarray(0, 4).toString("ascii") !== "%PDF") {
+      return NextResponse.json({ success: false, errors: ["File does not appear to be a valid PDF."] }, { status: 400 });
+    }
+
     text = await extractTextFromPdf(buffer);
   } catch (pdfError) {
     console.error("PDF parsing error:", pdfError);

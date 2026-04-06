@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   });
 
   const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.replace("Bearer ", "");
+  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

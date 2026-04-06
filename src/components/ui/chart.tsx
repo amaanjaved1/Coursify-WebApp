@@ -67,6 +67,15 @@ const ChartContainer = React.forwardRef<
 })
 ChartContainer.displayName = "Chart"
 
+// Validates CSS color values to prevent injection via dangerouslySetInnerHTML.
+// Allows: hex (#rgb, #rrggbb, #rrggbbaa), rgb/rgba/hsl/hsla functions,
+// CSS custom properties (var(--…)), and plain named colors (letters only).
+function isSafeCssColor(value: string): boolean {
+  return /^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.,\s%]+\)|hsla?\(\s*[\d.,\s%]+\)|var\(--[\w-]+\)|[a-z]+)$/i.test(
+    value.trim()
+  )
+}
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([_, config]) => config.theme || config.color
@@ -88,7 +97,8 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    if (!color || !isSafeCssColor(color)) return null
+    return `  --color-${key}: ${color};`
   })
   .join("\n")}
 }
