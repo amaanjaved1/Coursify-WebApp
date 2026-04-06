@@ -243,6 +243,23 @@ export default function SignUp() {
                     </span>
                   ) : "Sign Up"}
                 </motion.button>
+
+                <motion.p
+                  className="text-center text-xs text-gray-400 dark:text-gray-500 px-2"
+                  initial={false}
+                  animate={lite ? undefined : { opacity: 1 }}
+                  transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.58 }}
+                >
+                  By creating an account, you agree to our{" "}
+                  <Link href="/terms" className="text-brand-navy dark:text-gray-300 hover:text-brand-red transition-colors duration-200 underline underline-offset-2">
+                    Terms of Use
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-brand-navy dark:text-gray-300 hover:text-brand-red transition-colors duration-200 underline underline-offset-2">
+                    Privacy Policy
+                  </Link>
+                  .
+                </motion.p>
               </form>
 
               <motion.p className="text-center text-sm text-gray-500 dark:text-gray-400" initial={false} animate={lite ? undefined : { opacity: 1 }} transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.6 }}>

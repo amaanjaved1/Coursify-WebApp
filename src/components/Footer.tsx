@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 
 const Footer = () => {
@@ -50,7 +52,7 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2">
+          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center flex-wrap gap-2">
             <span className="moving-gradient font-medium">
               © {new Date().getFullYear()} Coursify
             </span>
@@ -60,6 +62,20 @@ const Footer = () => {
               className="text-brand-navy dark:text-white hover:text-brand-red transition-colors duration-200 font-medium"
             >
               About Us
+            </Link>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
+            <Link
+              href="/privacy"
+              className="text-brand-navy dark:text-white hover:text-brand-red transition-colors duration-200 font-medium"
+            >
+              Privacy Policy
+            </Link>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
+            <Link
+              href="/terms"
+              className="text-brand-navy dark:text-white hover:text-brand-red transition-colors duration-200 font-medium"
+            >
+              Terms of Use
             </Link>
           </div>
         </div>

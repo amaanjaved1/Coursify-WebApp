@@ -375,16 +375,30 @@ export default function About() {
               </p>
             </div>
 
-            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2">
+            <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center flex-wrap gap-2">
               <span className="text-brand-navy dark:text-blue-400 font-medium">
                 © {new Date().getFullYear()} Coursify
               </span>
               <span className="text-gray-300 dark:text-gray-600">•</span>
               <Link
                 href="/about"
-                className="text-brand-navy dark:text-blue-400 font-medium"
+                className="text-brand-navy dark:text-blue-400 font-medium hover:text-brand-red transition-colors duration-200"
               >
                 About Us
+              </Link>
+              <span className="text-gray-300 dark:text-gray-600">•</span>
+              <Link
+                href="/privacy"
+                className="text-brand-navy dark:text-blue-400 font-medium hover:text-brand-red transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-gray-300 dark:text-gray-600">•</span>
+              <Link
+                href="/terms"
+                className="text-brand-navy dark:text-blue-400 font-medium hover:text-brand-red transition-colors duration-200"
+              >
+                Terms of Use
               </Link>
             </div>
           </div>
