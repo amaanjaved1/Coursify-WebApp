@@ -8,7 +8,13 @@
     "vercel-build": "NODE_OPTIONS=\"--max-old-space-size=4096\" next build",
     "start": "next start",
     "lint": "next lint",
-    "debugdb": "node lib/db-debug.js"
+    "debugdb": "node lib/db-debug.js",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:reseed": "npx supabase db reset",
+    "db:seed-remote": "npx supabase db reset --linked",
+    "db:push": "npx supabase db push"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -60,6 +66,7 @@
     "react-day-picker": "9.4.4",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.1",
+    "react-is": "^19.2.4",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
     "sonner": "^1.7.1",

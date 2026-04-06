@@ -25,11 +25,10 @@
 - **Tailwind CSS** — styling (with `tailwindcss-animate`, `@tailwindcss/typography`)
 - **Radix UI** — accessible primitives (dialogs, dropdowns, tabs, etc.)
 - **Supabase** — PostgreSQL (course and distribution data) and authentication
-- **Redis** — Caching the Queen's courses table
+- **Redis** (optional) — Upstash REST; caches course list and related API responses
 - **Framer Motion** — UI motion
 - **Recharts** — charts for grade and stats visuals
 - **Zod** & **React Hook Form** — forms and validation
-- **Vercel** — typical deployment target (see `VERCEL_SETUP.md`)
 
 🤖 The RAG / chat service is maintained in **Coursify-RAG** (Python / Flask), not in this repo.
 
@@ -37,28 +36,56 @@
 
 ## 🚀 Setup & development
 
-1. **Clone the repository**
+**Prerequisites:** Node.js 20+ recommended, [Supabase CLI](https://supabase.com/docs/guides/cli) for database setup. Local Supabase (`supabase start`) requires [Docker Desktop](https://docs.docker.com/desktop/).
+
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/CoursifyQU/Coursify-WebApp.git
 cd Coursify-WebApp
-```
-
-2. **Install dependencies**
-
-```bash
 npm install
 ```
 
-3. **Environment variables**
+### 2. Environment variables
 
-Copy `env.example` to `.env.local` and set:
+Copy [.env.example](./.env.example) to `.env.local` and fill in:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_KEY` (for server-side API routes that bypass RLS — required for full local API behaviour)
+| Variable | Required | Where to get it |
+| -------- | -------- | ---------------- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase → **Project Settings → API** |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | **Project Settings → API → Legacy keys** tab → `anon` `public` |
+| `SUPABASE_SERVICE_KEY` | Yes for uploads & `/api/me/*` | **Project Settings → API → Legacy keys** tab → `service_role` (server only, never in client bundle) |
+| `UPSTASH_REDIS_REST_URL` | No | [Upstash](https://console.upstash.com/) Redis → REST API |
+| `UPSTASH_REDIS_REST_TOKEN` | No | Same |
 
-4. **Run the dev server**
+> **⚠️ Use the Legacy API keys, not the newer "Publishable / Secret" keys.** The publishable keys don't work with the Supabase database API. See [`.env.example`](./.env.example) for the exact mapping.
+
+If you omit Upstash, the app still runs; API routes will skip caching and hit Supabase more often.
+
+### 3. Database (new Supabase project)
+
+Use your **own** Supabase project (free tier is fine). Schema and sample data live in this repo under `supabase/`.
+
+1. Create a project at [supabase.com](https://supabase.com/).
+2. From this repo, link and apply migrations (install CLI, then log in):
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref YOUR_PROJECT_REF
+   npx supabase db push
+   ```
+
+3. **Seed** sample courses and comments:
+
+   - **Local (Docker):** `npm run db:reseed` — drops everything, re-applies migrations, and runs [`supabase/seed.sql`](./supabase/seed.sql).
+   - **Remote:** `npm run db:seed-remote` — same as above but targets your linked Supabase project.
+   - **Manual fallback:** after `db push`, open the Supabase **SQL Editor**, paste the contents of `supabase/seed.sql`, and run it once.
+
+4. **Auth URLs:** In **Authentication → URL configuration**, set **Site URL** to `http://localhost:3000` and add redirect URL `http://localhost:3000/auth/callback`.
+
+**Staying up to date:** The schema is stable and changes infrequently. If it does change, maintainers will add new SQL under `supabase/migrations/` and update `supabase/seed.sql`. Contributors just `git pull` then `npm run db:reseed` (local) or `npm run db:seed-remote` (remote) to get the latest schema and data.
+
+### 4. Run the dev server
 
 ```bash
 npm run dev
@@ -66,7 +93,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Production build: `npm run build` then `npm start`. Lint: `npm run lint`.
 
-📦 Additional deployment notes: see `VERCEL_SETUP.md`.
+**npm scripts (Supabase):** `npm run db:start`, `npm run db:reset`, `npm run db:reseed`, `npm run db:seed-remote`, `npm run db:push` (wrap `npx supabase …`).
 
 ---
 
@@ -76,4 +103,4 @@ Contributions are welcome.
 
 - 🐛 **Issues** — Open an issue to describe bugs, ideas, or schema/API questions before large changes.
 - 🔀 **Pull requests** — Keep changes focused; match existing patterns (TypeScript, App Router, Supabase usage).
-- 🔐 **Security** — Do not commit real API keys or service role keys; use `env.example` as a template only.
+- 🔐 **Security** — Do not commit real API keys or service role keys; use `.env.example` as a template only. Never paste secrets in issues or PRs.
