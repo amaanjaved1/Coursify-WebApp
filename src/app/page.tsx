@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type CSSProperties } from "react";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { useMotionTier } from "@/lib/motion-prefs";
 import {
