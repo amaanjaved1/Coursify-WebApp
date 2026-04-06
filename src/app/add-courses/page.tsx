@@ -135,32 +135,36 @@ export default function AddCoursesPage() {
                   How To Find SOLUS Distribution
                 </button>
               </DialogTrigger>
-              <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-xl">What is a SOLUS Distribution?</DialogTitle>
-                  <DialogDescription className="text-sm leading-relaxed">
-                    A SOLUS grade distribution is a report from Queen&apos;s University showing how grades were distributed across letter grades for each course you took in a given term. It looks like this:
-                  </DialogDescription>
-                </DialogHeader>
+              <DialogContent className="max-w-xl p-0 block overflow-hidden">
+                <div className="max-h-[85vh] overflow-y-auto w-full">
+                  <div className="p-6 flex flex-col gap-4">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl pr-6">What is a SOLUS Distribution?</DialogTitle>
+                      <DialogDescription className="text-sm leading-relaxed">
+                        A SOLUS grade distribution is a report from Queen&apos;s University showing how grades were distributed across letter grades for each course you took in a given term. It looks like this:
+                      </DialogDescription>
+                    </DialogHeader>
 
-                <Image
-                  src="/course-distribution-example.png"
-                  alt="Example of a SOLUS grade distribution report"
-                  width={600}
-                  height={300}
-                  className="rounded-xl border border-brand-navy/10 dark:border-white/10 w-full"
-                />
+                    <Image
+                      src="/course-distribution-example.png"
+                      alt="Example of a SOLUS grade distribution report"
+                      width={600}
+                      height={300}
+                      className="rounded-xl border border-brand-navy/10 dark:border-white/10 w-full shrink-0"
+                    />
 
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-brand-navy dark:text-white">How to Download</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm text-brand-navy/80 dark:text-white/70">
-                    <li>Log into <strong>SOLUS Student Centre</strong></li>
-                    <li>Select the <strong>Academic Records</strong> tile</li>
-                    <li>Select the <strong>View Grades</strong> navigation</li>
-                    <li>Select the appropriate <strong>Term/Career</strong> combination</li>
-                    <li>Select the <strong>Grade Distribution</strong> button to view a grade distribution report</li>
-                    <li>Download the PDF and then upload it on our website</li>
-                  </ol>
+                    <div className="space-y-3 shrink-0">
+                      <h3 className="text-lg font-semibold text-brand-navy dark:text-white">How to Download</h3>
+                      <ol className="list-decimal list-inside space-y-2 text-sm text-brand-navy/80 dark:text-white/70">
+                        <li>Log into <strong>SOLUS Student Centre</strong></li>
+                        <li>Select the <strong>Academic Records</strong> tile</li>
+                        <li>Select the <strong>View Grades</strong> navigation</li>
+                        <li>Select the appropriate <strong>Term/Career</strong> combination</li>
+                        <li>Select the <strong>Grade Distribution</strong> button to view a grade distribution report</li>
+                        <li>Download the PDF and then upload it on our website</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
