@@ -52,19 +52,19 @@ function StatusBadge({ status }: { status: AccessStatus }) {
       </span>
     );
   }
-  // Seasonal gate — quota met but a specific term is outstanding
+  // Seasonal warning — quota met but a specific term is outstanding (soft block, skippable)
   if (status.pending_seasonal_upload && status.upload_count >= status.required_uploads) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold px-3 py-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        Locked · Upload {status.due_term} data
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-semibold px-3 py-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+        Action Needed · {status.due_term} data pending
       </span>
     );
   }
-  // Base quota not met
+  // Base quota not met (hard locked)
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold px-3 py-1">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold px-3 py-1">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
       Locked · {status.upload_count}/{status.required_uploads} uploads
     </span>
   );
@@ -241,16 +241,25 @@ export default function SettingsPage() {
           {accessStatus ? (
             <div className="flex flex-col gap-3">
               <StatusBadge status={accessStatus} />
-              {!accessStatus.has_access && !accessStatus.needs_onboarding && (
-                <p className="text-sm text-brand-navy/70 dark:text-white/70">
-                  {accessStatus.pending_seasonal_upload && accessStatus.upload_count >= accessStatus.required_uploads
-                    ? `Upload your ${accessStatus.due_term} SOLUS grade distribution to keep access.`
-                    : "Upload your SOLUS grade distribution PDFs to unlock Queen's Answers."
-                  }{" "}
-                  <Link href="/add-courses" className="text-brand-red hover:underline font-medium">
-                    Upload now →
-                  </Link>
-                </p>
+              {!accessStatus.needs_onboarding && (
+                <>
+                  {!accessStatus.has_access && accessStatus.upload_count < accessStatus.required_uploads && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      You need {accessStatus.required_uploads - accessStatus.upload_count} more grade distribution{accessStatus.required_uploads - accessStatus.upload_count === 1 ? "" : "s"} to unlock Queen&apos;s Answers.{" "}
+                      <Link href="/add-courses" className="font-medium underline hover:opacity-80">
+                        Upload now →
+                      </Link>
+                    </p>
+                  )}
+                  {accessStatus.pending_seasonal_upload && accessStatus.upload_count >= accessStatus.required_uploads && (
+                    <p className="text-sm text-orange-600 dark:text-orange-400">
+                      Your {accessStatus.due_term} grade distribution is now available on SOLUS. Upload it to maintain your Queen&apos;s Answers access.{" "}
+                      <Link href="/add-courses" className="font-medium underline hover:opacity-80">
+                        Upload now →
+                      </Link>
+                    </p>
+                  )}
+                </>
               )}
             </div>
           ) : (

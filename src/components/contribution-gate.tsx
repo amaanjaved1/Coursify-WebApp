@@ -53,12 +53,13 @@ export default function ContributionGate({ children }: Props) {
 
   // Always render children so page content (carousel animation etc.) mounts immediately.
   // Overlay the gate on top once we know the user doesn't have access.
-  // Seasonal gate can be skipped per-term; base quota gate cannot.
+  // Seasonal gate can be skipped per-term only when the base quota is already met.
+  const baseQuotaMet = status !== null && status.upload_count >= status.required_uploads;
   const locked =
     status !== null &&
     !status.has_access &&
     !status.needs_onboarding &&
-    !(status.pending_seasonal_upload && seasonalSkipped);
+    !(status.pending_seasonal_upload && seasonalSkipped && baseQuotaMet);
 
   return (
     <div className="relative">
@@ -81,25 +82,25 @@ export default function ContributionGate({ children }: Props) {
             </div>
 
             <h2 className="text-2xl font-bold text-brand-navy dark:text-white mb-2">
-              {status?.pending_seasonal_upload
-                ? `${status.due_term} Data Available`
+              {baseQuotaMet
+                ? `${status?.due_term} Data Available`
                 : "Unlock Queen\u2019s Answers"}
             </h2>
 
             <p className="text-sm leading-relaxed text-brand-navy/70 dark:text-white/70 mb-6 max-w-sm">
-              {status?.pending_seasonal_upload
-                ? `Your ${status.due_term} grade distribution is now available on SOLUS. Upload it to keep your Queen\u2019s Answers access and help your peers.`
-                : `Queen\u2019s Answers is powered by community-contributed grade data. Upload your SOLUS grade distribution PDF${status && status.required_uploads > 1 ? `s (${status.upload_count}/${status.required_uploads} done)` : ""} to get access.`}
+              {baseQuotaMet
+                ? `Your ${status?.due_term} grade distribution is now available on SOLUS. Upload it to keep your Queen\u2019s Answers access and help your peers.`
+                : `Queen\u2019s Answers requires community-contributed grade data to work. Upload your SOLUS grade distribution PDFs to get access (${status?.upload_count ?? 0}/${status?.required_uploads ?? 0} done).`}
             </p>
 
             <Link
               href="/add-courses"
               className="liquid-btn-red inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-white text-sm w-full"
             >
-              {status?.pending_seasonal_upload ? `Upload ${status.due_term} Data` : "Upload Distribution"}
+              {baseQuotaMet ? `Upload ${status?.due_term} Data` : "Upload Distribution"}
             </Link>
 
-            {status?.pending_seasonal_upload && (
+            {status?.pending_seasonal_upload && baseQuotaMet && (
               <button
                 type="button"
                 onClick={handleSkipSeasonal}
@@ -109,16 +110,6 @@ export default function ContributionGate({ children }: Props) {
               </button>
             )}
 
-            <p className="mt-4 text-xs text-brand-navy/45 dark:text-white/40">
-              Already uploaded?{" "}
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="underline hover:text-brand-navy dark:hover:text-white transition-colors"
-              >
-                Refresh to check
-              </button>
-            </p>
           </div>
         </div>
       )}
