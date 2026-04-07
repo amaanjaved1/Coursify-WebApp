@@ -243,6 +243,7 @@ export default function About() {
                             href={github}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`GitHub profile for ${name}`}
                             className="text-gray-400 dark:text-gray-500 hover:text-brand-navy dark:hover:text-blue-400 transition-colors duration-300"
                           >
                             <Github className="h-4 w-4" />
@@ -252,6 +253,7 @@ export default function About() {
                           href={linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
+                          aria-label={`LinkedIn profile for ${name}`}
                           className="text-gray-400 dark:text-gray-500 hover:text-brand-navy dark:hover:text-blue-400 transition-colors duration-300"
                         >
                           <Linkedin className="h-4 w-4" />
