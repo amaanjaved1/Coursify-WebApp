@@ -21,7 +21,6 @@ const Navigation = () => {
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
   const { user, signOut } = useAuth()
   const [pendingSeasonal, setPendingSeasonal] = useState(false)
   const [dueTerm, setDueTerm] = useState<string | null>(null)
@@ -43,14 +42,6 @@ const Navigation = () => {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)")
-    const syncMobile = () => setIsMobileViewport(mq.matches)
-    syncMobile()
-    mq.addEventListener("change", syncMobile)
-    return () => mq.removeEventListener("change", syncMobile)
   }, [])
 
   useEffect(() => {
@@ -177,16 +168,6 @@ const Navigation = () => {
         className="max-w-4xl mx-auto rounded-full px-5 py-2.5 motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22_1_0.36_1)] motion-reduce:duration-200"
         style={{
           background: scrolled ? "var(--nav-bg-scrolled)" : "var(--nav-bg)",
-          backdropFilter: isMobileViewport
-            ? "none"
-            : scrolled
-              ? "blur(48px) saturate(220%)"
-              : "blur(32px) saturate(200%)",
-          WebkitBackdropFilter: isMobileViewport
-            ? "none"
-            : scrolled
-              ? "blur(48px) saturate(220%)"
-              : "blur(32px) saturate(200%)",
           border: "1px solid var(--nav-border)",
           boxShadow: scrolled
             ? `0 16px 48px var(--nav-shadow-scrolled), 0 4px 12px var(--nav-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05)`

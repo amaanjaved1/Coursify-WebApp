@@ -33,7 +33,7 @@
     --page-bg: #f4f7ff;
     --nav-bg: rgba(255, 255, 255, 1);
     --nav-bg-scrolled: rgba(255, 255, 255, 1);
-    --nav-border: rgba(255, 255, 255, 0.85);
+    --nav-border: rgba(0, 0, 0, 0.08);
     --nav-shadow: rgba(0, 48, 95, 0.14);
     --nav-shadow-scrolled: rgba(0, 48, 95, 0.18);
   }
