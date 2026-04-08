@@ -269,7 +269,7 @@ export default function Home() {
       `}</style>
 
       {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative min-h-screen overflow-hidden pt-24 sm:pt-28">
+      <section className="relative min-h-screen overflow-x-hidden pt-24 sm:pt-28 pb-12 sm:pb-16">
         <SectionGlow
           className="left-[6%] top-28 h-72 w-72 blur-[145px] opacity-90"
           gradient="radial-gradient(circle, rgba(0,48,95,0.18) 0%, rgba(0,48,95,0.07) 48%, transparent 76%)"
@@ -353,25 +353,18 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right — three staggered UI mockup cards */}
-            <div className="relative hidden lg:flex flex-col gap-5 subpixel-antialiased [transform:translateZ(0)]">
-              <div
-                className="w-full max-w-xl ml-auto shadow-xl [backface-visibility:hidden]"
-                style={{ transform: "rotate(1.5deg) translateZ(0)" }}
-              >
+            {/* Right — structured UI mockup cards */}
+            <div className="relative hidden lg:flex flex-col gap-4 subpixel-antialiased [transform:translateZ(0)]">
+              <div className="w-full shadow-xl [backface-visibility:hidden]">
                 <GradeDistributionMockup />
               </div>
-              <div
-                className="w-full max-w-xl mr-auto shadow-xl [backface-visibility:hidden]"
-                style={{ transform: "rotate(-1.5deg) translateZ(0)" }}
-              >
-                <StudentReviewsMockup />
-              </div>
-              <div
-                className="w-full max-w-xl ml-auto shadow-2xl [backface-visibility:hidden]"
-                style={{ transform: "rotate(1deg) translateZ(0)" }}
-              >
-                <AIAssistantMockup />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="shadow-xl [backface-visibility:hidden]">
+                  <StudentReviewsMockup />
+                </div>
+                <div className="shadow-xl [backface-visibility:hidden] h-full">
+                  <AIAssistantMockup />
+                </div>
               </div>
             </div>
           </div>
