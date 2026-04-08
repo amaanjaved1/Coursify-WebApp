@@ -901,14 +901,24 @@
 /* ===================== MOBILE GLASS TIER (scroll / GPU) =====================
    Drop heavy backdrop-filter on small viewports; raise opacity so text stays readable. */
 @media (max-width: 767px) {
+  :root {
+    --nav-bg: rgba(255, 255, 255, 1);
+    --nav-bg-scrolled: rgba(255, 255, 255, 1);
+  }
+
+  .dark {
+    --nav-bg: rgba(23, 23, 23, 1);
+    --nav-bg-scrolled: rgba(23, 23, 23, 1);
+  }
+
   .glass-card {
-    background: rgba(255, 255, 255, 0.94) !important;
+    background: rgba(255, 255, 255, 0.97) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
   .dark .glass-card {
-    background: rgba(38, 38, 38, 0.96) !important;
+    background: rgba(38, 38, 38, 0.98) !important;
   }
 
   .glass-nav {
