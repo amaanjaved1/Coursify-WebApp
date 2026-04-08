@@ -37,7 +37,7 @@ export default function CourseCommentsPage() {
   const { staggerContainer, cardVariant } = listMotionVariants(motionTier);
   const courseCode = searchParams.get('courseCode') || '';
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'reddit' | 'rmp'>('all');
+  const [activeTab, setActiveTab] = useState<'reddit' | 'rmp'>('rmp');
   const [selectedProfessor, setSelectedProfessor] = useState<string | null>(null);
   const [redditComments, setRedditComments] = useState<RedditComment[]>([]);
   const [rmpComments, setRmpComments] = useState<RmpComment[]>([]);
@@ -66,11 +66,9 @@ export default function CourseCommentsPage() {
     ...rmpComments.map(c => ({ ...c, _type: 'rmp' as const })),
   ];
 
-  const tabFiltered = activeTab === 'all'
-    ? allComments
-    : activeTab === 'reddit'
-      ? allComments.filter(c => c._type === 'reddit')
-      : allComments.filter(c => c._type === 'rmp');
+  const tabFiltered = activeTab === 'reddit'
+    ? allComments.filter(c => c._type === 'reddit')
+    : allComments.filter(c => c._type === 'rmp');
 
   const filteredComments = selectedProfessor
     ? tabFiltered.filter(c => c.professor_name === selectedProfessor)
@@ -94,17 +92,16 @@ export default function CourseCommentsPage() {
   };
 
   const tabs = [
-    { id: 'all' as const, label: 'All', count: allComments.length, accent: '#00305f' },
-    { id: 'reddit' as const, label: 'Reddit', count: redditComments.length, accent: '#FF4500' },
     { id: 'rmp' as const, label: 'RateMyProfessors', count: rmpComments.length, accent: '#00305f' },
+    { id: 'reddit' as const, label: 'Reddit', count: redditComments.length, accent: '#FF4500' },
   ];
 
-  const handleTabChange = (tab: 'all' | 'reddit' | 'rmp') => {
+  const handleTabChange = (tab: 'reddit' | 'rmp') => {
     setActiveTab(tab);
     setCurrentPage(1);
     // Clear professor filter if they don't appear in the new tab
     if (selectedProfessor) {
-      const nextTabComments = tab === 'all' ? allComments : allComments.filter(c => c._type === tab);
+      const nextTabComments = allComments.filter(c => c._type === tab);
       const nextProfessors = nextTabComments.map(c => c.professor_name);
       if (!nextProfessors.includes(selectedProfessor)) setSelectedProfessor(null);
     }
@@ -149,7 +146,6 @@ export default function CourseCommentsPage() {
           transition: all 0.2s ease;
         }
         .tab-pill:hover { background: rgba(255,255,255,0.75); }
-        .tab-pill.active-all { background: rgba(0,48,95,0.9); border-color: rgba(0,48,95,0.3); color: white; }
         .tab-pill.active-reddit { background: rgba(255,69,0,0.9); border-color: rgba(255,69,0,0.3); color: white; }
         .tab-pill.active-rmp { background: rgba(0,48,95,0.9); border-color: rgba(0,48,95,0.3); color: white; }
         :is(.dark) .glass-card-deep {
@@ -170,7 +166,6 @@ export default function CourseCommentsPage() {
           border: 1px solid rgba(255,255,255,0.1);
         }
         :is(.dark) .tab-pill:hover { background: rgba(50,50,50,0.80); }
-        :is(.dark) .tab-pill.active-all { background: rgba(59,130,246,0.9); border-color: rgba(59,130,246,0.3); }
         :is(.dark) .tab-pill.active-reddit { background: rgba(255,69,0,0.9); border-color: rgba(255,69,0,0.3); color: white; }
         :is(.dark) .tab-pill.active-rmp { background: rgba(59,130,246,0.9); border-color: rgba(59,130,246,0.3); }
       ` }} />
@@ -209,14 +204,8 @@ export default function CourseCommentsPage() {
 
               {/* Stats pills */}
               <div className="flex flex-wrap gap-2 self-end">
-                <div className="px-3.5 py-1.5 rounded-full text-sm font-medium text-white/80" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                  <span className="text-white font-semibold">{redditComments.length}</span> Reddit
-                </div>
-                <div className="px-3.5 py-1.5 rounded-full text-sm font-medium text-white/80" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                  <span className="text-white font-semibold">{rmpComments.length}</span> RateMyProfessors
-                </div>
-                <div className="px-3.5 py-1.5 rounded-full text-sm font-medium text-white/80" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                  <span className="text-white font-semibold">{allComments.length}</span> total
+                <div className="px-4 py-2 rounded-full text-sm font-semibold text-brand-navy shadow-[0_10px_30px_rgba(255,255,255,0.28)]" style={{ background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(255,255,255,0.98)' }}>
+                  {allComments.length} total
                 </div>
               </div>
             </div>
@@ -540,16 +529,8 @@ export default function CourseCommentsPage() {
               {courseCode ? 'No comments found for this filter.' : 'No course code provided.'}
             </p>
             <p className="text-gray-400 dark:text-gray-500 text-sm">
-              {courseCode ? 'Try switching to a different tab.' : 'Navigate here from a course page.'}
+              {courseCode ? 'Try switching tabs.' : 'Navigate here from a course page.'}
             </p>
-            {courseCode && activeTab !== 'all' && (
-              <button
-                onClick={() => handleTabChange('all')}
-                className="mt-5 px-5 py-2 rounded-full text-sm font-medium bg-brand-navy/10 dark:bg-blue-400/10 text-brand-navy dark:text-white hover:bg-brand-navy/15 dark:hover:bg-blue-500/15 transition-colors border border-brand-navy/20 dark:border-blue-400/20"
-              >
-                View all comments
-              </button>
-            )}
           </motion.div>
         )}
             </div>
