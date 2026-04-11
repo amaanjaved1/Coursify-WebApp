@@ -246,9 +246,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section 1: Queen's Answers Access */}
-        <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-4 items-start">
-          {/* Left: access status — unchanged content */}
-          <div className="glass-card rounded-2xl p-5">
+        <div className="glass-card rounded-2xl p-5">
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
               Queen&apos;s Answers Access
             </h2>
@@ -280,37 +278,44 @@ export default function SettingsPage() {
               <span className="text-sm text-gray-400">Loading…</span>
             )}
           </div>
-
-          {/* Right: daily question limit */}
-          <div className="glass-card rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-              Daily Question Limit
-            </h2>
-            {qaStatus ? (
-              <div className="flex flex-col gap-2">
-                <div>
-                  <div className="text-2xl font-bold text-brand-navy dark:text-white">
-                    {qaStatus.remaining}
-                    <span className="text-sm font-normal text-gray-400 dark:text-gray-500"> / {qaStatus.dailyLimit} remaining</span>
-                  </div>
-                  <div className="mt-1 h-1.5 w-full rounded-full bg-brand-navy/10 dark:bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-brand-navy dark:bg-blue-400 transition-all"
-                      style={{ width: `${qaStatus.dailyLimit > 0 ? Math.min(100, Math.round((qaStatus.remaining / qaStatus.dailyLimit) * 100)) : 0}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 leading-relaxed mt-1">
-                  0–1 semesters: 2/day · 2+ semesters: 3/day
-                </p>
-              </div>
-            ) : (
-              <span className="text-sm text-gray-400">Loading…</span>
-            )}
-          </div>
         </div>
 
-        {/* Section 2: Academic Profile */}
+        {/* Section 2: Daily Question Limit */}
+        <div className="glass-card rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+            Daily Question Limit
+          </h2>
+          {qaStatus ? (
+            <div className="flex flex-col gap-3">
+              <div>
+                <div className="text-2xl font-bold text-brand-navy dark:text-white">
+                  {qaStatus.remaining}
+                  <span className="text-sm font-normal text-gray-400 dark:text-gray-500"> / {qaStatus.dailyLimit} remaining today</span>
+                </div>
+                <div className="mt-2 h-1.5 w-full rounded-full bg-brand-navy/10 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-navy dark:bg-blue-400 transition-all"
+                    style={{ width: `${qaStatus.dailyLimit > 0 ? Math.min(100, Math.round((qaStatus.remaining / qaStatus.dailyLimit) * 100)) : 0}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 text-sm text-brand-navy/70 dark:text-white/65">
+                <div className="flex items-center justify-between">
+                  <span>0–1 semesters completed</span>
+                  <span className="font-semibold text-brand-navy dark:text-white">2 questions / day</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>2+ semesters completed</span>
+                  <span className="font-semibold text-brand-navy dark:text-white">3 questions / day</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <span className="text-sm text-gray-400">Loading…</span>
+          )}
+        </div>
+
+        {/* Section 3: Academic Profile */}
         <div className="glass-card rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
