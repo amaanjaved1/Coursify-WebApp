@@ -13,7 +13,7 @@ function getTierLimit(semestersCompleted: number): number {
 }
 
 export async function GET(request: NextRequest) {
-  if (!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
   }
 

@@ -21,7 +21,7 @@ function secondsUntilMidnightUTC(): number {
 }
 
 export async function POST(request: NextRequest) {
-  if (!supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
       { error: "Server configuration error", reason: "unauthorized" },
       { status: 500 }
