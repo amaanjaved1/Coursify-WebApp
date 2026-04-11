@@ -266,16 +266,25 @@ function AIFeatures() {
       <ContributionGate>
     <div className="h-screen overflow-hidden bg-[var(--page-bg)] pt-16 sm:pt-20">
       <div className="h-full flex flex-col items-center px-2 sm:px-4 overflow-hidden">
-        {/* Limit info bar — always visible at top when user is loaded */}
+        {/* Limit info pill — always visible at top when user is loaded */}
         {user && !authLoading && !statusLoading && (remaining !== null || limitHit !== null) && (
           <button
             type="button"
             onClick={() => setShowLimitPopup(true)}
-            className="flex items-center gap-1.5 text-[12px] text-brand-navy/50 dark:text-white/38 hover:text-brand-navy/70 dark:hover:text-white/58 transition-colors pt-3 pb-0 shrink-0"
+            className="flex items-center gap-2 mt-3 px-4 py-2 shrink-0 rounded-full
+              bg-white dark:bg-zinc-800
+              border border-brand-navy/12 dark:border-white/10
+              shadow-[0_2px_8px_rgba(0,48,95,0.08),0_1px_2px_rgba(0,48,95,0.04)]
+              dark:shadow-[0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]
+              text-[12.5px] font-medium text-brand-navy/70 dark:text-white/65
+              hover:shadow-[0_4px_14px_rgba(0,48,95,0.12),0_1px_3px_rgba(0,48,95,0.06)]
+              dark:hover:shadow-[0_4px_14px_rgba(0,0,0,0.38),0_1px_3px_rgba(0,0,0,0.22)]
+              hover:text-brand-navy dark:hover:text-white
+              transition-all duration-200"
           >
-            <Info className="h-3.5 w-3.5 shrink-0" />
+            <Info className="h-3.5 w-3.5 shrink-0 text-brand-navy/50 dark:text-white/45" />
             {limitHit === "global" ? (
-              <span>At capacity for today — tap for details</span>
+              <span>Queen&apos;s Answers is at capacity today — tap for details</span>
             ) : limitHit === "user" ? (
               <span>Daily limit reached — tap for details</span>
             ) : (
