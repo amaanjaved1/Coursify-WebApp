@@ -155,6 +155,23 @@ function GpaSpectrumBar({
 const GPA_TREND_Y_DOMAIN: [number, number] = [0, 4.3];
 const GPA_TREND_Y_TICKS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.3];
 
+function formatAcademicTerm(term: string): string {
+  const compactMatch = term.match(/^([FWS])(\d{2})$/i);
+  if (!compactMatch) return term;
+
+  const [, seasonCode, shortYear] = compactMatch;
+  const seasonMap: Record<string, string> = {
+    F: 'Fall',
+    W: 'Winter',
+    S: 'Summer',
+  };
+
+  const season = seasonMap[seasonCode.toUpperCase()] ?? term;
+  const year = 2000 + Number.parseInt(shortYear, 10);
+
+  return `${season} ${year}`;
+}
+
 export default function CourseDetailPage() {
   const params = useParams();
   const motionTier = useMotionTier();
@@ -781,7 +798,7 @@ export default function CourseDetailPage() {
             {course.distributions && course.distributions.length > 0 && (
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger
-                  className="course-detail-inset-glass inline-flex h-auto min-h-0 w-[4.75rem] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border-0 px-3 py-1.5 text-xs font-semibold leading-none text-brand-navy dark:text-white shadow-none outline-none ring-0 ring-offset-0 transition-[background,box-shadow,border-color] duration-200 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:ring-0 active:opacity-100 data-[placeholder]:text-brand-navy/55 dark:text-white/55 justify-between [&>span]:line-clamp-1 [&>span]:text-left [&>svg]:h-3 [&>svg]:w-3 [&>svg]:shrink-0 [&>svg]:opacity-60"
+                  className="inline-flex h-auto min-h-0 min-w-[8.5rem] w-auto shrink-0 cursor-pointer items-center justify-between gap-0 rounded-full border border-brand-navy/10 bg-white/85 px-2.5 py-2 text-left text-[11px] font-semibold leading-none text-brand-navy shadow-[0_8px_24px_rgba(0,48,95,0.12)] outline-none ring-0 ring-offset-0 transition-[background,box-shadow,border-color,transform] duration-200 hover:border-brand-navy/20 hover:bg-white hover:shadow-[0_12px_28px_rgba(0,48,95,0.16)] focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:border-brand-red/30 data-[state=open]:shadow-[0_12px_28px_rgba(214,40,57,0.18)] dark:border-white/10 dark:bg-white/10 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.24)] dark:hover:border-white/20 dark:hover:bg-white/14 dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.28)] dark:data-[state=open]:border-brand-red/40 dark:data-[state=open]:shadow-[0_12px_28px_rgba(214,40,57,0.22)] data-[placeholder]:text-brand-navy/55 dark:data-[placeholder]:text-white/55 [&>span]:line-clamp-1 [&>span]:text-left [&>span]:flex [&>span]:items-baseline [&>span]:gap-2 [&>span]:before:content-['Term'] [&>span]:before:text-[11px] [&>span]:before:font-bold [&>span]:before:uppercase [&>span]:before:tracking-[0.12em] [&>span]:before:text-brand-red dark:[&>span]:before:text-red-300 [&>svg]:ml-0 [&>svg]:mr-0.5 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:shrink-0 [&>svg]:opacity-70"
                   aria-label="Select term for grade distribution"
                 >
                   <SelectValue placeholder="Term" />
@@ -798,7 +815,7 @@ export default function CourseDetailPage() {
                       value={dist.term}
                       className="cursor-pointer rounded-md py-2 pl-8 pr-3 text-xs font-semibold text-gray-800 dark:text-white outline-none focus:bg-gray-100 dark:focus:bg-white/10 focus:text-gray-900 dark:focus:text-white data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-white/10 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-white data-[state=checked]:bg-gray-100 dark:data-[state=checked]:bg-white/10"
                     >
-                      {dist.term}
+                      {formatAcademicTerm(dist.term)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -865,10 +882,10 @@ export default function CourseDetailPage() {
               </div>
 
               {/* Stats row — glass cards; Avg GPA includes mini scale bar */}
-              <div className="mt-4 shrink-0 grid grid-cols-3 gap-2.5">
+              <div className="mt-4 shrink-0 grid grid-cols-2 gap-2.5">
                 <div className="course-detail-inset-glass rounded-xl p-3 text-center flex flex-col">
                   <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Avg GPA</div>
-                  <div className={`text-base font-bold ${gpaValueTextClass(selectedDistribution.average_gpa)}`}>
+                  <div className={`mb-2 text-base font-bold ${gpaValueTextClass(selectedDistribution.average_gpa)}`}>
                     {selectedDistribution.average_gpa.toFixed(2)}
                   </div>
                   <GpaSpectrumBar
@@ -876,15 +893,15 @@ export default function CourseDetailPage() {
                     heightClass="h-1.5"
                     transition={barMotionShort}
                   />
-                  <div className="flex justify-between w-full text-[10px] text-brand-navy/40 dark:text-white/40 mt-0.5">
+                  <div className="mt-1 flex w-full justify-between text-[10px] leading-none text-brand-navy/40 dark:text-white/40">
                     <span>1.0</span>
                     <span>4.3</span>
                   </div>
                 </div>
                 <div className="course-detail-inset-glass rounded-xl p-3 text-center flex flex-col">
                   <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Enrollment</div>
-                  <div className="text-base font-bold text-brand-navy dark:text-white">{selectedDistribution.enrollment}</div>
-                  <div className="w-full mt-2 overflow-hidden h-1.5 rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]">
+                  <div className="mb-2 text-base font-bold text-brand-navy dark:text-white">{selectedDistribution.enrollment}</div>
+                  <div className="w-full overflow-hidden h-1.5 rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
                       initial={{ width: 0 }}
@@ -892,14 +909,10 @@ export default function CourseDetailPage() {
                       transition={barMotionEnroll}
                     />
                   </div>
-                  <div className="flex justify-between w-full text-[10px] text-brand-navy/40 dark:text-white/40 mt-0.5">
+                  <div className="mt-1 flex w-full justify-between text-[10px] leading-none text-brand-navy/40 dark:text-white/40">
                     <span>0</span>
                     <span>{enrollmentBarMax}</span>
                   </div>
-                </div>
-                <div className="course-detail-inset-glass rounded-xl p-3 text-center">
-                  <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Term</div>
-                  <div className="text-base font-bold text-brand-navy dark:text-white">{selectedDistribution.term}</div>
                 </div>
               </div>
 
