@@ -296,7 +296,7 @@ export default function SettingsPage() {
                   <div className="mt-1 h-1.5 w-full rounded-full bg-brand-navy/10 dark:bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-brand-navy dark:bg-blue-400 transition-all"
-                      style={{ width: `${Math.round((qaStatus.remaining / qaStatus.dailyLimit) * 100)}%` }}
+                      style={{ width: `${qaStatus.dailyLimit > 0 ? Math.min(100, Math.round((qaStatus.remaining / qaStatus.dailyLimit) * 100)) : 0}%` }}
                     />
                   </div>
                 </div>
