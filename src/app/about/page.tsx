@@ -507,7 +507,7 @@ export default async function About() {
                                   return (
                                     <div
                                       className={cn(
-                                        "relative flex items-start gap-4 rounded-2xl border px-4 py-4 shadow-sm",
+                                        "relative flex items-start gap-4 rounded-2xl border px-4 py-4 shadow-sm max-[390px]:gap-3 sm:gap-4",
                                         highlight.rowClassName
                                       )}
                                     >
@@ -520,15 +520,39 @@ export default async function About() {
                                           aria-hidden
                                         />
                                       ) : null}
-                                      <div
-                                        className={cn(
-                                          "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums shadow-sm",
-                                          highlight.rankClassName
-                                        )}
-                                      >
-                                        {String(index + 1).padStart(2, "0")}
+                                      <div className="flex w-14 shrink-0 flex-col items-center gap-2.5 max-[390px]:w-12 max-[390px]:gap-2 sm:hidden">
+                                        <div
+                                          className={cn(
+                                            "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums shadow-sm",
+                                            highlight.rankClassName
+                                          )}
+                                        >
+                                          {String(index + 1).padStart(2, "0")}
+                                        </div>
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-gradient-to-br from-brand-navy/12 via-white to-brand-red/12 shadow-sm max-[390px]:h-10 max-[390px]:w-10 dark:border-white/10 dark:from-brand-navy/18 dark:via-neutral-900 dark:to-brand-red/18 sm:h-12 sm:w-12">
+                                          {contributor.avatarUrl ? (
+                                            <img
+                                              src={contributor.avatarUrl}
+                                              alt={`GitHub avatar for ${contributor.login}`}
+                                              className="h-full w-full object-cover"
+                                              loading="lazy"
+                                            />
+                                          ) : (
+                                            <span className="text-sm font-semibold text-brand-navy dark:text-white">
+                                              {getContributorFallback(contributor.login)}
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                                      <div className="hidden shrink-0 sm:flex sm:items-start sm:gap-3">
+                                        <div
+                                          className={cn(
+                                            "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums shadow-sm",
+                                            highlight.rankClassName
+                                          )}
+                                        >
+                                          {String(index + 1).padStart(2, "0")}
+                                        </div>
                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-gradient-to-br from-brand-navy/12 via-white to-brand-red/12 shadow-sm dark:border-white/10 dark:from-brand-navy/18 dark:via-neutral-900 dark:to-brand-red/18">
                                           {contributor.avatarUrl ? (
                                             <img
@@ -543,42 +567,47 @@ export default async function About() {
                                             </span>
                                           )}
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                          <div className="flex flex-wrap items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                              <a
-                                                href={contributor.profileUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex min-w-0 items-center gap-1.5 font-semibold text-brand-navy dark:text-white"
-                                              >
-                                                <span className="truncate">@{contributor.login}</span>
-                                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                                              </a>
-                                              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                Across {contributor.repos.length} public {contributor.repos.length === 1 ? "repository" : "repositories"}
-                                              </p>
-                                            </div>
-                                            <div aria-label={formatContributionCount(contributor.totalContributions)} className="shrink-0 pt-0.5 text-right">
-                                              <p className="text-sm font-medium leading-tight tabular-nums text-brand-navy/58 dark:text-white/62">
-                                                {highlight.contributionPrefix ? `${highlight.contributionPrefix} ` : null}
-                                                {formatContributionCount(contributor.totalContributions)}
-                                              </p>
-                                            </div>
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                                          <div className="min-w-0">
+                                            <a
+                                              href={contributor.profileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex min-w-0 max-w-full items-center gap-1.5 font-semibold text-brand-navy dark:text-white"
+                                            >
+                                              <span className="truncate text-[clamp(1.05rem,4.6vw,1.8rem)] max-[390px]:text-[clamp(0.95rem,4.2vw,1.1rem)] sm:text-base">
+                                                @{contributor.login}
+                                              </span>
+                                              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                                            </a>
+                                            <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                                              Across {contributor.repos.length} public {contributor.repos.length === 1 ? "repository" : "repositories"}
+                                            </p>
                                           </div>
-                                          <div className="mt-3 flex flex-wrap gap-2">
-                                            {contributor.repos.map((repo) => (
-                                              <a
-                                                key={repo.href}
-                                                href={repo.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center rounded-full border border-brand-navy/10 bg-brand-navy/[0.05] px-2.5 py-1 text-[11px] font-medium text-brand-navy dark:border-white/10 dark:bg-white/[0.05] dark:text-white/80"
-                                              >
-                                                {repo.label}
-                                              </a>
-                                            ))}
+                                          <div
+                                            aria-label={formatContributionCount(contributor.totalContributions)}
+                                            className="shrink-0 pt-0 text-left sm:pt-0.5 sm:text-right"
+                                          >
+                                            <p className="text-sm font-medium leading-tight tabular-nums text-brand-navy/58 dark:text-white/62">
+                                              {highlight.contributionPrefix ? `${highlight.contributionPrefix} ` : null}
+                                              {formatContributionCount(contributor.totalContributions)}
+                                            </p>
                                           </div>
+                                        </div>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          {contributor.repos.map((repo) => (
+                                            <a
+                                              key={repo.href}
+                                              href={repo.href}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center rounded-full border border-brand-navy/10 bg-brand-navy/[0.05] px-2.5 py-1 text-[11px] font-medium text-brand-navy dark:border-white/10 dark:bg-white/[0.05] dark:text-white/80"
+                                            >
+                                              {repo.label}
+                                            </a>
+                                          ))}
                                         </div>
                                       </div>
                                     </div>
