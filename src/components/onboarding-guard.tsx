@@ -15,6 +15,7 @@ const EXEMPT_PATHS = [
 ];
 
 type Props = { children: ReactNode };
+const ACCESS_STATUS_TIMEOUT_MS = 8000;
 
 export default function OnboardingGuard({ children }: Props) {
   const { user, isLoading: authLoading } = useAuth();
@@ -39,20 +40,32 @@ export default function OnboardingGuard({ children }: Props) {
       return;
     }
 
+    let cancelled = false;
+
     const check = async () => {
       setChecking(true);
       try {
         const { data: session } = await getSupabaseClient().auth.getSession();
+        if (cancelled) return;
         const token = session?.session?.access_token;
         if (!token) {
           setOnboardingDone(true); // can't check — let through
           return;
         }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), ACCESS_STATUS_TIMEOUT_MS);
+
         const res = await fetch("/api/me/access-status", {
           headers: { Authorization: `Bearer ${token}` },
-        });
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timeoutId));
+
+        if (cancelled) return;
+
         if (res.ok) {
           const data = await res.json();
+          if (cancelled) return;
           if (data.needs_onboarding) {
             setOnboardingDone(false);
             router.replace("/onboarding");
@@ -62,12 +75,18 @@ export default function OnboardingGuard({ children }: Props) {
         } else {
           setOnboardingDone(true); // API error — let through
         }
+      } catch {
+        // Fail open if network/API hangs so we don't trap the UI behind a spinner.
+        if (!cancelled) setOnboardingDone(true);
       } finally {
-        setChecking(false);
+        if (!cancelled) setChecking(false);
       }
     };
 
     void check();
+    return () => {
+      cancelled = true;
+    };
   }, [user, authLoading, pathname, isExemptPath, router]);
 
   // Auth still loading — show spinner
