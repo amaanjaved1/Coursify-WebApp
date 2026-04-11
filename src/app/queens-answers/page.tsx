@@ -529,6 +529,18 @@ function AIFeatures() {
                       )
                     })}
                   </ul>
+                  <div className="mt-4 border-t border-brand-navy/10 dark:border-white/10 pt-4">
+                    <div className="text-xs font-semibold text-brand-navy/55 dark:text-white/50 uppercase tracking-wider mb-2">
+                      Daily Limits
+                    </div>
+                    <ul className="space-y-1 text-xs text-brand-navy/70 dark:text-white/60 leading-relaxed">
+                      <li>0–1 semesters completed: <span className="font-semibold text-brand-navy dark:text-white">2 questions/day</span></li>
+                      <li>2+ semesters completed: <span className="font-semibold text-brand-navy dark:text-white">3 questions/day</span></li>
+                    </ul>
+                    <p className="mt-2 text-xs text-brand-navy/55 dark:text-white/45 leading-relaxed">
+                      Queen&apos;s Answers uses a free AI API plan to keep the service free for all students. The plan includes 1,500 requests per day shared across all users.
+                    </p>
+                  </div>
                 </motion.div>
               </motion.div>
             )}
