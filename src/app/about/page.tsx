@@ -507,7 +507,7 @@ export default async function About() {
                                   return (
                                     <div
                                       className={cn(
-                                        "relative flex items-start gap-4 rounded-2xl border px-4 py-4 shadow-sm max-[390px]:gap-3 sm:gap-4",
+                                        "relative flex items-start gap-4 rounded-2xl border px-4 py-4 shadow-sm max-[390px]:gap-3",
                                         highlight.rowClassName
                                       )}
                                     >
@@ -520,7 +520,7 @@ export default async function About() {
                                           aria-hidden
                                         />
                                       ) : null}
-                                      <div className="flex w-14 shrink-0 flex-col items-center gap-2.5 max-[390px]:w-12 max-[390px]:gap-2 sm:hidden">
+                                      <div className="flex w-14 shrink-0 flex-col items-center gap-2.5 max-[390px]:w-12 max-[390px]:gap-2 sm:w-auto sm:flex-row sm:items-start sm:gap-3">
                                         <div
                                           className={cn(
                                             "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums shadow-sm",
@@ -529,31 +529,7 @@ export default async function About() {
                                         >
                                           {String(index + 1).padStart(2, "0")}
                                         </div>
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-gradient-to-br from-brand-navy/12 via-white to-brand-red/12 shadow-sm max-[390px]:h-10 max-[390px]:w-10 dark:border-white/10 dark:from-brand-navy/18 dark:via-neutral-900 dark:to-brand-red/18 sm:h-12 sm:w-12">
-                                          {contributor.avatarUrl ? (
-                                            <img
-                                              src={contributor.avatarUrl}
-                                              alt={`GitHub avatar for ${contributor.login}`}
-                                              className="h-full w-full object-cover"
-                                              loading="lazy"
-                                            />
-                                          ) : (
-                                            <span className="text-sm font-semibold text-brand-navy dark:text-white">
-                                              {getContributorFallback(contributor.login)}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="hidden shrink-0 sm:flex sm:items-start sm:gap-3">
-                                        <div
-                                          className={cn(
-                                            "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums shadow-sm",
-                                            highlight.rankClassName
-                                          )}
-                                        >
-                                          {String(index + 1).padStart(2, "0")}
-                                        </div>
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-gradient-to-br from-brand-navy/12 via-white to-brand-red/12 shadow-sm dark:border-white/10 dark:from-brand-navy/18 dark:via-neutral-900 dark:to-brand-red/18">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-gradient-to-br from-brand-navy/12 via-white to-brand-red/12 shadow-sm max-[390px]:h-10 max-[390px]:w-10 dark:border-white/10 dark:from-brand-navy/18 dark:via-neutral-900 dark:to-brand-red/18">
                                           {contributor.avatarUrl ? (
                                             <img
                                               src={contributor.avatarUrl}
