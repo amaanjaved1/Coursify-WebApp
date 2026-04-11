@@ -49,41 +49,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
     .select("semesters_completed")
     .eq("id", user.id)
     .single()
 
+  if (profileError) {
+    console.warn("[queens-answers/chat] profile fetch error:", profileError.message)
+  }
+
   const semestersCompleted = profile?.semesters_completed ?? 0
   const tierLimit = getTierLimit(semestersCompleted)
   const userKey = `qa:user:${user.id}`
-
-  // Read both counters in parallel before deciding
-  const [globalCount, userCount] = await Promise.all([
-    redis.get<number>(GLOBAL_KEY),
-    redis.get<number>(userKey),
-  ])
-
-  if ((globalCount ?? 0) >= GLOBAL_LIMIT) {
-    return NextResponse.json(
-      {
-        error: "Queen's Answers is at capacity for today. Check back tomorrow.",
-        reason: "capacity",
-      },
-      { status: 429 }
-    )
-  }
-
-  if ((userCount ?? 0) >= tierLimit) {
-    return NextResponse.json(
-      {
-        error: `You've used your ${tierLimit} daily questions. Resets within 24 hours.`,
-        reason: "rate_limit",
-      },
-      { status: 429 }
-    )
-  }
 
   let question: string
   try {
@@ -103,13 +81,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // TODO: Replace with Gemini 2.0 Flash call
-  const delay = 1500 + Math.random() * 1000
-  await new Promise((resolve) => setTimeout(resolve, delay))
-  const answer =
-    "The AI is almost ready — we're putting it through its paces before course selection. For now, head over to the course explorer and upload your grade distros to get a head start!"
+  if (question.length > 2000) {
+    return NextResponse.json({ error: "Question is too long (max 2000 characters)" }, { status: 400 })
+  }
 
-  // Increment counters — set TTL only on first write (newCount === 1)
+  // Increment first to atomically claim a slot, then check if over limit
+  // Note: user key = rolling 24h window; global key = calendar-day (resets at UTC midnight)
   const newGlobalCount = await redis.incr(GLOBAL_KEY)
   if (newGlobalCount === 1) {
     await redis.expire(GLOBAL_KEY, secondsUntilMidnightUTC())
@@ -120,5 +97,36 @@ export async function POST(request: NextRequest) {
     await redis.expire(userKey, 86400)
   }
 
-  return NextResponse.json({ answer, remaining: tierLimit - (newUserCount ?? 0) })
+  // Reject after incrementing — slot is consumed even on rejection to prevent race conditions
+  if (newGlobalCount === null || newUserCount === null) {
+    return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 })
+  }
+
+  if (newGlobalCount > GLOBAL_LIMIT) {
+    return NextResponse.json(
+      {
+        error: "Queen's Answers is at capacity for today. Check back tomorrow.",
+        reason: "capacity",
+      },
+      { status: 429 }
+    )
+  }
+
+  if (newUserCount > tierLimit) {
+    return NextResponse.json(
+      {
+        error: `You've used your ${tierLimit} daily questions. Resets within 24 hours.`,
+        reason: "rate_limit",
+      },
+      { status: 429 }
+    )
+  }
+
+  // TODO: Replace with Gemini 2.0 Flash call
+  const delay = 1500 + Math.random() * 1000
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  const answer =
+    "The AI is almost ready — we're putting it through its paces before course selection. For now, head over to the course explorer and upload your grade distros to get a head start!"
+
+  return NextResponse.json({ answer, remaining: Math.max(0, tierLimit - newUserCount) })
 }
