@@ -31,9 +31,9 @@
     --brand-gold: #efb215;
 
     --page-bg: #f4f7ff;
-    --nav-bg: rgba(255, 255, 255, 0.72);
-    --nav-bg-scrolled: rgba(255, 255, 255, 0.88);
-    --nav-border: rgba(255, 255, 255, 0.85);
+    --nav-bg: rgba(255, 255, 255, 1);
+    --nav-bg-scrolled: rgba(255, 255, 255, 1);
+    --nav-border: rgba(0, 0, 0, 0.08);
     --nav-shadow: rgba(0, 48, 95, 0.14);
     --nav-shadow-scrolled: rgba(0, 48, 95, 0.18);
   }
@@ -61,8 +61,8 @@
     --ring: 212.7 26.8% 83.9%;
 
     --page-bg: #171717;
-    --nav-bg: rgba(23, 23, 23, 0.78);
-    --nav-bg-scrolled: rgba(23, 23, 23, 0.92);
+    --nav-bg: rgba(23, 23, 23, 1);
+    --nav-bg-scrolled: rgba(23, 23, 23, 1);
     --nav-border: rgba(255, 255, 255, 0.08);
     --nav-shadow: rgba(0, 0, 0, 0.3);
     --nav-shadow-scrolled: rgba(0, 0, 0, 0.45);
@@ -902,13 +902,13 @@
    Drop heavy backdrop-filter on small viewports; raise opacity so text stays readable. */
 @media (max-width: 767px) {
   .glass-card {
-    background: rgba(255, 255, 255, 0.94) !important;
+    background: rgba(255, 255, 255, 0.97) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
   .dark .glass-card {
-    background: rgba(38, 38, 38, 0.96) !important;
+    background: rgba(38, 38, 38, 0.98) !important;
   }
 
   .glass-nav {

@@ -21,7 +21,6 @@ const Navigation = () => {
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
   const { user, signOut } = useAuth()
   const [pendingSeasonal, setPendingSeasonal] = useState(false)
   const [dueTerm, setDueTerm] = useState<string | null>(null)
@@ -43,14 +42,6 @@ const Navigation = () => {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)")
-    const syncMobile = () => setIsMobileViewport(mq.matches)
-    syncMobile()
-    mq.addEventListener("change", syncMobile)
-    return () => mq.removeEventListener("change", syncMobile)
   }, [])
 
   useEffect(() => {
@@ -172,32 +163,18 @@ const Navigation = () => {
       className="fixed top-0 left-0 right-0 z-50 px-4 py-4 will-change-transform motion-safe:transition-[transform] motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22_1_0.36_1)] motion-reduce:duration-200 motion-reduce:ease-out"
       style={{ transform: hidden ? "translateY(-110%)" : "translateY(0)" }}
     >
-      {/* Pill navbar */}
       <div
-        className="max-w-4xl mx-auto rounded-full px-5 py-2.5 motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22_1_0.36_1)] motion-reduce:duration-200"
+        className="max-w-4xl mx-auto rounded-full px-5 py-2.5 motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22_1_0.36_1)] border transition-all duration-300 shadow-md"
         style={{
           background: scrolled ? "var(--nav-bg-scrolled)" : "var(--nav-bg)",
-          backdropFilter: isMobileViewport
-            ? "none"
-            : scrolled
-              ? "blur(48px) saturate(220%)"
-              : "blur(32px) saturate(200%)",
-          WebkitBackdropFilter: isMobileViewport
-            ? "none"
-            : scrolled
-              ? "blur(48px) saturate(220%)"
-              : "blur(32px) saturate(200%)",
-          border: "1px solid var(--nav-border)",
-          boxShadow: scrolled
-            ? `0 16px 48px var(--nav-shadow-scrolled), 0 4px 12px var(--nav-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05)`
-            : `0 8px 32px var(--nav-shadow), 0 2px 8px var(--nav-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05)`,
+          borderColor: scrolled ? "var(--nav-border)" : "transparent",
         }}
       >
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
-            <span className="text-lg font-bold tracking-tight text-brand-navy dark:text-white">Cours</span>
-            <span className="text-lg font-bold tracking-tight text-brand-red">ify</span>
+          <Link href="/" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
+            <span className="text-xl font-bold tracking-tight text-brand-navy dark:text-white">Cours</span>
+            <span className="text-xl font-bold tracking-tight text-brand-red">ify</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -249,7 +226,7 @@ const Navigation = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="rounded-2xl border-0 shadow-xl mt-2 glass-card"
+                  className="rounded-2xl border border-black/10 dark:border-white/10 shadow-xl mt-2 bg-white dark:bg-neutral-900"
                 >
                   <div className="p-2 text-xs font-medium text-gray-500 dark:text-white/50">{user.email}</div>
                   <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
@@ -318,7 +295,7 @@ const Navigation = () => {
         }}
       >
         <div style={{ overflow: "hidden", minHeight: 0 }}>
-          <div className="rounded-3xl px-4 py-4 glass-card">
+          <div className="rounded-3xl px-4 py-4 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 shadow-xl">
             <nav className="flex flex-col gap-0.5">
               {links.map((link) => (
                 <Link
