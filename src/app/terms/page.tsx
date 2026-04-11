@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 }
 
 const EFFECTIVE_DATE = "April 6, 2025"
+const LAST_UPDATED = "April 11, 2026"
 
 export default function TermsOfUse() {
   return (
@@ -23,7 +24,7 @@ export default function TermsOfUse() {
             <span className="text-brand-red">Use</span>
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Effective date: {EFFECTIVE_DATE} &nbsp;·&nbsp; Last updated: {EFFECTIVE_DATE}
+            Effective date: {EFFECTIVE_DATE} &nbsp;·&nbsp; Last updated: {LAST_UPDATED}
           </p>
         </div>
 
@@ -179,7 +180,7 @@ export default function TermsOfUse() {
           <section>
             <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-3">5. AI Chat Assistant</h2>
             <p>
-              The Site includes an AI-powered chat assistant (&ldquo;Coursify AI&rdquo;) trained on student comments
+              The Site includes an AI-powered chat assistant (&ldquo;Coursify AI&rdquo;) that draws on student comments
               sourced from Reddit and RateMyProfessors. You acknowledge that:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 mt-3">

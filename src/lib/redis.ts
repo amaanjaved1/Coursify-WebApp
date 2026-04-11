@@ -51,4 +51,31 @@ export const redis = {
       console.warn("[redis] delPattern failed:", err)
     }
   },
+  incr: async (key: string): Promise<number | null> => {
+    try {
+      const client = getRedis()
+      if (!client) return null
+      return await client.incr(key)
+    } catch (err) {
+      console.warn("[redis] incr failed:", err)
+      return null
+    }
+  },
+  expire: async (key: string, seconds: number): Promise<void> => {
+    try {
+      await getRedis()?.expire(key, seconds)
+    } catch (err) {
+      console.warn("[redis] expire failed:", err)
+    }
+  },
+  ttl: async (key: string): Promise<number | null> => {
+    try {
+      const client = getRedis()
+      if (!client) return null
+      return await client.ttl(key)
+    } catch (err) {
+      console.warn("[redis] ttl failed:", err)
+      return null
+    }
+  },
 }

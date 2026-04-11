@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 }
 
 const EFFECTIVE_DATE = "April 6, 2025"
+const LAST_UPDATED = "April 11, 2026"
 
 export default function PrivacyPolicy() {
   return (
@@ -23,7 +24,7 @@ export default function PrivacyPolicy() {
             <span className="text-brand-red">Policy</span>
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Effective date: {EFFECTIVE_DATE} &nbsp;·&nbsp; Last updated: {EFFECTIVE_DATE}
+            Effective date: {EFFECTIVE_DATE} &nbsp;·&nbsp; Last updated: {LAST_UPDATED}
           </p>
         </div>
 

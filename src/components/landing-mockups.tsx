@@ -294,6 +294,54 @@ export function StudentReviewsMockup({
           </span>
         </div>
       </div>
+
+      {/* Reddit comment 2 */}
+      <div className={`glass-card rounded-2xl ${pad} w-full`}>
+        <div className="flex items-center gap-2 mb-2">
+          <RedditIcon size={compact ? 18 : 24} />
+          <div>
+            <div
+              className={`${textSm} font-semibold text-gray-800 dark:text-gray-200`}
+            >
+              r/queensuniversity
+            </div>
+            <div className={`${textXs} text-gray-400`}>3 weeks ago</div>
+          </div>
+          <div className="ml-auto flex items-center gap-1.5">
+            <span
+              className={`${textXs} font-medium px-2 py-0.5 rounded-full bg-yellow-100/80 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border border-yellow-200/60 dark:border-yellow-700/40`}
+            >
+              Mixed
+            </span>
+            <span
+              className={`${textXs} px-2 py-0.5 rounded-full font-medium bg-[#FF4500]/10 text-[#FF4500] border border-[#FF4500]/20`}
+            >
+              Reddit
+            </span>
+          </div>
+        </div>
+        <p
+          className={`${textSm} text-gray-700 dark:text-gray-300 leading-relaxed`}
+        >
+          {compact
+            ? "Workload is heavier than expected but the content is interesting."
+            : "Workload is heavier than the course description suggests, but the content is genuinely interesting. Make sure to start assignments early."}
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <svg
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={`${compact ? "h-3 w-3" : "h-3.5 w-3.5"} text-[#FF4500]`}
+          >
+            <path
+              fillRule="evenodd"
+              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span className={`${textXs} text-gray-500`}>23 upvotes</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -319,7 +367,7 @@ export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
   const inputPad = compact ? "py-0.5" : "py-1.5";
 
   return (
-    <div className={`glass-card rounded-2xl ${pad} w-full select-none`}>
+    <div className={`glass-card rounded-2xl ${pad} w-full h-full flex flex-col select-none`}>
       <div className="flex items-center gap-2 mb-3">
         <div
           className={`gradient-text font-bold ${compact ? "text-xs" : "text-sm"}`}
@@ -391,7 +439,7 @@ export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
 
       {/* Input bar */}
       <div
-        className={`flex items-center gap-1.5 rounded-[1.35rem] border border-white/70 bg-white/65 shadow-[0_1px_3px_rgba(0,48,95,0.06)] backdrop-blur-sm transition-[box-shadow,border-color] focus-within:border-brand-red/35 focus-within:ring-2 focus-within:ring-brand-red/15 dark:border-white/[0.1] dark:bg-white/[0.06] dark:shadow-[0_1px_4px_rgba(0,0,0,0.2)] dark:focus-within:ring-brand-red/25 ${
+        className={`mt-auto flex items-center gap-1.5 rounded-[1.35rem] border border-white/70 bg-white/65 shadow-[0_1px_3px_rgba(0,48,95,0.06)] backdrop-blur-sm transition-[box-shadow,border-color] focus-within:border-brand-red/35 focus-within:ring-2 focus-within:ring-brand-red/15 dark:border-white/[0.1] dark:bg-white/[0.06] dark:shadow-[0_1px_4px_rgba(0,0,0,0.2)] dark:focus-within:ring-brand-red/25 ${
           compact ? "px-2.5 py-1" : "px-3 py-1.5"
         }`}
       >
