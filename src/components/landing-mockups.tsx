@@ -270,7 +270,7 @@ export function StudentReviewsMockup({
             <span
               className={`${textXs} px-2 py-0.5 rounded-full font-medium bg-brand-navy/10 dark:bg-brand-navy-light/20 text-brand-navy dark:text-white border border-brand-navy/20 dark:border-brand-navy-light/30`}
             >
-              RateMyProfessors
+              RateMyProf
             </span>
           </div>
         </div>
@@ -295,53 +295,6 @@ export function StudentReviewsMockup({
         </div>
       </div>
 
-      {/* Reddit comment 2 */}
-      <div className={`glass-card rounded-2xl ${pad} w-full`}>
-        <div className="flex items-center gap-2 mb-2">
-          <RedditIcon size={compact ? 18 : 24} />
-          <div>
-            <div
-              className={`${textSm} font-semibold text-gray-800 dark:text-gray-200`}
-            >
-              r/queensuniversity
-            </div>
-            <div className={`${textXs} text-gray-400`}>3 weeks ago</div>
-          </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              className={`${textXs} font-medium px-2 py-0.5 rounded-full bg-yellow-100/80 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border border-yellow-200/60 dark:border-yellow-700/40`}
-            >
-              Mixed
-            </span>
-            <span
-              className={`${textXs} px-2 py-0.5 rounded-full font-medium bg-[#FF4500]/10 text-[#FF4500] border border-[#FF4500]/20`}
-            >
-              Reddit
-            </span>
-          </div>
-        </div>
-        <p
-          className={`${textSm} text-gray-700 dark:text-gray-300 leading-relaxed`}
-        >
-          {compact
-            ? "Workload is heavier than expected but the content is interesting."
-            : "Workload is heavier than the course description suggests, but the content is genuinely interesting. Make sure to start assignments early."}
-        </p>
-        <div className="flex items-center gap-2 mt-2">
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className={`${compact ? "h-3 w-3" : "h-3.5 w-3.5"} text-[#FF4500]`}
-          >
-            <path
-              fillRule="evenodd"
-              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className={`${textXs} text-gray-500`}>23 upvotes</span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -418,22 +371,6 @@ export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
             </span>
             . Students say Prof. Li is &ldquo;clear and organized.&rdquo;
           </p>
-          {!compact && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {[
-                "CISC 204 · 3.62 GPA",
-                "CISC 235 · 3.31 GPA",
-                "CISC 223 · 3.18 GPA",
-              ].map((t) => (
-                <span
-                  key={t}
-                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-brand-red/8 text-brand-red border border-brand-red/15 sm:text-xs"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
