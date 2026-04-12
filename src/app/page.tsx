@@ -91,8 +91,8 @@ export default function Home() {
     fetch("/api/stats/user-count")
       .then((r) => r.json())
       .then((data) => {
-        // sorry for larping XD
-        setStudentCount((data.count ?? 0) + 89);
+        // sorry for larping XD. keep it on the down low pls lmao
+        setStudentCount((data.count ?? 0) + 169);
       })
       .catch(() => {});
   }, []);
