@@ -991,12 +991,40 @@ export default function QueensCourses() {
 
           <div className="lg-filters:col-span-3">
             {loading ? (
-              <div className="glass-card-deep rounded-xl p-8 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy dark:border-blue-400 mx-auto"></div>
-                  <p className="mt-4 text-gray-600 dark:text-gray-400">
-                    Loading course data...
-                  </p>
+              <div className="glass-card-deep rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-brand-navy/5 dark:bg-blue-400/5">
+                        {["Course Code", "Course Name", "Data Availability", "Avg. GPA", "Enrollment"].map((col) => (
+                          <th key={col} className="px-4 py-3 text-left text-sm font-medium text-brand-navy dark:text-white">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: 15 }).map((_, i) => (
+                        <tr key={i} className="border-t border-black/5 dark:border-white/5">
+                          <td className="px-4 py-3">
+                            <div className="h-4 w-20 rounded bg-black/[0.07] dark:bg-white/[0.08] animate-pulse" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-4 rounded bg-black/[0.07] dark:bg-white/[0.08] animate-pulse" style={{ width: `${55 + (i * 17) % 35}%` }} />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-4 w-24 rounded bg-black/[0.07] dark:bg-white/[0.08] animate-pulse" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-4 w-12 rounded bg-black/[0.07] dark:bg-white/[0.08] animate-pulse" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-4 w-16 rounded bg-black/[0.07] dark:bg-white/[0.08] animate-pulse" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             ) : (
