@@ -378,14 +378,14 @@ export default function Home() {
 
             {/* Right — structured UI mockup cards */}
             <div className="relative hidden lg:flex flex-col gap-4 subpixel-antialiased [transform:translateZ(0)]">
-              <div className="w-full shadow-xl [backface-visibility:hidden]">
+              <div className="w-full">
                 <GradeDistributionMockup />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="shadow-xl [backface-visibility:hidden] h-full">
+                <div className="h-full">
                   <StudentReviewsMockup />
                 </div>
-                <div className="shadow-xl [backface-visibility:hidden] h-full">
+                <div className="h-full">
                   <AIAssistantMockup />
                 </div>
               </div>

@@ -175,7 +175,7 @@ export function StudentReviewsMockup({
   const textXs = compact ? "text-[8px]" : "text-[11px]";
 
   return (
-    <div className="w-full h-full flex flex-col justify-between select-none">
+    <div className="w-full flex flex-col gap-2.5 select-none">
       {/* Reddit comment */}
       <div className={`glass-card rounded-2xl ${pad} w-full`}>
         <div className="flex items-center gap-2 mb-2">
@@ -187,18 +187,6 @@ export function StudentReviewsMockup({
               r/queensuniversity
             </div>
             <div className={`${textXs} text-gray-400`}>2 months ago</div>
-          </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              className={`${textXs} font-medium px-2 py-0.5 rounded-full bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200/60 dark:border-green-700/40`}
-            >
-              Positive
-            </span>
-            <span
-              className={`${textXs} px-2 py-0.5 rounded-full font-medium bg-[#FF4500]/10 text-[#FF4500] border border-[#FF4500]/20`}
-            >
-              Reddit
-            </span>
           </div>
         </div>
         <p
@@ -260,18 +248,6 @@ export function StudentReviewsMockup({
                 </svg>
               ))}
             </div>
-          </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              className={`${textXs} font-medium px-2 py-0.5 rounded-full bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200/60 dark:border-green-700/40`}
-            >
-              Positive
-            </span>
-            <span
-              className={`${textXs} px-2 py-0.5 rounded-full font-medium bg-brand-navy/10 dark:bg-brand-navy-light/20 text-brand-navy dark:text-white border border-brand-navy/20 dark:border-brand-navy-light/30`}
-            >
-              RateMyProf
-            </span>
           </div>
         </div>
         <p
