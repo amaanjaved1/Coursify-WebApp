@@ -128,5 +128,9 @@ export async function POST(request: NextRequest) {
   const answer =
     "The AI is almost ready — we're putting it through its paces before course selection. For now, head over to the course explorer and upload your grade distros to get a head start!"
 
-  return NextResponse.json({ answer, remaining: Math.max(0, tierLimit - newUserCount) })
+  return NextResponse.json({
+    answer,
+    remaining: Math.max(0, tierLimit - newUserCount),
+    globalRemaining: Math.max(0, GLOBAL_LIMIT - newGlobalCount),
+  })
 }
