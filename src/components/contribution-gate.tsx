@@ -77,6 +77,18 @@ export default function ContributionGate({ children }: Props) {
           <div className="glass-modal-panel w-full max-w-md rounded-[1.75rem] p-7 flex flex-col items-center text-center">
             <div className="glass-modal-accent h-1.5 w-24 rounded-full mb-5 opacity-90" />
 
+            {baseQuotaMet ? (
+              <div className="mb-4 text-center">
+                <p className="text-2xl mb-1">🎉</p>
+                <p className="text-base font-bold text-brand-navy dark:text-white">
+                  Congratulations on completing {status?.due_term}!
+                </p>
+                <p className="text-xs text-brand-navy/60 dark:text-white/55 mt-1">
+                  We&apos;ve automatically updated your semester count.
+                </p>
+              </div>
+            ) : null}
+
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-navy/[0.08] dark:bg-white/[0.06] ring-1 ring-brand-navy/[0.12] dark:ring-white/10 mb-4">
               <UploadCloud className="h-7 w-7 text-brand-navy dark:text-white" strokeWidth={1.6} />
             </div>
@@ -108,6 +120,15 @@ export default function ContributionGate({ children }: Props) {
               >
                 Skip for now
               </button>
+            )}
+
+            {baseQuotaMet && (
+              <p className="mt-4 text-xs text-brand-navy/45 dark:text-white/40 text-center">
+                Didn&apos;t complete a new semester?{" "}
+                <Link href="/settings" className="underline hover:text-brand-navy dark:hover:text-white transition-colors">
+                  Update your count in Settings
+                </Link>
+              </p>
             )}
 
           </div>

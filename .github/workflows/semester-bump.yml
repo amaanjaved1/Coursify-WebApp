@@ -1,0 +1,17 @@
+name: Semester Auto-Bump
+
+on:
+  schedule:
+    - cron: '0 0 1 2 *'   # Feb 1 00:00 UTC — Fall semester window opens
+    - cron: '0 0 15 5 *'  # May 15 00:00 UTC — Winter semester window opens
+  workflow_dispatch:        # allow manual trigger for testing
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger semester bump
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/internal/semester-bump-all" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"
