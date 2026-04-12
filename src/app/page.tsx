@@ -354,7 +354,7 @@ export default function Home() {
                 distributions, student reviews, and an AI assistant.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-start gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row items-start gap-4">
                 <Link
                   href="/queens-answers"
                   className="liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
@@ -382,7 +382,7 @@ export default function Home() {
                 <GradeDistributionMockup />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="shadow-xl [backface-visibility:hidden]">
+                <div className="shadow-xl [backface-visibility:hidden] h-full">
                   <StudentReviewsMockup />
                 </div>
                 <div className="shadow-xl [backface-visibility:hidden] h-full">

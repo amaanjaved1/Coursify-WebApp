@@ -175,7 +175,7 @@ export function StudentReviewsMockup({
   const textXs = compact ? "text-[8px]" : "text-[11px]";
 
   return (
-    <div className="w-full flex flex-col gap-2.5 select-none">
+    <div className="w-full h-full flex flex-col justify-between select-none">
       {/* Reddit comment */}
       <div className={`glass-card rounded-2xl ${pad} w-full`}>
         <div className="flex items-center gap-2 mb-2">
