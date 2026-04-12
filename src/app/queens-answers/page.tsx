@@ -555,7 +555,8 @@ function AIFeatures() {
                     </div>
                     <ul className="space-y-1 text-xs text-brand-navy/70 dark:text-white/60 leading-relaxed">
                       <li>0–1 semesters completed: <span className="font-semibold text-brand-navy dark:text-white">2 questions/day</span></li>
-                      <li>2+ semesters completed: <span className="font-semibold text-brand-navy dark:text-white">3 questions/day</span></li>
+                      <li>2–4 semesters completed: <span className="font-semibold text-brand-navy dark:text-white">3 questions/day</span></li>
+                      <li>5+ semesters completed: <span className="font-semibold text-brand-navy dark:text-white">4 questions/day</span></li>
                     </ul>
                   </div>
                 </motion.div>

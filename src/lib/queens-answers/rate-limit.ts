@@ -1,6 +1,6 @@
 import { redis } from "@/lib/redis"
 
-export const QA_TIER_LIMITS = { low: 2, high: 3 } as const
+export const QA_TIER_LIMITS = { low: 2, mid: 3, high: 4 } as const
 
 export type QAUsage = {
   dailyLimit: number
@@ -13,8 +13,9 @@ export type QAConsumeResult =
   | { ok: false; reason: "rate_limit"; usage: QAUsage }
 
 export function tierLimitForSemesters(semesters: number | null | undefined): number {
-  if (semesters == null) return QA_TIER_LIMITS.low
-  return semesters >= 2 ? QA_TIER_LIMITS.high : QA_TIER_LIMITS.low
+  if (semesters == null || semesters <= 1) return QA_TIER_LIMITS.low
+  if (semesters <= 4) return QA_TIER_LIMITS.mid
+  return QA_TIER_LIMITS.high
 }
 
 function userKey(userId: string) {

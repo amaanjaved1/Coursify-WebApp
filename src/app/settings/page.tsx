@@ -301,8 +301,12 @@ export default function SettingsPage() {
                   <span className="font-semibold text-brand-navy dark:text-white">2 questions / day</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>2+ semesters completed</span>
+                  <span>2–4 semesters completed</span>
                   <span className="font-semibold text-brand-navy dark:text-white">3 questions / day</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>5+ semesters completed</span>
+                  <span className="font-semibold text-brand-navy dark:text-white">4 questions / day</span>
                 </div>
               </div>
             </div>

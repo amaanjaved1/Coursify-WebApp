@@ -6,7 +6,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ""
 
 function getTierLimit(semestersCompleted: number): number {
-  return semestersCompleted <= 1 ? 2 : 3
+  if (semestersCompleted <= 1) return 2
+  if (semestersCompleted <= 4) return 3
+  return 4
 }
 
 export async function GET(request: NextRequest) {
