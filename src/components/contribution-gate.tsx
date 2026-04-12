@@ -15,7 +15,6 @@ type Props = {
 export default function ContributionGate({ children }: Props) {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  // null = still checking, true/false = resolved
   const [status, setStatus] = useState<AccessStatus | null>(null);
   const [seasonalSkipped, setSeasonalSkipped] = useState(false);
 
@@ -47,13 +46,8 @@ export default function ContributionGate({ children }: Props) {
     void fetchStatus();
   }, [user, authLoading, router]);
 
-  const handleSkipSeasonal = () => {
-    setSeasonalSkipped(true);
-  };
+  const handleSkipSeasonal = () => setSeasonalSkipped(true);
 
-  // Always render children so page content (carousel animation etc.) mounts immediately.
-  // Overlay the gate on top once we know the user doesn't have access.
-  // Seasonal gate can be skipped per-term only when the base quota is already met.
   const baseQuotaMet = status !== null && status.upload_count >= status.required_uploads;
   const locked =
     status !== null &&
@@ -63,7 +57,6 @@ export default function ContributionGate({ children }: Props) {
 
   return (
     <div className="relative">
-      {/* Page content — always rendered so animations start */}
       <div
         className={locked ? "pointer-events-none select-none blur-sm opacity-40" : undefined}
         aria-hidden={locked ? true : undefined}
@@ -71,43 +64,103 @@ export default function ContributionGate({ children }: Props) {
         {children}
       </div>
 
-      {/* Gate overlay — only shown when locked */}
       {locked && (
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-sm bg-black/10 dark:bg-black/30">
-          <div className="glass-modal-panel w-full max-w-md rounded-[1.75rem] p-7 flex flex-col items-center text-center">
-            <div className="glass-modal-accent h-1.5 w-24 rounded-full mb-5 opacity-90" />
+          <div className="glass-modal-panel w-full max-w-sm rounded-[1.75rem] overflow-hidden">
 
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-navy/[0.08] dark:bg-white/[0.06] ring-1 ring-brand-navy/[0.12] dark:ring-white/10 mb-4">
-              <UploadCloud className="h-7 w-7 text-brand-navy dark:text-white" strokeWidth={1.6} />
-            </div>
+            {baseQuotaMet ? (
+              <>
+                {/* Congratulations section */}
+                <div className="px-7 pt-8 pb-5 text-center">
+                  <div className="glass-modal-accent h-1.5 w-20 rounded-full mx-auto mb-5 opacity-90" />
+                  <div className="text-3xl mb-3">🎉</div>
+                  <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-1.5">
+                    Congratulations on completing {status?.due_term}!
+                  </h2>
+                  <p className="text-sm text-brand-navy/60 dark:text-white/50 leading-relaxed">
+                    Your semester count has been updated automatically.
+                  </p>
+                </div>
 
-            <h2 className="text-2xl font-bold text-brand-navy dark:text-white mb-2">
-              {baseQuotaMet
-                ? `${status?.due_term} Data Available`
-                : "Unlock Queen\u2019s Answers"}
-            </h2>
+                {/* Divider */}
+                <div className="border-t border-brand-navy/10 dark:border-white/10 mx-7" />
 
-            <p className="text-sm leading-relaxed text-brand-navy/70 dark:text-white/70 mb-6 max-w-sm">
-              {baseQuotaMet
-                ? `Your ${status?.due_term} grade distribution is now available on SOLUS. Upload it to keep your Queen\u2019s Answers access and help your peers.`
-                : `Queen\u2019s Answers requires community-contributed grade data to work. Upload your SOLUS grade distribution PDFs to get access (${status?.upload_count ?? 0}/${status?.required_uploads ?? 0} done).`}
-            </p>
+                {/* Upload action section */}
+                <div className="px-7 pt-5 pb-8 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy/45 dark:text-white/40 mb-1">
+                    One more thing
+                  </p>
+                  <p className="text-sm font-semibold text-brand-navy dark:text-white mb-1.5">
+                    {status?.due_term} Data Available
+                  </p>
+                  <p className="text-sm text-brand-navy/65 dark:text-white/60 leading-relaxed mb-5">
+                    Your {status?.due_term} grade distribution is now on SOLUS. Upload it to keep your access and help your peers.
+                  </p>
 
-            <Link
-              href="/add-courses"
-              className="liquid-btn-red inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-white text-sm w-full"
-            >
-              {baseQuotaMet ? `Upload ${status?.due_term} Data` : "Upload Distribution"}
-            </Link>
+                  <Link
+                    href="/add-courses"
+                    className="liquid-btn-red inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-white text-sm w-full"
+                  >
+                    Upload {status?.due_term} Data
+                  </Link>
 
-            {status?.pending_seasonal_upload && baseQuotaMet && (
-              <button
-                type="button"
-                onClick={handleSkipSeasonal}
-                className="mt-3 text-xs text-brand-navy/45 dark:text-white/40 underline hover:text-brand-navy dark:hover:text-white transition-colors"
-              >
-                Skip for now
-              </button>
+                  <div className="mt-4 flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSkipSeasonal}
+                      className="text-xs text-brand-navy/45 dark:text-white/35 underline hover:text-brand-navy dark:hover:text-white transition-colors"
+                    >
+                      Skip for now
+                    </button>
+                    <p className="text-xs text-brand-navy/40 dark:text-white/30">
+                      Semester count wrong?{" "}
+                      <Link href="/settings" className="underline hover:text-brand-navy dark:hover:text-white transition-colors">
+                        Fix it in Settings
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Base quota gate */
+              <div className="px-7 pt-6 pb-6 flex flex-col items-center text-center">
+                <div className="glass-modal-accent h-1.5 w-20 rounded-full mb-5 opacity-90" />
+
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-navy/[0.08] dark:bg-white/[0.06] ring-1 ring-brand-navy/[0.12] dark:ring-white/10 mb-5">
+                  <UploadCloud className="h-7 w-7 text-brand-navy dark:text-white" strokeWidth={1.6} />
+                </div>
+
+                <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
+                  Unlock Queen&apos;s Answers
+                </h2>
+                <p className="text-sm text-brand-navy/65 dark:text-white/60 leading-relaxed mb-6 max-w-xs">
+                  Queen&apos;s Answers runs on community-contributed grade data. Upload your SOLUS grade distributions to get access.
+                </p>
+
+                <div className="w-full mb-5">
+                  <div className="flex justify-between text-xs text-brand-navy/50 dark:text-white/40 mb-1.5">
+                    <span>Uploads completed</span>
+                    <span className="font-semibold text-brand-navy dark:text-white">
+                      {status?.upload_count ?? 0} / {status?.required_uploads ?? 0}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-brand-navy/10 dark:bg-white/10 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand-red transition-all"
+                      style={{
+                        width: `${status?.required_uploads ? Math.min(100, Math.round(((status.upload_count ?? 0) / status.required_uploads) * 100)) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <Link
+                  href="/add-courses"
+                  className="liquid-btn-red inline-flex items-center justify-center rounded-2xl px-6 py-3 font-medium text-white text-sm w-full"
+                >
+                  Upload Distribution
+                </Link>
+              </div>
             )}
 
           </div>
