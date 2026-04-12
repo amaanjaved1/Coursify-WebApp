@@ -5,19 +5,8 @@ import { redis } from "@/lib/redis"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ""
 
-const GLOBAL_LIMIT = 1500
-const GLOBAL_KEY = "qa:global"
-
 function getTierLimit(semestersCompleted: number): number {
   return semestersCompleted <= 1 ? 2 : 3
-}
-
-function secondsUntilMidnightUTC(): number {
-  const now = new Date()
-  const midnight = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
-  )
-  return Math.floor((midnight.getTime() - now.getTime()) / 1000)
 }
 
 export async function POST(request: NextRequest) {
@@ -85,31 +74,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Question is too long (max 2000 characters)" }, { status: 400 })
   }
 
-  // Increment first to atomically claim a slot, then check if over limit
-  // Note: user key = rolling 24h window; global key = calendar-day (resets at UTC midnight)
-  const newGlobalCount = await redis.incr(GLOBAL_KEY)
-  if (newGlobalCount === 1) {
-    await redis.expire(GLOBAL_KEY, secondsUntilMidnightUTC())
-  }
-
   const newUserCount = await redis.incr(userKey)
   if (newUserCount === 1) {
     await redis.expire(userKey, 86400)
   }
 
-  // Reject after incrementing — slot is consumed even on rejection to prevent race conditions
-  if (newGlobalCount === null || newUserCount === null) {
+  if (newUserCount === null) {
     return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 })
-  }
-
-  if (newGlobalCount > GLOBAL_LIMIT) {
-    return NextResponse.json(
-      {
-        error: "Queen's Answers is at capacity for today. Check back tomorrow.",
-        reason: "capacity",
-      },
-      { status: 429 }
-    )
   }
 
   if (newUserCount > tierLimit) {
@@ -122,7 +93,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // TODO: Replace with Gemini 2.0 Flash call
+  // TODO: Replace with Gemini 2.0 Flash call.
+  // If the AI API returns a rate limit error, return:
+  // { answer: "API rate limit achieved for the system. It resets daily.", remaining: Math.max(0, tierLimit - newUserCount) }
   const delay = 1500 + Math.random() * 1000
   await new Promise((resolve) => setTimeout(resolve, delay))
   const answer =
@@ -131,6 +104,5 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     answer,
     remaining: Math.max(0, tierLimit - newUserCount),
-    globalRemaining: Math.max(0, GLOBAL_LIMIT - newGlobalCount),
   })
 }

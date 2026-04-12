@@ -5,9 +5,6 @@ import { redis } from "@/lib/redis"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ""
 
-const GLOBAL_LIMIT = 1500
-const GLOBAL_KEY = "qa:global"
-
 function getTierLimit(semestersCompleted: number): number {
   return semestersCompleted <= 1 ? 2 : 3
 }
@@ -49,20 +46,12 @@ export async function GET(request: NextRequest) {
   const dailyLimit = getTierLimit(semestersCompleted)
   const userKey = `qa:user:${user.id}`
 
-  const [globalUsed, used] = await Promise.all([
-    redis.get<number>(GLOBAL_KEY),
-    redis.get<number>(userKey),
-  ])
-
-  const globalUsedNum = globalUsed ?? 0
+  const used = await redis.get<number>(userKey)
   const usedNum = used ?? 0
 
   return NextResponse.json({
     dailyLimit,
     used: usedNum,
     remaining: Math.max(0, dailyLimit - usedNum),
-    globalUsed: globalUsedNum,
-    globalLimit: GLOBAL_LIMIT,
-    globalRemaining: Math.max(0, GLOBAL_LIMIT - globalUsedNum),
   })
 }

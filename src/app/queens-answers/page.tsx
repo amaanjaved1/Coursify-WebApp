@@ -37,8 +37,7 @@ function AIFeatures() {
   const [isBotTyping, setIsBotTyping] = useState(false)
   const [remaining, setRemaining] = useState<number | null>(null)
   const [tierLimit, setTierLimit] = useState<number | null>(null)
-  const [globalRemaining, setGlobalRemaining] = useState<number | null>(null)
-  const [limitHit, setLimitHit] = useState<"user" | "global" | null>(null)
+  const [limitHit, setLimitHit] = useState<"user" | null>(null)
   const [statusLoading, setStatusLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const questionTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -83,9 +82,7 @@ function AIFeatures() {
       const data = await res.json()
       setTierLimit(data.dailyLimit)
       setRemaining(data.remaining)
-      setGlobalRemaining(data.globalRemaining)
       if (typeof data.remaining === "number" && data.remaining <= 0) setLimitHit("user")
-      if (typeof data.globalRemaining === "number" && data.globalRemaining <= 0) setLimitHit("global")
     } finally {
       setStatusLoading(false)
     }
@@ -242,8 +239,6 @@ function AIFeatures() {
       if (!res.ok) {
         if (data.reason === "rate_limit") {
           setLimitHit("user")
-        } else if (data.reason === "capacity") {
-          setLimitHit("global")
         }
         setMessages((prev) => [...prev, { role: "bot", text: data.error ?? "Something went wrong." }])
         return
@@ -251,7 +246,6 @@ function AIFeatures() {
 
       setMessages((prev) => [...prev, { role: "bot", text: data.answer }])
       setRemaining(data.remaining)
-      if (typeof data.globalRemaining === "number") setGlobalRemaining(data.globalRemaining)
       if (typeof data.remaining === "number" && data.remaining <= 0) setLimitHit("user")
     } finally {
       setIsBotTyping(false)
@@ -271,21 +265,6 @@ function AIFeatures() {
           <div
             className="mt-6 sm:mt-3 px-4 py-3 shrink-0 rounded-2xl w-64 bg-white dark:bg-zinc-800 border border-brand-navy/10 dark:border-white/10 shadow-[0_2px_8px_rgba(0,48,95,0.08),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]"
           >
-            {/* Global row */}
-            {globalRemaining !== null && (
-              <div className="mb-2.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-medium text-brand-navy/55 dark:text-white/45">Global Requests Made</span>
-                  <span className="text-[11px] font-semibold text-brand-navy dark:text-white">{(1500 - globalRemaining).toLocaleString()} / 1,500</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-brand-navy/10 dark:bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-brand-red transition-all"
-                    style={{ width: `${Math.min(100, Math.round(((1500 - globalRemaining) / 1500) * 100))}%` }}
-                  />
-                </div>
-              </div>
-            )}
             {/* Personal row */}
             {remaining !== null && tierLimit !== null && (
               <div>
@@ -578,9 +557,6 @@ function AIFeatures() {
                       <li>0–1 semesters completed: <span className="font-semibold text-brand-navy dark:text-white">2 questions/day</span></li>
                       <li>2+ semesters completed: <span className="font-semibold text-brand-navy dark:text-white">3 questions/day</span></li>
                     </ul>
-                    <p className="mt-2 text-xs text-brand-navy/55 dark:text-white/45 leading-relaxed">
-                      Queen&apos;s Answers uses a free AI API plan to keep the service free for all students. The plan includes 1,500 requests per day shared across all users.
-                    </p>
                   </div>
                 </motion.div>
               </motion.div>

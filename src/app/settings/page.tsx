@@ -124,9 +124,6 @@ export default function SettingsPage() {
     dailyLimit: number
     used: number
     remaining: number
-    globalUsed: number
-    globalLimit: number
-    globalRemaining: number
   } | null>(null);
 
   useEffect(() => {
