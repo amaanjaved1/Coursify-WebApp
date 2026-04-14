@@ -4,7 +4,7 @@ import type { RefObject } from "react"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { Hammer, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   PROMPT_BUILDER_CATEGORIES,
   PROMPT_BUILDER_DEFAULT_CATEGORY_ID,
@@ -38,6 +38,7 @@ export function PromptBuilderPanel({
   const closeRef = useRef<HTMLButtonElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closedViaUsePromptRef = useRef(false)
+  const [anchorElement, setAnchorElement] = useState<Element | null>(null)
 
   const [categoryId, setCategoryId] = useState(PROMPT_BUILDER_DEFAULT_CATEGORY_ID)
   const [optionId, setOptionId] = useState<string | null>(null)
@@ -63,6 +64,24 @@ export function PromptBuilderPanel({
     setOptionDetailText("")
   }, [optionId])
 
+  useEffect(() => {
+    setAnchorElement(
+      questionInputRef?.current?.parentElement ?? questionInputRef?.current ?? triggerRef.current
+    )
+  }, [open, questionInputRef])
+
+  const composerVirtualRef = useMemo(
+    () => ({
+      current: anchorElement
+        ? {
+            getBoundingClientRect: () => anchorElement.getBoundingClientRect(),
+            contextElement: anchorElement,
+          }
+        : null,
+    }),
+    [anchorElement]
+  )
+
   const previewText = composePromptPreview(
     categoryId,
     optionId,
@@ -81,6 +100,7 @@ export function PromptBuilderPanel({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverAnchor virtualRef={composerVirtualRef} />
       <PopoverTrigger asChild>
         <button
           ref={triggerRef}
@@ -106,7 +126,7 @@ export function PromptBuilderPanel({
         aria-labelledby={titleId}
         aria-describedby={descId}
         side="top"
-        align="start"
+        align="center"
         sideOffset={10}
         collisionPadding={12}
         onCloseAutoFocus={(e) => {
