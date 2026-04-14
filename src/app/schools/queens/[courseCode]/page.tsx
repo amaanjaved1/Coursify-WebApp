@@ -33,6 +33,22 @@ const GRADE_COLORS = {
   'F': '#D32F2F',
 };
 
+function brightenHex(hex: string, amount = 0.16): string {
+  const normalized = hex.replace('#', '');
+  const fullHex = normalized.length === 3
+    ? normalized.split('').map((char) => `${char}${char}`).join('')
+    : normalized;
+
+  if (!/^[0-9a-fA-F]{6}$/.test(fullHex)) {
+    return hex;
+  }
+
+  const channel = (offset: number) => Number.parseInt(fullHex.slice(offset, offset + 2), 16);
+  const blend = (value: number) => Math.round(value + (255 - value) * amount);
+
+  return `rgb(${blend(channel(0))}, ${blend(channel(2))}, ${blend(channel(4))})`;
+}
+
 function pageMotionVariants(tier: MotionTier) {
   const lite = tier === "lite";
   return {
@@ -181,6 +197,7 @@ export default function CourseDetailPage() {
   const chartsAnimate = motionTier === "full";
   const courseCode = params?.courseCode ? (params.courseCode as string).replace(/-/g, ' ').toUpperCase() : '';
   const [selectedTerm, setSelectedTerm] = useState<string>('');
+  const [activeGradeIndex, setActiveGradeIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [course, setCourse] = useState<CourseWithStats | null>(null);
@@ -212,6 +229,10 @@ export default function CourseDetailPage() {
     };
     if (courseCode) fetchCourseData();
   }, [courseCode]);
+
+  useEffect(() => {
+    setActiveGradeIndex(null);
+  }, [selectedTerm]);
 
   if (loading) return null;
 
@@ -270,6 +291,17 @@ export default function CourseDetailPage() {
   const barMotionShort = chartsAnimate ? { duration: 0.8, delay: 0.2 } : { duration: 0, delay: 0 };
   const barMotionEnroll = chartsAnimate ? { duration: 0.8, delay: 0.25 } : { duration: 0, delay: 0 };
   const tooltipGlass = chartsAnimate ? ("blur(12px)" as const) : ("none" as const);
+  const handleGradeChartHover = (state: unknown) => {
+    if (!state || typeof state !== 'object' || !('activeTooltipIndex' in state)) {
+      setActiveGradeIndex(null);
+      return;
+    }
+
+    const tooltipIndex = (state as { activeTooltipIndex?: number | string }).activeTooltipIndex;
+    const parsedIndex = typeof tooltipIndex === 'number' ? tooltipIndex : Number.parseInt(`${tooltipIndex ?? ''}`, 10);
+
+    setActiveGradeIndex(Number.isNaN(parsedIndex) ? null : parsedIndex);
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden pb-16 pt-20 course-detail-bg">
@@ -830,7 +862,14 @@ export default function CourseDetailPage() {
               >
                 <div className="min-h-0 h-full min-w-0 w-full flex-1">
                   <ResponsiveContainer width="100%" height="100%">
-                  <BarChart key={`chart-${selectedTerm}`} data={gradeDistributionData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }} barCategoryGap="25%">
+                  <BarChart
+                    key={`chart-${selectedTerm}`}
+                    data={gradeDistributionData}
+                    margin={{ top: 12, right: 12, left: 0, bottom: 8 }}
+                    barCategoryGap="25%"
+                    onMouseMove={handleGradeChartHover}
+                    onMouseLeave={() => setActiveGradeIndex(null)}
+                  >
                     <CartesianGrid strokeDasharray="4 4" vertical={false} stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} />
                     <XAxis
                       dataKey="grade"
@@ -847,6 +886,7 @@ export default function CourseDetailPage() {
                       tickFormatter={(v) => `${v}%`}
                     />
                     <RechartsTooltip
+                      cursor={false}
                       formatter={(value) => [`${value}%`, 'Students']}
                       labelFormatter={(label) => `Grade ${label}`}
                       itemStyle={{
@@ -873,7 +913,11 @@ export default function CourseDetailPage() {
                       radius={[4, 4, 0, 0]}
                     >
                       {gradeDistributionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} fillOpacity={0.85} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={activeGradeIndex === index ? brightenHex(entry.fill) : entry.fill}
+                          fillOpacity={activeGradeIndex === null ? 0.85 : activeGradeIndex === index ? 0.98 : 0.72}
+                        />
                       ))}
                     </Bar>
                   </BarChart>
