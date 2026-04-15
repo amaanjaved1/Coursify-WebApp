@@ -407,20 +407,9 @@ function AIFeatures() {
               You&apos;ve used all your questions for today. Check back in 24 hours.
             </div>
           )}
-          <div className="flex w-full items-center gap-1.5 sm:gap-2">
-            <PromptBuilderPanel
-              open={promptBuilderOpen}
-              onOpenChange={(next) => {
-                setPromptBuilderOpen(next)
-                if (next) setShowHowItWorks(false)
-              }}
-              onUsePrompt={(text) => setQuestion(text)}
-              questionInputRef={questionTextareaRef}
-              composerInert={showHowItWorks}
-              disabled={authLoading}
-            />
+          <div className="flex w-full items-center">
             <div
-              className={`group/composer flex min-w-0 flex-1 items-end gap-1 box-border rounded-[2rem] pl-5 pr-1.5 py-1.5
+              className={`group/composer flex min-w-0 flex-1 items-end gap-1 box-border rounded-[2rem] pl-1.5 pr-1.5 py-1.5
               [transition-property:background-color,border-color,box-shadow,opacity] duration-[420ms] ease-in-out
               motion-reduce:transition-none
               bg-[#fcfcfd] dark:bg-[#262626]
@@ -434,10 +423,21 @@ function AIFeatures() {
                   : "hover:border-brand-navy/28 dark:hover:border-white/[0.14] hover:shadow-[0_5px_20px_rgba(0,48,95,0.09),0_2px_6px_rgba(0,48,95,0.055),inset_0_1px_0_rgba(255,255,255,0.98)] dark:hover:shadow-[0_6px_22px_rgba(0,0,0,0.36),0_2px_8px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]"
               }`}
             >
+              <PromptBuilderPanel
+                open={promptBuilderOpen}
+                onOpenChange={(next) => {
+                  setPromptBuilderOpen(next)
+                  if (next) setShowHowItWorks(false)
+                }}
+                onUsePrompt={(text) => setQuestion(text)}
+                questionInputRef={questionTextareaRef}
+                composerInert={showHowItWorks}
+                disabled={authLoading}
+              />
               <textarea
                 ref={questionTextareaRef}
                 rows={1}
-                className="min-h-[44px] min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent py-2.5 pl-0 pr-2 text-base sm:text-[17px] leading-normal text-[#222] shadow-none outline-none ring-0 ring-offset-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 dark:text-gray-100 placeholder:text-[#8e9196] dark:placeholder:text-gray-500 placeholder:font-normal transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                className="min-h-[44px] min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent py-2.5 pl-2 pr-2 text-base sm:text-[17px] leading-normal text-[#222] shadow-none outline-none ring-0 ring-offset-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 dark:text-gray-100 placeholder:text-[#8e9196] dark:placeholder:text-gray-500 placeholder:font-normal transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
                 placeholder="Ask anything"
                 value={question}
                 readOnly={showHowItWorks || needsAuthToAsk || limitHit !== null}
