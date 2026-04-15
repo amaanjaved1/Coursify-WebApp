@@ -1203,3 +1203,35 @@
     0 2px 6px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
+
+/* ── Landing page hero gradient text ── */
+.gradient-text-animated {
+  color: #00305f;
+  background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
+  background-size: 300% 300%;
+  animation: coursify-gradient-shift 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.dark .gradient-text-animated {
+  color: #4a9eff;
+  background: linear-gradient(-45deg, #4a9eff, #ff4d5e, #ffc940, #4a9eff);
+  background-size: 300% 300%;
+  animation: coursify-gradient-shift 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

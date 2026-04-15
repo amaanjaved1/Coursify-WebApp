@@ -1,18 +1,9 @@
-"use client";
-
-import { useState, useEffect, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import { useMotionTier } from "@/lib/motion-prefs";
 import {
   Brain,
-  BarChart3,
   BarChart,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  ArrowRight,
   Info,
   Star,
   Zap,
@@ -21,44 +12,16 @@ import {
   Upload,
   Eye,
   Sparkles,
-  Users,
 } from "lucide-react";
 import {
   GradeDistributionMockup,
   StudentReviewsMockup,
   AIAssistantMockup,
-  CourseAnalyticsMockup,
 } from "@/components/landing-mockups";
+import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
+import { FeatureTabs } from "@/components/landing/FeatureTabs";
+import { FaqAccordion } from "@/components/landing/FaqAccordion";
 import { BRAND_NAVY_LIGHT } from "@/constants/brand";
-import { cn } from "@/lib/utils";
-
-const featureTabSpring = {
-  type: "spring" as const,
-  stiffness: 320,
-  damping: 30,
-  mass: 0.55,
-};
-
-const featurePanelTransition = {
-  duration: 0.5,
-  ease: [0.25, 0.1, 0.25, 1] as const,
-};
-
-const featurePanelVariants = {
-  initial: { opacity: 0, y: 12, scale: 0.992 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { ...featurePanelTransition, opacity: { duration: 0.42 } },
-  },
-  exit: {
-    opacity: 0,
-    y: -8,
-    scale: 0.996,
-    transition: { duration: 0.28, ease: [0.4, 0, 1, 1] as const },
-  },
-};
 
 function SectionGlow({
   className,
@@ -76,209 +39,70 @@ function SectionGlow({
   );
 }
 
+const steps = [
+  {
+    num: "01",
+    title: "Create an Account",
+    desc: "Sign up for free and personalize your course planning experience.",
+    icon: <UserPlus className="h-6 w-6" />,
+    color: "#d62839",
+  },
+  {
+    num: "02",
+    title: "Upload Grade Distributions",
+    desc: "Contribute data to help the community make smarter decisions.",
+    icon: <Upload className="h-6 w-6" />,
+    color: "#00305f",
+    darkColor: "#5a93c9",
+    darkIconBg: "rgba(90, 147, 201, 0.22)",
+  },
+  {
+    num: "03",
+    title: "View Course Data",
+    desc: "Explore real grade breakdowns, enrollment trends, and student reviews.",
+    icon: <Eye className="h-6 w-6" />,
+    color: "#efb215",
+  },
+  {
+    num: "04",
+    title: "Ask Our AI",
+    desc: "Chat with the AI assistant for personalized course and professor recommendations.",
+    icon: <Sparkles className="h-6 w-6" />,
+    color: "#d62839",
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "The AI assistant recommended a professor whose teaching style matched how I learn. Best course experience I've had at Queen's!",
+    name: "Queen's Engineering Student",
+    program: "Class of 2024",
+    initial: "E",
+    color: "#d62839",
+  },
+  {
+    quote:
+      "The AI chatbot gave me insights about my professor's teaching style that I couldn't find anywhere else.",
+    name: "Queen's Arts Student",
+    program: "Class of 2026",
+    initial: "A",
+    color: "#00305f",
+    darkColor: BRAND_NAVY_LIGHT,
+  },
+  {
+    quote:
+      "Being able to see how course difficulty changed over different semesters helped me pick the best time to take COMM 151.",
+    name: "Queen's Science Student",
+    program: "Class of 2025",
+    initial: "S",
+    color: "#efb215",
+  },
+];
+
 export default function Home() {
-  const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
-  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
-  const [studentCount, setStudentCount] = useState<number | null>(null);
-  const motionTier = useMotionTier();
-  const lite = motionTier === "lite";
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/stats/user-count")
-      .then((r) => r.json())
-      .then((data) => {
-        // sorry for larping XD. keep it on the down low pls lmao
-        setStudentCount((data.count ?? 0) + 169);
-      })
-      .catch(() => {});
-  }, []);
-
-  const toggleAccordion = (index: number) =>
-    setActiveAccordion(activeAccordion === index ? null : index);
-
-  const steps = [
-    {
-      num: "01",
-      title: "Create an Account",
-      desc: "Sign up for free and personalize your course planning experience.",
-      icon: <UserPlus className="h-6 w-6" />,
-      color: "#d62839",
-    },
-    {
-      num: "02",
-      title: "Upload Grade Distributions",
-      desc: "Contribute data to help the community make smarter decisions.",
-      icon: <Upload className="h-6 w-6" />,
-      color: "#00305f",
-      darkColor: "#5a93c9",
-      darkIconBg: "rgba(90, 147, 201, 0.22)",
-    },
-    {
-      num: "03",
-      title: "View Course Data",
-      desc: "Explore real grade breakdowns, enrollment trends, and student reviews.",
-      icon: <Eye className="h-6 w-6" />,
-      color: "#efb215",
-    },
-    {
-      num: "04",
-      title: "Ask Our AI",
-      desc: "Chat with the AI assistant for personalized course and professor recommendations.",
-      icon: <Sparkles className="h-6 w-6" />,
-      color: "#d62839",
-    },
-  ];
-
-  const featureTabs = [
-    {
-      label: "Grade Distributions",
-      icon: <BarChart3 className="h-5 w-5" />,
-      title: "Real grade data across 10+ semesters",
-      description:
-        "See actual grade breakdowns for every Queen's course. Compare how difficulty has changed over time, identify trends, and understand what to expect before you enroll.",
-    },
-    {
-      label: "Student Reviews",
-      icon: <MessageSquare className="h-5 w-5" />,
-      title: "Aggregated student feedback from across the web",
-      description:
-        "Read comments pulled from Reddit and RateMyProfessors, filtered for relevance to Queen's courses. Get the full picture of what students actually think.",
-    },
-    {
-      label: "AI Assistant",
-      icon: <Brain className="h-5 w-5" />,
-      title: "Your personal course advisor, powered by AI",
-      description:
-        "Ask anything about courses, professors, teaching styles, and workload. Our AI is trained on thousands of student experiences to give you personalized, instant answers.",
-    },
-    {
-      label: "Course Analytics",
-      icon: <BarChart className="h-5 w-5" />,
-      title: "Visualize trends and make informed decisions",
-      description:
-        "Track GPA trends, passing rates, and enrollment numbers across semesters. Identify the best time to take a course and which sections to target.",
-    },
-  ];
-
-  const testimonials = [
-    {
-      quote:
-        "The AI assistant recommended a professor whose teaching style matched how I learn. Best course experience I've had at Queen's!",
-      name: "Queen's Engineering Student",
-      program: "Class of 2024",
-      initial: "E",
-      color: "#d62839",
-    },
-    {
-      quote:
-        "The AI chatbot gave me insights about my professor's teaching style that I couldn't find anywhere else.",
-      name: "Queen's Arts Student",
-      program: "Class of 2026",
-      initial: "A",
-      color: "#00305f",
-      darkColor: BRAND_NAVY_LIGHT,
-    },
-    {
-      quote:
-        "Being able to see how course difficulty changed over different semesters helped me pick the best time to take COMM 151.",
-      name: "Queen's Science Student",
-      program: "Class of 2025",
-      initial: "S",
-      color: "#efb215",
-    },
-  ];
-
-  const faqs = [
-    {
-      question: "Is Coursify connected to SOLUS?",
-      answer:
-        "Coursify is not officially connected to SOLUS, but we've collected grade distribution data from multiple reliable sources. You'll need to register for courses through SOLUS after researching them on our platform.",
-    },
-    {
-      question: "Where does the chatbot get its information?",
-      answer:
-        "Our AI advisor is trained on thousands of student reviews from Queen's course catalogs, Reddit discussions, and RateMyProfessors reviews to provide you with comprehensive insights about courses and professors.",
-    },
-    {
-      question: "How up-to-date is the grade data?",
-      answer:
-        "We update our database each semester with the latest grade distributions and course information to ensure you have access to the most current data for decision making.",
-    },
-    {
-      question: "Is this tool free?",
-      answer:
-        "Yes, Coursify is completely free for all Queen's University students. We believe in making data-driven course selection accessible to everyone.",
-    },
-    {
-      question: "What courses are supported?",
-      answer:
-        "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our data and AI assistant focus exclusively on in-person course offerings.",
-    },
-  ];
-
-  const activeTab = featureTabs[activeFeatureTab];
-
   return (
     <div className="relative overflow-hidden">
-      <style jsx global>{`
-        @keyframes gradient-shift {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-        .gradient-text-animated {
-          color: #00305f;
-          background: linear-gradient(
-            -45deg,
-            #00305f,
-            #d62839,
-            #efb215,
-            #00305f
-          );
-          background-size: 300% 300%;
-          animation: gradient-shift 6s ease infinite;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        :is(.dark) .gradient-text-animated {
-          color: #4a9eff;
-          background: linear-gradient(
-            -45deg,
-            #4a9eff,
-            #ff4d5e,
-            #ffc940,
-            #4a9eff
-          );
-          background-size: 300% 300%;
-          animation: gradient-shift 6s ease infinite;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        @keyframes bounce-slow {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-      `}</style>
 
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="relative min-h-screen overflow-x-hidden pt-24 sm:pt-28 pb-12 sm:pb-16">
@@ -306,36 +130,7 @@ export default function Home() {
                     Built for Queen&apos;s Students
                   </span>
                 </div>
-                {studentCount === null ? (
-                  <div className="inline-flex items-center rounded-full px-4 py-2 glass-pill">
-                    <div className="h-3 w-28 rounded-full bg-brand-navy/10 dark:bg-white/10 animate-pulse" />
-                  </div>
-                ) : (
-                  <div
-                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-brand-navy"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(239,178,21,0.95) 0%, rgba(185,132,18,0.96) 100%)",
-                      border: "1px solid rgba(255,255,255,0.28)",
-                      boxShadow:
-                        "0 4px 16px rgba(239,178,21,0.35), inset 0 1px 0 rgba(255,255,255,0.22)",
-                    }}
-                  >
-                    <motion.span
-                      animate={{ scale: [1, 1.22, 1] }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 2.2,
-                        ease: "easeInOut",
-                      }}
-                    >
-                      <Users className="h-3.5 w-3.5 text-brand-navy" />
-                    </motion.span>
-                    <span className="text-xs font-semibold">
-                      Join {studentCount} students
-                    </span>
-                  </div>
-                )}
+                <StudentCountBadge />
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-7 leading-[1.05] tracking-tight">
@@ -489,110 +284,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto">
-            {/* Tab buttons — shared layoutId slides red pill between tabs */}
-            <LayoutGroup>
-              <div className="mb-8 flex flex-wrap justify-center gap-2">
-                {featureTabs.map((tab, i) => (
-                  <button
-                    key={tab.label}
-                    type="button"
-                    onClick={() => setActiveFeatureTab(i)}
-                    className={cn(
-                      "relative flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium [-webkit-tap-highlight-color:transparent]",
-                      "outline-none focus-visible:ring-2 focus-visible:ring-brand-red/45 focus-visible:ring-inset",
-                      "transition-colors duration-200",
-                      i === activeFeatureTab
-                        ? "text-white"
-                        : "text-gray-700 hover:text-brand-navy dark:text-gray-300 dark:hover:text-white",
-                      i !== activeFeatureTab &&
-                        "glass-pill border border-brand-navy/12 dark:border-white/12 bg-white/72 hover:bg-white/84 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] shadow-[0_2px_10px_rgba(0,48,95,0.08)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.22)]",
-                    )}
-                  >
-                    {i === activeFeatureTab && (
-                      <motion.span
-                        layoutId="feature-tab-pill"
-                        className="absolute inset-0 z-0 rounded-full bg-brand-red shadow-lg shadow-brand-red/25"
-                        transition={featureTabSpring}
-                        style={{ willChange: "transform" }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      {tab.icon}
-                      <span className="hidden sm:inline">{tab.label}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </LayoutGroup>
-
-            {/* Tab content — softer crossfade + light stagger */}
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeFeatureTab}
-                variants={lite ? undefined : featurePanelVariants}
-                initial={lite ? false : "initial"}
-                animate={lite ? undefined : "animate"}
-                exit={lite ? undefined : "exit"}
-                className="glass-card overflow-hidden rounded-3xl p-6 sm:p-10"
-              >
-                <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
-                  <motion.div
-                    initial={lite ? false : { opacity: 0, y: 8 }}
-                    animate={lite ? undefined : { opacity: 1, y: 0 }}
-                    transition={
-                      lite
-                        ? { duration: 0 }
-                        : {
-                            duration: 0.4,
-                            delay: 0.06,
-                            ease: [0.25, 0.1, 0.25, 1],
-                          }
-                    }
-                  >
-                    <h3 className="mb-4 text-xl font-bold leading-snug text-brand-navy dark:text-white sm:text-2xl">
-                      {activeTab.title}
-                    </h3>
-                    <p className="mb-6 leading-relaxed text-gray-600 dark:text-gray-400">
-                      {activeTab.description}
-                    </p>
-                    <Link
-                      href={
-                        activeFeatureTab === 2
-                          ? "/queens-answers"
-                          : "/schools/queens"
-                      }
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-brand-red transition-all duration-300 hover:gap-3"
-                    >
-                      {activeFeatureTab === 2
-                        ? "Try AI Assistant"
-                        : "Explore Courses"}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </motion.div>
-                  <motion.div
-                    className="flex w-full max-w-xl items-center justify-center rounded-2xl subpixel-antialiased md:mx-auto md:max-w-lg lg:max-w-xl"
-                    initial={lite ? false : { opacity: 0, y: 10, scale: 0.985 }}
-                    animate={lite ? undefined : { opacity: 1, y: 0, scale: 1 }}
-                    transition={
-                      lite
-                        ? { duration: 0 }
-                        : {
-                            duration: 0.48,
-                            delay: 0.12,
-                            ease: [0.22, 1, 0.36, 1],
-                          }
-                    }
-                  >
-                    {activeFeatureTab === 0 && <GradeDistributionMockup />}
-                    {activeFeatureTab === 1 && <StudentReviewsMockup />}
-                    {activeFeatureTab === 2 && <AIAssistantMockup />}
-                    {activeFeatureTab === 3 && <CourseAnalyticsMockup />}
-                  </motion.div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <FeatureTabs />
         </div>
       </section>
 
@@ -692,76 +384,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="space-y-3 [overflow-anchor:none]">
-            {faqs.map((faq, index) => {
-              const colorClasses =
-                index % 3 === 0
-                  ? {
-                      iconBg: "bg-brand-red/10",
-                      iconText: "text-brand-red",
-                      iconHoverBg: "group-hover:bg-brand-red",
-                      titleHover: "group-hover:text-brand-red",
-                    }
-                  : index % 3 === 1
-                    ? {
-                        iconBg: "bg-brand-navy/10 dark:bg-brand-navy-light/20",
-                        iconText: "text-brand-navy dark:text-white",
-                        iconHoverBg:
-                          "group-hover:bg-brand-navy dark:group-hover:bg-brand-navy-light",
-                        titleHover:
-                          "group-hover:text-brand-navy dark:text-white",
-                      }
-                    : {
-                        iconBg: "bg-brand-gold/10",
-                        iconText: "text-brand-gold",
-                        iconHoverBg: "group-hover:bg-brand-gold",
-                        titleHover: "group-hover:text-brand-gold",
-                      };
-
-              return (
-                <div
-                  key={index}
-                  className="group glass-accordion rounded-2xl p-6 cursor-pointer"
-                  onClick={() => toggleAccordion(index)}
-                >
-                  <div className="flex items-start">
-                    <div className="mr-4 mt-1">
-                      <div
-                        className={`flex items-center justify-center w-6 h-6 rounded-full ${colorClasses.iconBg} ${colorClasses.iconText} ${colorClasses.iconHoverBg} group-hover:text-white`}
-                      >
-                        {activeAccordion === index ? (
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg text-brand-navy dark:text-white mb-2">
-                        {faq.question}
-                      </h3>
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          height: activeAccordion === index ? "auto" : 0,
-                          opacity: activeAccordion === index ? 1 : 0,
-                        }}
-                        transition={{
-                          duration: lite ? 0.15 : 0.45,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
-                        className="overflow-hidden [overflow-anchor:none]"
-                      >
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                          {faq.answer}
-                        </p>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <FaqAccordion />
         </div>
       </section>
 
