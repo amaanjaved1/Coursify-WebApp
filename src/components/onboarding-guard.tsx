@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSupabaseClient } from "@/lib/supabase/client";
@@ -25,20 +25,38 @@ export default function OnboardingGuard({ children }: Props) {
   const [checking, setChecking] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
+  // Refs instead of state: updating these never triggers a re-render and they
+  // never need to appear in the dependency array, breaking the re-run cycle.
+  const checkedUserIdRef = useRef<string | null>(null);
+  const redirectingRef = useRef(false);
+
+  const userId = user?.id ?? null;
   const isExemptPath = EXEMPT_PATHS.some((p) => pathname.startsWith(p));
 
   useEffect(() => {
-    // No user — nothing to check
+    // Auth still resolving — wait
     if (authLoading) return;
-    if (!user) {
+
+    // No user — reset and bail
+    if (!userId) {
+      checkedUserIdRef.current = null;
+      redirectingRef.current = false;
       setOnboardingDone(null);
       return;
     }
-    // Already on an exempt page — don't block
+
+    // Already on an exempt page — reset redirect flag (the redirect completed) and don't block
     if (isExemptPath) {
+      redirectingRef.current = false;
       setOnboardingDone(true);
       return;
     }
+
+    // Already confirmed for this exact user — skip re-check (tab focus, token refresh, etc.)
+    if (checkedUserIdRef.current === userId) return;
+
+    // A redirect is already in flight — don't issue another request or replace call
+    if (redirectingRef.current) return;
 
     let cancelled = false;
 
@@ -49,7 +67,9 @@ export default function OnboardingGuard({ children }: Props) {
         if (cancelled) return;
         const token = session?.session?.access_token;
         if (!token) {
-          setOnboardingDone(true); // can't check — let through
+          // No token yet — fail open but don't cache the result so the guard
+          // re-checks once the session fully hydrates on the next navigation.
+          setOnboardingDone(true);
           return;
         }
 
@@ -67,16 +87,23 @@ export default function OnboardingGuard({ children }: Props) {
           const data = await res.json();
           if (cancelled) return;
           if (data.needs_onboarding) {
+            // Mark redirect in-flight *before* setting state so any re-run
+            // triggered by setOnboardingDone(false) is immediately short-circuited.
+            redirectingRef.current = true;
             setOnboardingDone(false);
             router.replace("/onboarding");
           } else {
+            checkedUserIdRef.current = userId;
             setOnboardingDone(true);
           }
         } else {
-          setOnboardingDone(true); // API error — let through
+          // API error — fail open but don't cache so a transient failure
+          // doesn't permanently disable onboarding enforcement this session.
+          setOnboardingDone(true);
         }
       } catch {
-        // Fail open if network/API hangs so we don't trap the UI behind a spinner.
+        // Fail open on network/timeout — same: don't cache so a blip doesn't
+        // disable onboarding checks for the rest of the session.
         if (!cancelled) setOnboardingDone(true);
       } finally {
         if (!cancelled) setChecking(false);
@@ -87,7 +114,7 @@ export default function OnboardingGuard({ children }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading, pathname, isExemptPath, router]);
+  }, [userId, authLoading, pathname, isExemptPath, router]);
 
   // Auth still loading — show spinner
   if (authLoading) {

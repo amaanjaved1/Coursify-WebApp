@@ -29,29 +29,54 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checking, setChecking] = useState(true);
 
+  // After email-verification the auth callback sets cookies, but the client-side
+  // auth context may not have hydrated the session yet. Wait briefly before
+  // redirecting unauthenticated users to /sign-in so the session has time to load.
   useEffect(() => {
-    if (!authLoading && !user) router.push("/sign-in");
+    if (authLoading) return;
+    if (user) return; // authenticated — nothing to do here
+    // Give the Supabase client a moment to pick up the session from cookies
+    const timer = setTimeout(() => {
+      router.push("/sign-in");
+    }, 2000);
+    return () => clearTimeout(timer);
   }, [user, authLoading, router]);
 
   useEffect(() => {
     if (!user) return;
-    const check = async () => {
+
+    let cancelled = false;
+
+    const check = async (attempt = 0): Promise<void> => {
       try {
         const { data: session } = await getSupabaseClient().auth.getSession();
         const token = session?.session?.access_token;
-        if (!token) return;
+
+        if (!token) {
+          // Session may not be hydrated from cookies yet — retry a few times
+          if (attempt < 3 && !cancelled) {
+            await new Promise((r) => setTimeout(r, 800));
+            return await check(attempt + 1);
+          }
+          return; // give up — page will still render the form for manual retry
+        }
+
+        if (cancelled) return;
+
         const res = await fetch("/api/me/access-status", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
-          if (!data.needs_onboarding) router.push("/");
+          if (!cancelled && !data.needs_onboarding) router.push("/");
         }
       } finally {
-        setChecking(false);
+        if (!cancelled) setChecking(false);
       }
     };
+
     void check();
+    return () => { cancelled = true; };
   }, [user, router]);
 
   const handleSubmit = async () => {
