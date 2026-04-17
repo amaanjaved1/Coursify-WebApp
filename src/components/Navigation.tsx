@@ -151,7 +151,6 @@ const Navigation = () => {
   }
 
   const links = [
-    { href: "/", label: "Home" },
     { href: "/schools/queens", label: "View Courses" },
     { href: "/add-courses", label: "Upload Distributions" },
     { href: "/queens-answers", label: "AI Assistant" },
@@ -181,16 +180,25 @@ const Navigation = () => {
           <ul className="hidden nav:flex items-center gap-0.5 text-sm font-medium text-brand-navy/70 dark:text-white/70">
             {links.map((link) => (
               <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={
-                    link.href === "/queens-answers"
-                      ? "px-3.5 py-1.5 rounded-full text-brand-gold font-semibold"
-                      : "px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
-                  }
-                >
-                  {link.label}
-                </Link>
+                {link.href === "/queens-answers" ? (
+                  <Link href={link.href} className="relative px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200">
+                    {link.label}
+                    <span className="absolute -top-1 -right-1 text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                      Coming Soon
+                    </span>
+                  </Link>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className={
+                      link.href === "/schools/queens"
+                        ? "px-3.5 py-1.5 rounded-full text-brand-gold font-semibold"
+                        : "px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
+                    }
+                  >
+                    {link.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -297,16 +305,34 @@ const Navigation = () => {
         <div style={{ overflow: "hidden", minHeight: 0 }}>
           <div className="rounded-3xl px-4 py-4 bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 shadow-xl">
             <nav className="flex flex-col gap-0.5">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
-                  onClick={toggleMenu}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {links.map((link) =>
+                link.href === "/queens-answers" ? (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm font-medium text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200 flex items-center gap-2"
+                    onClick={toggleMenu}
+                  >
+                    {link.label}
+                    <span className="text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                      Coming Soon
+                    </span>
+                  </Link>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={
+                      link.href === "/schools/queens"
+                        ? "text-sm font-semibold text-brand-gold px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
+                        : "text-sm font-medium text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
+                    }
+                    onClick={toggleMenu}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
 
               <div className="pt-2 mt-1 border-t border-black/5 dark:border-white/5 flex items-center justify-between px-4 py-2.5">
                 <span className="text-sm font-medium text-gray-600 dark:text-white/75">Theme</span>
