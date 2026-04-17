@@ -83,6 +83,21 @@ Use your **own** Supabase project (free tier is fine). Schema and sample data li
 
 4. **Auth URLs:** In **Authentication → URL configuration**, set **Site URL** to `http://localhost:3000` and add redirect URL `http://localhost:3000/auth/callback`.
 
+### 3.5 Auth emails (SMTP + templates)
+
+Supabase Auth sends signup confirmation / password reset emails. The default Supabase email service is heavily rate-limited, so production should use a custom SMTP provider (e.g. Brevo).
+
+1. In **Brevo**, create an SMTP key and verify your sender (domain or single sender email).
+2. In **Supabase Dashboard → Authentication → Email**, enable **Custom SMTP** and set:
+   - Host: `smtp-relay.brevo.com`
+   - Port: `587` (STARTTLS)
+   - Username: your Brevo SMTP login (often your Brevo account email)
+   - Password: the Brevo SMTP key
+   - Sender email/name: use a Brevo-verified sender
+3. In **Supabase Dashboard → Authentication → Email Templates → Confirm signup**, use the HTML from `supabase/templates/confirmation.html`.
+
+Local dev note: Supabase CLI runs an email catcher (Mailpit) at `http://localhost:54324`.
+
 **Staying up to date:** The schema is stable and changes infrequently. If it does change, maintainers will add new SQL under `supabase/migrations/` and update `supabase/seed.sql`. Contributors just `git pull` then `npm run db:reseed` (local) or `npm run db:seed-remote` (remote) to get the latest schema and data.
 
 ### 4. Run the dev server

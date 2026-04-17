@@ -233,10 +233,25 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Brevo (Sendinblue) example SMTP config
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp-relay.brevo.com"
+# port = 587
+# user = "env(BREVO_SMTP_USER)"
+# pass = "env(BREVO_SMTP_PASS)"
+# admin_email = "env(BREVO_ADMIN_EMAIL)"
+# sender_name = "Coursify"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
+
+# Uncomment to customize confirmation email template
+# [auth.email.template.confirmation]
+# subject = "Verify your email"
+# content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
