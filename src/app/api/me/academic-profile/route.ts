@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Since you have had the account for over a semester, you can no longer set semesters completed to 0. Please use the report bug feature if you believe this is an error.",
+            "Your account has been active for over a semester, so “semesters completed” can no longer be set to 0. If this seems incorrect, please use the Report a Bug feature.",
         },
         { status: 429 },
       );
