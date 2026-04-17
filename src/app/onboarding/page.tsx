@@ -56,7 +56,7 @@ export default function OnboardingPage() {
           // Session may not be hydrated from cookies yet — retry a few times
           if (attempt < 3 && !cancelled) {
             await new Promise((r) => setTimeout(r, 800));
-            return check(attempt + 1);
+            return await check(attempt + 1);
           }
           return; // give up — page will still render the form for manual retry
         }
