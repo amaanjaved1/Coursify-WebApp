@@ -188,6 +188,9 @@ export async function GET(
     })
   } catch (err) {
     console.error("Course comments API error:", err)
+    if (err instanceof Error && err.message.includes("Missing required Supabase environment variables")) {
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
+    }
     return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 })
   }
 }
