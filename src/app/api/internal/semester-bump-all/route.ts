@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
   const updates = users.map((u) => ({
     id: u.id,
     semesters_completed: (u.semesters_completed ?? 0) + 1,
+    semester_zero_locked: true,
     updated_at: now,
   }))
 

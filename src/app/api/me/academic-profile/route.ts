@@ -13,12 +13,16 @@ function getServiceClient() {
 }
 
 async function authenticate(request: NextRequest) {
-  if (!supabaseServiceKey) return { user: null, error: "Server configuration error" };
+  if (!supabaseServiceKey)
+    return { user: null, error: "Server configuration error" };
   const supabase = getServiceClient();
   const authHeader = request.headers.get("Authorization");
   const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
   if (!token) return { user: null, error: "Unauthorized" };
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return { user: null, error: "Authentication failed" };
   return { user, error: null, supabase };
 }
@@ -53,8 +57,33 @@ export async function POST(request: NextRequest) {
 
   const { semesters_completed } = body;
 
-  if (!Number.isInteger(semesters_completed) || semesters_completed < 0 || semesters_completed > 8) {
-    return NextResponse.json({ error: "semesters_completed must be 0–8" }, { status: 400 });
+  if (
+    !Number.isInteger(semesters_completed) ||
+    semesters_completed < 0 ||
+    semesters_completed > 8
+  ) {
+    return NextResponse.json(
+      { error: "semesters_completed must be 0–8" },
+      { status: 400 },
+    );
+  }
+
+  if (semesters_completed === 0) {
+    const { data: existing } = await supabase
+      .from("user_profiles")
+      .select("semester_zero_locked")
+      .eq("id", user.id)
+      .single();
+
+    if (existing?.semester_zero_locked) {
+      return NextResponse.json(
+        {
+          error:
+            "Since you have had the account for over a semester, you can no longer set semesters completed to 0. Please use the report bug feature if you believe this is an error.",
+        },
+        { status: 429 },
+      );
+    }
   }
 
   const now = new Date().toISOString();
@@ -67,7 +96,7 @@ export async function POST(request: NextRequest) {
         onboarding_completed: true,
         updated_at: now,
       },
-      { onConflict: "id" }
+      { onConflict: "id" },
     )
     .select()
     .single();

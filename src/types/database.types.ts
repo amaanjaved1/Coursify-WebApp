@@ -121,6 +121,7 @@ export interface Database {
           id: string
           display_name: string | null
           semesters_completed: number
+          semester_zero_locked: boolean
           onboarding_completed: boolean
           created_at: string
           updated_at: string
@@ -129,6 +130,7 @@ export interface Database {
           id: string
           display_name?: string | null
           semesters_completed?: number
+          semester_zero_locked?: boolean
           onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
@@ -137,6 +139,7 @@ export interface Database {
           id?: string
           display_name?: string | null
           semesters_completed?: number
+          semester_zero_locked?: boolean
           onboarding_completed?: boolean
           created_at?: string
           updated_at?: string

@@ -85,6 +85,7 @@ export interface UserProfile {
   id: string;                         // PK, matches auth.users.id
   display_name: string | null;
   semesters_completed: number;        // 0–8+; set at onboarding
+  semester_zero_locked: boolean;      // true once auto-bumped; prevents resetting to 0
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
