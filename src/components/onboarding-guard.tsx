@@ -45,8 +45,9 @@ export default function OnboardingGuard({ children }: Props) {
       return;
     }
 
-    // Already on an exempt page — don't block
+    // Already on an exempt page — reset redirect flag (the redirect completed) and don't block
     if (isExemptPath) {
+      redirectingRef.current = false;
       setOnboardingDone(true);
       return;
     }

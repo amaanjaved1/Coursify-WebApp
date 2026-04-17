@@ -7,13 +7,21 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const next = getSafeRedirectPath(requestUrl.searchParams.get("next"), "/onboarding");
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Auth callback: missing Supabase environment configuration");
+    return NextResponse.redirect(new URL("/onboarding", requestUrl));
+  }
+
   if (code) {
     // Build a response we can mutate to attach Set-Cookie headers
     const response = NextResponse.redirect(new URL(next, requestUrl));
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         cookies: {
           getAll() {
