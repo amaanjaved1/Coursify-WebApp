@@ -172,10 +172,10 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   const startEdit = () => {
     setEditSemesters(profile?.semesters_completed ?? null);
