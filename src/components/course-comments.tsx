@@ -5,6 +5,8 @@ import Link from "next/link";
 import { getCommentsForCourse } from "@/lib/db";
 import type { RedditComment, RmpComment } from "@/lib/db";
 
+const CAROUSEL_LIMIT = 5;
+
 interface CourseCommentsProps {
   courseCode: string;
 }
@@ -12,6 +14,8 @@ interface CourseCommentsProps {
 export function CourseComments({ courseCode }: CourseCommentsProps) {
   const [redditComments, setRedditComments] = useState<RedditComment[]>([]);
   const [rmpComments, setRmpComments] = useState<RmpComment[]>([]);
+  const [redditTotal, setRedditTotal] = useState(0);
+  const [rmpTotal, setRmpTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [redditCommentIndex, setRedditCommentIndex] = useState(0);
   const [rmpCommentIndex, setRmpCommentIndex] = useState(0);
@@ -20,9 +24,14 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
     async function fetchComments() {
       setLoading(true);
       try {
-        const { redditComments: reddit, rmpComments: rmp } = await getCommentsForCourse(courseCode);
+        const { redditComments: reddit, rmpComments: rmp, redditTotal: rTotal, rmpTotal: rmpT } =
+          await getCommentsForCourse(courseCode, CAROUSEL_LIMIT);
         setRedditComments(reddit);
         setRmpComments(rmp);
+        setRedditCommentIndex(0);
+        setRmpCommentIndex(0);
+        setRedditTotal(rTotal);
+        setRmpTotal(rmpT);
       } catch (err) {
         console.error("Error fetching comments:", err);
       } finally {
@@ -125,6 +134,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                 )}
                 <span className="text-xs font-semibold px-2 min-w-[44px] text-center rounded-full glass-pill text-brand-navy dark:text-white">
                   {redditComments.length > 0 ? `${redditCommentIndex + 1}/${redditComments.length}` : "0"}
+                  {redditTotal > redditComments.length && (
+                    <>
+                      {" "}
+                      <span className="text-gray-400 dark:text-gray-500 ml-0.5">of {redditTotal}</span>
+                    </>
+                  )}
                 </span>
                 {redditComments.length > 1 && (
                   <motion.button
@@ -244,6 +259,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                 )}
                 <span className="text-xs font-semibold px-2 min-w-[44px] text-center rounded-full glass-pill text-brand-navy dark:text-white">
                   {rmpComments.length > 0 ? `${rmpCommentIndex + 1}/${rmpComments.length}` : "0"}
+                  {rmpTotal > rmpComments.length && (
+                    <>
+                      {" "}
+                      <span className="text-gray-400 dark:text-gray-500 ml-0.5">of {rmpTotal}</span>
+                    </>
+                  )}
                 </span>
                 {rmpComments.length > 1 && (
                   <motion.button

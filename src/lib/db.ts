@@ -237,29 +237,91 @@ export interface RmpComment {
   sentiment_label: string;
 }
 
-export async function getCommentsForCourse(courseCode: string): Promise<{
+export async function getCommentsForCourse(
+  courseCode: string,
+  limit?: number
+): Promise<{
   redditComments: RedditComment[];
   rmpComments: RmpComment[];
+  redditTotal: number;
+  rmpTotal: number;
 }> {
-  if (!courseCode.trim()) return { redditComments: [], rmpComments: [] }
+  if (!courseCode.trim()) return { redditComments: [], rmpComments: [], redditTotal: 0, rmpTotal: 0 }
   try {
     const slug = courseCode.trim().replace(/\s+/g, "-").toLowerCase()
-    const res = await fetch(`/api/courses/${encodeURIComponent(slug)}/comments`)
+    const fetchLimit = limit ?? 5
+
+    // Single API call — preview mode returns both sources with a per-source limit
+    const res = await fetch(
+      `/api/courses/${encodeURIComponent(slug)}/comments?mode=preview&limit=${fetchLimit}`
+    )
     if (!res.ok) {
       console.error("getCommentsForCourse API error:", res.status, res.statusText)
-      return { redditComments: [], rmpComments: [] }
+      return { redditComments: [], rmpComments: [], redditTotal: 0, rmpTotal: 0 }
     }
-    const data = (await res.json()) as {
-      redditComments?: RedditComment[]
-      rmpComments?: RmpComment[]
-    }
+    const data = await res.json()
     return {
-      redditComments: data.redditComments ?? [],
-      rmpComments: data.rmpComments ?? [],
+      redditComments: (data.redditComments ?? []) as RedditComment[],
+      rmpComments: (data.rmpComments ?? []) as RmpComment[],
+      redditTotal: data.redditTotal ?? 0,
+      rmpTotal: data.rmpTotal ?? 0,
     }
   } catch (error) {
     console.error("Error in getCommentsForCourse:", error)
-    return { redditComments: [], rmpComments: [] }
+    return { redditComments: [], rmpComments: [], redditTotal: 0, rmpTotal: 0 }
+  }
+}
+
+export interface PaginatedCommentsParams {
+  courseCode: string
+  source: "reddit" | "rmp" | "all"
+  page?: number
+  limit?: number
+  professor?: string
+}
+
+export interface PaginatedCommentsResult {
+  comments: (RedditComment & { _type: "reddit" } | RmpComment & { _type: "rmp" })[]
+  total: number
+  page: number
+  totalPages: number
+  redditTotal: number
+  rmpTotal: number
+  professorCounts: Record<string, number>
+}
+
+export async function getCommentsForCoursePaginated(
+  params: PaginatedCommentsParams
+): Promise<PaginatedCommentsResult> {
+  const empty: PaginatedCommentsResult = {
+    comments: [],
+    total: 0,
+    page: 1,
+    totalPages: 0,
+    redditTotal: 0,
+    rmpTotal: 0,
+    professorCounts: {},
+  }
+  if (!params.courseCode.trim()) return empty
+  try {
+    const slug = params.courseCode.trim().replace(/\s+/g, "-").toLowerCase()
+    const searchParams = new URLSearchParams()
+    searchParams.set("source", params.source)
+    searchParams.set("page", String(params.page ?? 1))
+    searchParams.set("limit", String(params.limit ?? 20))
+    if (params.professor) searchParams.set("professor", params.professor)
+
+    const res = await fetch(
+      `/api/courses/${encodeURIComponent(slug)}/comments?${searchParams.toString()}`
+    )
+    if (!res.ok) {
+      console.error("getCommentsForCoursePaginated API error:", res.status, res.statusText)
+      return empty
+    }
+    return (await res.json()) as PaginatedCommentsResult
+  } catch (error) {
+    console.error("Error in getCommentsForCoursePaginated:", error)
+    return empty
   }
 }
 
