@@ -128,13 +128,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     if (!user) {
       timeout = setTimeout(() => {
         router.push("/sign-in");
       }, 500);
     }
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [user, authLoading, router]);
 
   const load = async (silent = false) => {

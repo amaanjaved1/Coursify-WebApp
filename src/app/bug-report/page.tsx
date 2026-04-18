@@ -25,13 +25,15 @@ export default function BugReportPage() {
   const [state, setState] = useState<State>({ phase: "idle" })
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     if (user === null) {
       timeout = setTimeout(() => {
         router.push("/sign-in")
       }, 500)
     }
-    return () => clearTimeout(timeout)
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
   }, [user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
