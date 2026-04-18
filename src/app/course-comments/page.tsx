@@ -53,10 +53,10 @@ export default function CourseCommentsPage() {
   const requestCounter = useRef(0);
 
   const fetchPage = useCallback(async (tab: 'reddit' | 'rmp', page: number, professor: string | null) => {
-    if (!courseCode) { setLoading(false); return; }
-    
     requestCounter.current += 1;
     const currentRequestId = requestCounter.current;
+
+    if (!courseCode) { setLoading(false); return; }
     
     setLoading(true);
     try {

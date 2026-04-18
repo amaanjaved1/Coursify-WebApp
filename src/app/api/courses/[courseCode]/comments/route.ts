@@ -167,20 +167,22 @@ export async function GET(
 
     // Build professor counts for sidebar (from source-filtered, non-professor-filtered list)
     const professorCounts: Record<string, number> = {}
-    const sourceFiltered =
-      source === "reddit"
-        ? redditComments.map(c => ({ ...c, _type: "reddit" as const }))
-        : source === "rmp"
-          ? rmpComments.map(c => ({ ...c, _type: "rmp" as const }))
-          : [
-              ...redditComments.map(c => ({ ...c, _type: "reddit" as const })),
-              ...rmpComments.map(c => ({ ...c, _type: "rmp" as const })),
-            ]
-
-    for (const c of sourceFiltered) {
-      if (c.professor_name && c.professor_name !== "general_prof") {
-        professorCounts[c.professor_name] = (professorCounts[c.professor_name] || 0) + 1
+    
+    const addProfessorCounts = (sourceComments: Array<{ professor_name: string }>) => {
+      for (const c of sourceComments) {
+        if (c.professor_name && c.professor_name !== "general_prof") {
+          professorCounts[c.professor_name] = (professorCounts[c.professor_name] || 0) + 1
+        }
       }
+    }
+
+    if (source === "reddit") {
+      addProfessorCounts(redditComments)
+    } else if (source === "rmp") {
+      addProfessorCounts(rmpComments)
+    } else {
+      addProfessorCounts(redditComments)
+      addProfessorCounts(rmpComments)
     }
 
     return NextResponse.json({
