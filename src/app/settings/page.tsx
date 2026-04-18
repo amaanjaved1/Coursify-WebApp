@@ -7,6 +7,7 @@ import { Pencil, Check, X, UploadCloud, RefreshCw, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { AUTH_TRANSIENT_DROP_DELAY_MS } from "@/lib/constants";
 import type { UserProfile, AccessStatus, DistributionUploadStatus } from "@/types";
 
 type UploadRow = {
@@ -134,7 +135,7 @@ export default function SettingsPage() {
       // don't cause an immediate redirect, avoiding a flicker effect.
       timeout = setTimeout(() => {
         router.push("/sign-in");
-      }, 500);
+      }, AUTH_TRANSIENT_DROP_DELAY_MS);
     }
     return () => {
       if (timeout !== undefined) clearTimeout(timeout);
