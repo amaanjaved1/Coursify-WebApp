@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pencil, Check, X, UploadCloud, RefreshCw, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useAuthRedirect } from "@/lib/auth/use-auth-redirect";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import type { UserProfile, AccessStatus, DistributionUploadStatus } from "@/types";
@@ -109,7 +109,6 @@ function formatDate(iso: string | null) {
 
 export default function SettingsPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
@@ -126,11 +125,7 @@ export default function SettingsPage() {
     remaining: number
   } | null>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/sign-in");
-    }
-  }, [user, authLoading, router]);
+  useAuthRedirect();
 
   const load = async (silent = false) => {
     if (!user) return;
@@ -172,10 +167,10 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   const startEdit = () => {
     setEditSemesters(profile?.semesters_completed ?? null);

@@ -37,11 +37,10 @@ export default function OnboardingGuard({ children }: Props) {
     // Auth still resolving — wait
     if (authLoading) return;
 
-    // No user — reset and bail
+    // No user — bail, but don't reset cached state. If the same user comes
+    // back (e.g. transient auth drop during tab focus), we skip the re-check.
     if (!userId) {
-      checkedUserIdRef.current = null;
       redirectingRef.current = false;
-      setOnboardingDone(null);
       return;
     }
 
