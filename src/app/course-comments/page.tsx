@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ExternalLink, MessageSquare, User } from 'lucide-react';
-import { getCommentsForCourse } from '@/lib/db';
-import type { RedditComment, RmpComment } from '@/lib/db';
+import { getCommentsForCoursePaginated } from '@/lib/db';
+import type { RedditComment, RmpComment, PaginatedCommentsResult } from '@/lib/db';
 import { useMotionTier, type MotionTier } from '@/lib/motion-prefs';
 
 type CommentItem = (RedditComment & { _type: 'reddit' }) | (RmpComment & { _type: 'rmp' });
@@ -39,50 +39,61 @@ export default function CourseCommentsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'reddit' | 'rmp'>('rmp');
   const [selectedProfessor, setSelectedProfessor] = useState<string | null>(null);
-  const [redditComments, setRedditComments] = useState<RedditComment[]>([]);
-  const [rmpComments, setRmpComments] = useState<RmpComment[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 20;
 
-  useEffect(() => {
-    async function fetchComments() {
-      if (!courseCode) { setLoading(false); return; }
-      setLoading(true);
-      try {
-        const { redditComments: reddit, rmpComments: rmp } = await getCommentsForCourse(courseCode);
-        setRedditComments(reddit);
-        setRmpComments(rmp);
-      } catch (err) {
-        console.error('Error fetching comments:', err);
-      } finally {
+  // Server-driven state
+  const [paginatedComments, setPaginatedComments] = useState<CommentItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [redditTotal, setRedditTotal] = useState(0);
+  const [rmpTotal, setRmpTotal] = useState(0);
+  const [professorCounts, setProfessorCounts] = useState<Record<string, number>>({});
+
+  const requestCounter = useRef(0);
+
+  const fetchPage = useCallback(async (tab: 'reddit' | 'rmp', page: number, professor: string | null) => {
+    requestCounter.current += 1;
+    const currentRequestId = requestCounter.current;
+
+    if (!courseCode) { setLoading(false); return; }
+    
+    setLoading(true);
+    try {
+      const result: PaginatedCommentsResult = await getCommentsForCoursePaginated({
+        courseCode,
+        source: tab,
+        page,
+        limit: commentsPerPage,
+        professor: professor ?? undefined,
+      });
+      
+      // Prevent stale response from overwriting newer state
+      if (requestCounter.current !== currentRequestId) return;
+
+      setPaginatedComments(result.comments);
+      setTotal(result.total);
+      setTotalPages(result.totalPages);
+      setRedditTotal(result.redditTotal);
+      setRmpTotal(result.rmpTotal);
+      setProfessorCounts(result.professorCounts);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+    } finally {
+      if (requestCounter.current === currentRequestId) {
         setLoading(false);
       }
     }
-    fetchComments();
-  }, [courseCode]);
+  }, [courseCode, commentsPerPage]);
 
-  const allComments: CommentItem[] = [
-    ...redditComments.map(c => ({ ...c, _type: 'reddit' as const })),
-    ...rmpComments.map(c => ({ ...c, _type: 'rmp' as const })),
-  ];
+  useEffect(() => {
+    fetchPage(activeTab, currentPage, selectedProfessor);
+  }, [activeTab, currentPage, selectedProfessor, fetchPage]);
 
-  const tabFiltered = activeTab === 'reddit'
-    ? allComments.filter(c => c._type === 'reddit')
-    : allComments.filter(c => c._type === 'rmp');
-
-  const filteredComments = selectedProfessor
-    ? tabFiltered.filter(c => c.professor_name === selectedProfessor)
-    : tabFiltered;
-
-  // Pagination
-  const totalPages = Math.ceil(filteredComments.length / commentsPerPage);
   const startIndex = (currentPage - 1) * commentsPerPage;
-  const paginatedComments = filteredComments.slice(startIndex, startIndex + commentsPerPage);
 
-  // Reset professor filter when tab changes if the professor isn't in the new tab's comments
-  const tabProfessors = Array.from(
-    new Set(tabFiltered.map(c => c.professor_name).filter((p): p is string => !!p && p !== 'general_prof'))
-  ).sort();
+  // Professor sidebar from server-provided counts
+  const tabProfessors = Object.keys(professorCounts).sort();
 
   const sentimentBadge = (label: string) => {
     const normalized = label.toLowerCase();
@@ -92,19 +103,14 @@ export default function CourseCommentsPage() {
   };
 
   const tabs = [
-    { id: 'rmp' as const, label: 'RateMyProfessors', count: rmpComments.length, accent: '#00305f' },
-    { id: 'reddit' as const, label: 'Reddit', count: redditComments.length, accent: '#FF4500' },
+    { id: 'rmp' as const, label: 'RateMyProfessors', count: rmpTotal, accent: '#00305f' },
+    { id: 'reddit' as const, label: 'Reddit', count: redditTotal, accent: '#FF4500' },
   ];
 
   const handleTabChange = (tab: 'reddit' | 'rmp') => {
     setActiveTab(tab);
     setCurrentPage(1);
-    // Clear professor filter if they don't appear in the new tab
-    if (selectedProfessor) {
-      const nextTabComments = allComments.filter(c => c._type === tab);
-      const nextProfessors = nextTabComments.map(c => c.professor_name);
-      if (!nextProfessors.includes(selectedProfessor)) setSelectedProfessor(null);
-    }
+    setSelectedProfessor(null);
   };
 
   return (
@@ -205,7 +211,7 @@ export default function CourseCommentsPage() {
               {/* Stats pills */}
               <div className="flex flex-wrap gap-2 self-end">
                 <div className="px-4 py-2 rounded-full text-sm font-semibold text-brand-navy shadow-[0_10px_30px_rgba(255,255,255,0.28)]" style={{ background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(255,255,255,0.98)' }}>
-                  {allComments.length} total
+                  {redditTotal + rmpTotal} total
                 </div>
               </div>
             </div>
@@ -307,7 +313,7 @@ export default function CourseCommentsPage() {
                   </div>
                   <div className="flex flex-col gap-1.5">
                     {tabProfessors.map(prof => {
-                      const commentCount = tabFiltered.filter(c => c.professor_name === prof).length;
+                      const commentCount = professorCounts[prof] || 0;
                       const isActive = selectedProfessor === prof;
                       return (
                         <button
@@ -492,7 +498,7 @@ export default function CourseCommentsPage() {
         {totalPages > 1 && (
           <div className="mt-6 glass-card-deep rounded-xl px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {startIndex + 1}–{Math.min(startIndex + commentsPerPage, filteredComments.length)} of {filteredComments.length} comments
+              Showing {startIndex + 1}–{Math.min(startIndex + commentsPerPage, total)} of {total} comments
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -517,7 +523,7 @@ export default function CourseCommentsPage() {
         )}
 
         {/* ── Empty State ── */}
-        {filteredComments.length === 0 && (
+        {paginatedComments.length === 0 && !loading && (
           <motion.div
             className="glass-card-deep rounded-2xl p-12 text-center"
             initial={liteMotion ? false : { opacity: 0 }}

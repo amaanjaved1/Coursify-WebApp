@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Bug, ExternalLink, RotateCcw, Loader2 } from "lucide-react"
-import { useAuth } from "@/lib/auth/auth-context"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { toast } from "@/components/ui/use-toast"
 
@@ -17,17 +15,11 @@ const TITLE_MAX = 200
 const DESC_MAX = 5000
 
 export default function BugReportPage() {
-  const { user } = useAuth()
-  const router = useRouter()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [state, setState] = useState<State>({ phase: "idle" })
 
-  useEffect(() => {
-    if (user === null) {
-      router.push("/sign-in")
-    }
-  }, [user, router])
+  useAuthRedirect()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

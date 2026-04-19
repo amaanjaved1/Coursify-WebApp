@@ -1,0 +1,1 @@
+export const AUTH_TRANSIENT_DROP_DELAY_MS = 500;
