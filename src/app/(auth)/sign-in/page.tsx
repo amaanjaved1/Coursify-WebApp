@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -24,6 +24,16 @@ export default function SignIn() {
     () => getSafeRedirectPath(searchParams.get("redirect"), "/"),
     [searchParams]
   );
+
+  useEffect(() => {
+    if (searchParams.get("error") === "link_expired") {
+      toast({
+        title: "Verification link expired",
+        description: "Your email link has expired or already been used. Please sign in or request a new link.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams]);
 
   const signUpHref = useMemo(
     () => buildAuthHref("/sign-up", nextPath),
@@ -92,12 +102,7 @@ export default function SignIn() {
             </motion.div>
 
             <motion.div initial={false} animate={lite ? undefined : { opacity: 1, y: 0 }} transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.35 }}>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Password</label>
-                <Link href="/forgot-password" className="text-sm text-brand-red hover:text-brand-navy dark:hover:text-blue-400 transition-colors duration-300">
-                  Reset password
-                </Link>
-              </div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">Password</label>
               <div className="glass-card rounded-2xl relative transition-all duration-300 focus-within:border-brand-navy/30 dark:focus-within:border-blue-400/30 focus-within:shadow-[0_0_0_3px_rgba(0,48,95,0.08)]">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -133,12 +138,20 @@ export default function SignIn() {
             </motion.button>
           </form>
 
-          <motion.p className="text-center text-sm text-gray-500 dark:text-gray-400" initial={false} animate={lite ? undefined : { opacity: 1 }} transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.5 }}>
-            New to our platform?{" "}
-            <Link href={signUpHref} className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300">
-              Create Account
-            </Link>
-          </motion.p>
+          <motion.div className="flex flex-col items-center gap-2" initial={false} animate={lite ? undefined : { opacity: 1 }} transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.5 }}>
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+              New to our platform?{" "}
+              <Link href={signUpHref} className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300">
+                Create Account
+              </Link>
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              Forgot your password?{" "}
+              <Link href="/forgot-password" className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300">
+                Reset it here
+              </Link>
+            </p>
+          </motion.div>
         </div>
       </motion.div>
     </div>

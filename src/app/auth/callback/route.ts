@@ -42,10 +42,11 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
-    // If code exchange failed, log and fall through to redirect without session
+    // Code exchange failed (expired or already-used link) — tell the user explicitly
     console.error("Auth callback: code exchange failed", error.message);
+    return NextResponse.redirect(new URL("/sign-in?error=link_expired", requestUrl));
   }
 
-  // No code or exchange failed — redirect to onboarding; page will handle auth state
-  return NextResponse.redirect(new URL(next, requestUrl));
+  // No code param — someone navigated here directly
+  return NextResponse.redirect(new URL("/sign-in", requestUrl));
 }

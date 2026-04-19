@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Bug, ExternalLink, RotateCcw, Loader2 } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabase/client"
+import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
 import { toast } from "@/components/ui/use-toast"
 
 type State =

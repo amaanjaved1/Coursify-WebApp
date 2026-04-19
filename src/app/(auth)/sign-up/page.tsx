@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { getSupabaseClient } from "@/lib/supabase/client";
 import { buildAuthHref, getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { Eye, EyeOff } from "lucide-react";
 import { useMotionTier } from "@/lib/motion-prefs";
@@ -23,7 +22,6 @@ export default function SignUp() {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [accountConflict, setAccountConflict] = useState(false);
   const { signUp } = useAuth();
-  const supabase = getSupabaseClient();
   const lite = useMotionTier() === "lite";
   const searchParams = useSearchParams();
 
@@ -59,19 +57,6 @@ export default function SignUp() {
     }
   };
 
-  const checkExistingAccount = async (email: string) => {
-    try {
-      await supabase.auth.signOut();
-      if (typeof window !== 'undefined') window.sessionStorage.removeItem('supabase.auth.token');
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
-      if (!error) return true;
-      if (error && (error.message.includes("Email not found") || error.message.includes("user not found") || error.message.includes("does not exist"))) return false;
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -90,14 +75,6 @@ export default function SignUp() {
     }
 
     try {
-      const accountExists = await checkExistingAccount(email);
-      if (accountExists) {
-        setAccountConflict(true);
-        toast({ title: "Account may already exist", description: "An account with this email may already exist. You can try to reset it or sign in instead.", variant: "destructive" });
-        setIsLoading(false);
-        return;
-      }
-
       const { error } = await signUp(email, password);
       if (error) {
         if (error.message && (error.message.includes("already registered") || error.message.includes("already exists") || error.message.includes("already taken"))) {

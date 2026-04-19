@@ -72,21 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string) => {
-    // First try to clear any existing session or metadata for this user
-    try {
-      // This helps clear out any lingering sessions
-      await supabase.auth.signOut();
-      
-      // Force a refresh of the auth state
-      const { error: sessionError } = await supabase.auth.refreshSession();
-      if (sessionError) {
-        console.error("Failed to refresh session:", sessionError);
-      }
-    } catch (err) {
-      console.error("Error clearing previous auth state:", err);
-    }
-
-    // Now attempt to sign up
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -106,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
     });
 
     return { error };

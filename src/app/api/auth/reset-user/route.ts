@@ -1,34 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { createServerClient } from "@supabase/ssr";
 
-// This endpoint helps with resetting user data to allow recreation of accounts
 export async function POST(request: NextRequest) {
   try {
     const requestData = await request.json();
     const { email } = requestData;
-    
+
     if (!email || !email.endsWith("@queensu.ca")) {
       return NextResponse.json(
-        { error: "Invalid or missing email" }, 
+        { error: "Invalid or missing email" },
         { status: 400 }
       );
     }
-    
-    const supabase = getSupabaseClient();
-    
-    // First, make sure no session exists
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const response = NextResponse.json({
+      success: true,
+      message: "Auth state reset, you can now create a new account",
+    });
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    });
+
     await supabase.auth.signOut();
-    
-    // Clear any client-side data by setting specific headers
-    // This will help browsers clear auth cookies when the response is processed
-    const headers = new Headers();
-    headers.append("Set-Cookie", "sb-access-token=; Max-Age=0; Path=/");
-    headers.append("Set-Cookie", "sb-refresh-token=; Max-Age=0; Path=/");
-    
-    return NextResponse.json(
-      { success: true, message: "Auth state reset, you can now create a new account" },
-      { headers }
-    );
+    return response;
   } catch (error: any) {
     console.error("Error in reset-user API:", error);
     return NextResponse.json(
@@ -36,4 +50,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
