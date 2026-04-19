@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="relative border-t border-black/[0.06] dark:border-white/10 py-4 bg-[var(--page-bg)]">
       <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-2">
           <div className="mb-1 md:mb-0">
             <Link href="/" className="inline-flex items-center mb-1 shrink-0">
               <span className="text-sm font-bold tracking-tight text-brand-navy dark:text-white">Cours</span>
@@ -25,7 +25,7 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center flex-wrap gap-2">
+          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center flex-wrap gap-2 justify-center md:justify-end">
             <span className="text-brand-navy dark:text-blue-400 font-medium">
               © {new Date().getFullYear()} Coursify
             </span>

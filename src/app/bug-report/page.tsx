@@ -6,7 +6,6 @@ import { Bug, ExternalLink, RotateCcw, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { toast } from "@/components/ui/use-toast"
-import Footer from "@/components/Footer"
 
 type State =
   | { phase: "idle" }
@@ -221,8 +220,6 @@ export default function BugReportPage() {
           )}
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }
