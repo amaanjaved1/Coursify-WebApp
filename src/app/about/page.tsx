@@ -2,16 +2,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Github,
   Linkedin,
-  ChevronRight,
   BarChart3,
   MessageSquare,
   Brain,
   Sparkles,
 } from "lucide-react"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 import type { LucideIcon } from "lucide-react"
-import { ScrollButton } from "./_components/ScrollButton"
 import { EmailCopyButton } from "./_components/EmailCopyButton"
 import { CommunityContributors } from "./_components/CommunityContributors"
 import Footer from "@/components/Footer"
@@ -161,44 +159,35 @@ export default function About() {
             <span className="text-sm font-semibold text-brand-navy dark:text-white">Our Story</span>
             <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand-gold" strokeWidth={2} aria-hidden />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-brand-navy dark:text-white">About</span> <span className="text-brand-red">Coursify</span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-6">
-            Helping Queen&apos;s University students make informed academic decisions through data and AI.
+<p className="text-xl text-muted-foreground mb-6">
+            Coursify was created to address a critical gap in the Queen&apos;s University student experience: the
+            lack of comprehensive, accessible data about courses and their historical performance.
           </p>
-          <ScrollButton />
         </div>
 
-        {/* Mission & Stats */}
+        {/* Support & Stats */}
         <div className="mx-auto mb-20 grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
-          <div className="static-glass-card flex h-full flex-col gap-6 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-brand-navy dark:text-white">Our Mission</h2>
-            <div className="min-h-0 flex-1 space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
-                Coursify was created to address a critical gap in the Queen&apos;s University student experience: the
-                lack of comprehensive, accessible data about courses and their historical performance.
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                We believe that students should have access to detailed information about courses, including grade
-                distributions, professor performance, and peer experiences, to make informed decisions about their
-                academic journey.
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                By combining official university data with cutting-edge AI technology, we&apos;ve built a platform that
-                empowers students to optimize their course selections and academic planning.
-              </p>
+          <div className="static-glass-card flex flex-col gap-4 rounded-2xl p-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full static-glass-pill self-start">
+              <span className="text-sm font-semibold text-brand-navy dark:text-white">Support Us</span>
+              <span className="text-base leading-none">☕</span>
             </div>
-            <div className="shrink-0">
-              <Link
-                href="/schools/queens"
-                className="liquid-btn-blue group inline-block w-full text-center text-white px-7 py-3 rounded-xl font-medium sm:w-auto mt-auto"
+            <h2 className="text-2xl font-bold text-brand-navy dark:text-white">Buy Us a Coffee</h2>
+            <p className="text-gray-700 dark:text-gray-300 flex-grow">
+              We wanted to make Coursify completely free. That being said, keeping the servers running and the
+              data fresh does cost money. If Coursify has helped you navigate your courses, even a small contribution
+              goes a long way. Donations are handled securely through Buy Me a Coffee.
+            </p>
+            <div className="mt-auto">
+              <a
+                href="https://www.buymeacoffee.com/amaanjaved"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl font-medium bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-gray-900 transition-colors duration-200"
               >
-                <span className="relative z-10 flex items-center justify-center">
-                  Explore Courses
-                  <ChevronRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                </span>
-              </Link>
+                <Image src="/bmc-logo.svg" alt="" width={14} height={20} />
+                Donate to Coursify
+              </a>
             </div>
           </div>
 
@@ -211,21 +200,21 @@ export default function About() {
                 [
                   {
                     Icon: BarChart3,
-                    value: "500+",
+                    value: "1,600+",
                     label: "Courses Tracked",
                     iconWrap: "bg-brand-navy/10 dark:bg-blue-400/10",
                     iconClass: "text-brand-navy dark:text-blue-400",
                   },
                   {
                     Icon: BarChart3,
-                    value: "8+",
+                    value: "17",
                     label: "Semesters of Data",
                     iconWrap: "bg-brand-red/10",
                     iconClass: "text-brand-red",
                   },
                   {
                     Icon: MessageSquare,
-                    value: "50+",
+                    value: "9",
                     label: "Departments",
                     iconWrap: "bg-brand-gold/10",
                     iconClass: "text-brand-gold",
