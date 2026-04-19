@@ -173,23 +173,6 @@ export default function ForgotPassword() {
             </form>
           )}
 
-          {/* Sign in link */}
-          {!isSuccess && (
-            <motion.p
-              className="text-center text-sm text-gray-500 dark:text-gray-400"
-              initial={false}
-              animate={lite ? undefined : { opacity: 1 }}
-              transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.5 }}
-            >
-              Remember your password?{" "}
-              <Link
-                href="/sign-in"
-                className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300"
-              >
-                Sign in
-              </Link>
-            </motion.p>
-          )}
         </div>
       </motion.div>
     </div>
