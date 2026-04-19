@@ -176,17 +176,17 @@ export default function About() {
             <p className="text-gray-700 dark:text-gray-300 flex-grow">
               We wanted to make Coursify completely free. That being said, keeping the servers running and the
               data fresh does cost money. If Coursify has helped you navigate your courses, even a small contribution
-              goes a long way.
+              goes a long way. Donations are handled securely through Buy Me a Coffee.
             </p>
             <div className="mt-auto">
               <a
-                href="https://www.buymeacoffee.com/YOUR_USERNAME"
+                href="https://www.buymeacoffee.com/amaanjaved"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl font-medium bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-gray-900 transition-colors duration-200"
               >
                 <Image src="/bmc-logo.svg" alt="" width={14} height={20} />
-                Buy us a coffee
+                Donate to Coursify
               </a>
             </div>
           </div>

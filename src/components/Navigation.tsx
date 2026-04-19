@@ -183,7 +183,7 @@ const Navigation = () => {
                     href={link.href}
                     className={
                       link.href === "/schools/queens"
-                        ? "px-3.5 py-1.5 rounded-full text-brand-gold font-semibold"
+                        ? "px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200 font-bold"
                         : "px-3.5 py-1.5 rounded-full text-brand-navy/70 dark:text-white/70 hover:text-brand-navy dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-200"
                     }
                   >
@@ -198,7 +198,7 @@ const Navigation = () => {
           <div className="flex items-center gap-1.5">
             {/* Buy Me a Coffee */}
             <a
-              href="https://www.buymeacoffee.com/YOUR_USERNAME"
+              href="https://www.buymeacoffee.com/amaanjaved"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Buy me a coffee"
@@ -323,7 +323,7 @@ const Navigation = () => {
                     href={link.href}
                     className={
                       link.href === "/schools/queens"
-                        ? "text-sm font-semibold text-brand-gold px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
+                        ? "text-sm font-bold text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
                         : "text-sm font-medium text-gray-600 dark:text-white/75 hover:text-brand-navy dark:hover:text-white px-4 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-200"
                     }
                     onClick={toggleMenu}
@@ -339,7 +339,7 @@ const Navigation = () => {
                 </span>
                 <div className="flex items-center gap-2">
                   <a
-                    href="https://www.buymeacoffee.com/YOUR_USERNAME"
+                    href="https://www.buymeacoffee.com/amaanjaved"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Buy me a coffee"
