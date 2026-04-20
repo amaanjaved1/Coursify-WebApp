@@ -4,6 +4,21 @@ import { createClient } from "@supabase/supabase-js";
 const GITHUB_REPO = "amaanjaved1/Coursify-WebApp";
 const GITHUB_API_BASE = "https://api.github.com";
 
+const VALID_ISSUE_TYPES = ["bug", "feature", "feedback"] as const;
+type IssueType = (typeof VALID_ISSUE_TYPES)[number];
+
+const LABEL_MAP: Record<IssueType, string> = {
+  bug: "bug",
+  feature: "feature",
+  feedback: "feedback",
+};
+
+const TYPE_LABELS: Record<IssueType, string> = {
+  bug: "Bug Report",
+  feature: "Feature Request",
+  feedback: "General Feedback",
+};
+
 export async function POST(request: NextRequest) {
   // Auth
   const authHeader = request.headers.get("authorization");
@@ -25,18 +40,16 @@ export async function POST(request: NextRequest) {
   }
 
   // Parse body
-  let body: { title?: string; description?: string };
+  let body: { title?: string; description?: string; issueType?: string };
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
   const title = body.title?.trim() ?? "";
   const description = body.description?.trim() ?? "";
+  const issueType = body.issueType as IssueType;
 
   if (!title || title.length > 200) {
     return NextResponse.json(
@@ -50,16 +63,31 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
+  if (!VALID_ISSUE_TYPES.includes(issueType)) {
+    return NextResponse.json(
+      { error: "Invalid issue type" },
+      { status: 400 },
+    );
+  }
 
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {
     return NextResponse.json(
-      { error: "Bug reporting is not configured" },
+      { error: "Issue reporting is not configured" },
       { status: 503 },
     );
   }
 
-  const issueBody = `## Description\n\n${description}\n\n---\n*Reported by: ${user.email}*\n*Submitted at: ${new Date().toISOString()}*`;
+  const issueBody = `# ${TYPE_LABELS[issueType]}
+
+## 📖 Description
+${description}
+
+## 🙋 Submitted By
+${user.email}
+
+---
+*Submitted at: ${new Date().toISOString()}*`;
 
   const ghRes = await fetch(`${GITHUB_API_BASE}/repos/${GITHUB_REPO}/issues`, {
     method: "POST",
@@ -72,17 +100,14 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({
       title,
       body: issueBody,
-      labels: ["bug"],
+      labels: [LABEL_MAP[issueType]],
     }),
   });
 
   if (!ghRes.ok) {
     const text = await ghRes.text();
     console.error("GitHub API error:", ghRes.status, text);
-    return NextResponse.json(
-      { error: "Failed to create issue" },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Failed to create issue" }, { status: 502 });
   }
 
   const issue = (await ghRes.json()) as { html_url: string; number: number };

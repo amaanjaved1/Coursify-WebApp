@@ -10,6 +10,11 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
+  async redirects() {
+    return [
+      { source: "/bug-report", destination: "/issues", permanent: true },
+    ]
+  },
   async headers() {
     return [
       {

@@ -1,10 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Bug, ExternalLink, RotateCcw, Loader2 } from "lucide-react"
+import { Bug, Lightbulb, MessageSquare, ExternalLink, RotateCcw, Loader2, Send } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
 import { toast } from "@/components/ui/use-toast"
+
+type IssueType = "bug" | "feature" | "feedback"
 
 type State =
   | { phase: "idle" }
@@ -15,12 +17,65 @@ type State =
 const TITLE_MAX = 200
 const DESC_MAX = 5000
 
-export default function BugReportPage() {
+const TITLE_PLACEHOLDERS: Record<IssueType, string> = {
+  bug: "e.g. Grade chart not loading on mobile",
+  feature: "e.g. Add dark mode to the course page",
+  feedback: "e.g. The onboarding flow could be clearer",
+}
+
+const TEMPLATES: Record<IssueType, string> = {
+  bug: ` Behaviour:
+<describe what went wrong>
+
+Steps to reproduce:
+1. <first step>
+2. <second step>
+3. <third step>
+
+`,
+  feature: `Problem:
+<describe the problem you're facing>
+
+Proposed solution:
+<describe your idea>
+`,
+  feedback: `<share your thoughts>
+`,
+}
+
+const ISSUE_TYPES: { value: IssueType; label: string; icon: React.ReactNode }[] = [
+  { value: "bug", label: "Bug Report", icon: <Bug className="h-3.5 w-3.5" /> },
+  { value: "feature", label: "Feature Request", icon: <Lightbulb className="h-3.5 w-3.5" /> },
+  { value: "feedback", label: "General Feedback", icon: <MessageSquare className="h-3.5 w-3.5" /> },
+]
+
+export default function IssuesPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [issueType, setIssueType] = useState<IssueType>("bug")
   const [state, setState] = useState<State>({ phase: "idle" })
 
   useAuthRedirect()
+
+  const clearError = () => {
+    if (state.phase === "error") setState({ phase: "idle" })
+  }
+
+  const handleIssueTypeChange = (type: IssueType) => {
+    setIssueType(type)
+    setDescription("")
+    clearError()
+  }
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value)
+    clearError()
+  }
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value)
+    clearError()
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,17 +99,17 @@ export default function BugReportPage() {
       const { data: session } = await getSupabaseClient().auth.getSession()
       const token = session?.session?.access_token
       if (!token) {
-        setState({ phase: "error", message: "You must be signed in to submit a bug report." })
+        setState({ phase: "error", message: "You must be signed in to submit an issue." })
         return
       }
 
-      const res = await fetch("/api/bug-report", {
+      const res = await fetch("/api/issues", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title: trimmedTitle, description: trimmedDesc }),
+        body: JSON.stringify({ title: trimmedTitle, description: trimmedDesc, issueType }),
       })
 
       const data = await res.json()
@@ -77,6 +132,7 @@ export default function BugReportPage() {
   const reset = () => {
     setTitle("")
     setDescription("")
+    setIssueType("bug")
     setState({ phase: "idle" })
   }
 
@@ -98,15 +154,17 @@ export default function BugReportPage() {
             style={{ background: "radial-gradient(circle, rgba(0,48,95,0.12) 0%, rgba(0,48,95,0.04) 42%, transparent 74%)" }}
           />
           <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full static-glass-pill mb-4">
-            <span className="text-sm font-semibold text-brand-navy dark:text-white">Feedback</span>
-            <Bug className="h-3.5 w-3.5 shrink-0 text-brand-red" strokeWidth={2} aria-hidden />
+            <span className="text-sm font-semibold text-brand-navy dark:text-white">Issues</span>
+            <MessageSquare className="h-3.5 w-3.5 shrink-0 text-brand-red" strokeWidth={2} aria-hidden />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-brand-navy dark:text-white">Report a </span>
-            <span className="text-brand-red">Bug</span>
+            <span className="text-brand-navy dark:text-white">Report a Bug or </span>
+            <span className="text-brand-red">Request a Feature</span>
           </h1>
           <p className="text-lg text-muted-foreground">
-            Found something broken? Let us know and we&apos;ll create a GitHub issue to track it.
+            Found a bug, have a feature idea, or want to share feedback? Submit it here and we&apos;ll
+            create a public issue on our GitHub repository — that&apos;s where we track all improvements
+            to Coursify as an open-source project.
           </p>
         </div>
 
@@ -115,10 +173,10 @@ export default function BugReportPage() {
           {state.phase === "success" ? (
             <div className="static-glass-card rounded-2xl p-8 text-center">
               <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-5">
-                <Bug className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <Send className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
-                Bug report submitted!
+                Issue submitted!
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Issue #{state.issueNumber} has been created on GitHub. Thanks for helping improve Coursify.
@@ -138,15 +196,40 @@ export default function BugReportPage() {
                 className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-white/50 hover:text-brand-navy dark:hover:text-white transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Report another bug
+                Submit another issue
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="static-glass-card rounded-2xl p-8 flex flex-col gap-5">
+              {/* Issue Type */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-brand-navy dark:text-white">
+                  Issue Type
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {ISSUE_TYPES.map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleIssueTypeChange(value)}
+                      disabled={isSubmitting}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-150 disabled:opacity-50 ${
+                        issueType === value
+                          ? "bg-brand-red text-white border-brand-red"
+                          : "border-black/[0.10] dark:border-white/[0.10] bg-white/60 dark:bg-white/[0.05] text-brand-navy dark:text-white hover:border-brand-red/50"
+                      }`}
+                    >
+                      {icon}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Title */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="bug-title" className="text-sm font-medium text-brand-navy dark:text-white">
+                  <label htmlFor="issue-title" className="text-sm font-medium text-brand-navy dark:text-white">
                     Title
                   </label>
                   <span className={`text-xs ${title.length > TITLE_MAX ? "text-brand-red" : "text-gray-400 dark:text-white/40"}`}>
@@ -154,11 +237,11 @@ export default function BugReportPage() {
                   </span>
                 </div>
                 <input
-                  id="bug-title"
+                  id="issue-title"
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Grade chart not loading on mobile"
+                  onChange={handleTitleChange}
+                  placeholder={TITLE_PLACEHOLDERS[issueType]}
                   maxLength={TITLE_MAX}
                   disabled={isSubmitting}
                   className="w-full rounded-xl border border-black/[0.10] dark:border-white/[0.10] bg-white/60 dark:bg-white/[0.05] px-4 py-2.5 text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 dark:focus:ring-white/20 disabled:opacity-50 transition"
@@ -168,7 +251,7 @@ export default function BugReportPage() {
               {/* Description */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="bug-description" className="text-sm font-medium text-brand-navy dark:text-white">
+                  <label htmlFor="issue-description" className="text-sm font-medium text-brand-navy dark:text-white">
                     Description
                   </label>
                   <span className={`text-xs ${description.length > DESC_MAX ? "text-brand-red" : "text-gray-400 dark:text-white/40"}`}>
@@ -176,14 +259,14 @@ export default function BugReportPage() {
                   </span>
                 </div>
                 <textarea
-                  id="bug-description"
+                  id="issue-description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what happened, what you expected to happen, and steps to reproduce the issue."
-                  rows={6}
+                  onChange={handleDescriptionChange}
+                  placeholder={TEMPLATES[issueType]}
+                  rows={10}
                   maxLength={DESC_MAX}
                   disabled={isSubmitting}
-                  className="w-full rounded-xl border border-black/[0.10] dark:border-white/[0.10] bg-white/60 dark:bg-white/[0.05] px-4 py-2.5 text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 dark:focus:ring-white/20 disabled:opacity-50 resize-none transition"
+                  className="w-full rounded-xl border border-black/[0.10] dark:border-white/[0.10] bg-white/60 dark:bg-white/[0.05] px-4 py-2.5 text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 dark:focus:ring-white/20 disabled:opacity-50 resize-y transition"
                 />
               </div>
 
@@ -204,8 +287,8 @@ export default function BugReportPage() {
                   </>
                 ) : (
                   <>
-                    <Bug className="h-4 w-4" />
-                    Submit Bug Report
+                    <Send className="h-4 w-4" />
+                    Submit Issue
                   </>
                 )}
               </button>

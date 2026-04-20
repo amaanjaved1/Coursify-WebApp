@@ -134,7 +134,7 @@ const Navigation = () => {
     { href: "/schools/queens", label: "View Courses" },
     { href: "/add-courses", label: "Upload Distributions" },
     { href: "/queens-answers", label: "AI Assistant" },
-    { href: "/bug-report", label: "Report Bug" },
+    { href: "/issues", label: "Issues" },
     { href: "/about", label: "About" },
   ];
 
