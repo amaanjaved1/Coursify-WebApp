@@ -174,9 +174,9 @@ export function StudentReviewsMockup({
   const textXs = compact ? "text-[8px]" : "text-[11px]";
 
   return (
-    <div className="w-full flex flex-col gap-2.5 select-none">
+    <div className="w-full h-full flex flex-col gap-2.5 select-none">
       {/* Reddit comment */}
-      <div className={`glass-card rounded-2xl ${pad} w-full`}>
+      <div className={`glass-card rounded-2xl ${pad} w-full flex-1`}>
         <div className="flex items-center gap-2 mb-2">
           <RedditIcon size={compact ? 18 : 24} />
           <div>
@@ -212,7 +212,7 @@ export function StudentReviewsMockup({
       </div>
 
       {/* RMP comment */}
-      <div className={`glass-card rounded-2xl ${pad} w-full`}>
+      <div className={`glass-card rounded-2xl ${pad} w-full flex-1`}>
         <div className="flex items-center gap-2 mb-2">
           <div
             className={`${compact ? "w-[18px] h-[18px]" : "h-6 w-6"} rounded-full bg-brand-navy dark:bg-brand-navy-light flex items-center justify-center flex-shrink-0`}
@@ -269,6 +269,7 @@ export function StudentReviewsMockup({
           </span>
         </div>
       </div>
+
     </div>
   );
 }
