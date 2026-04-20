@@ -81,7 +81,21 @@ Use your **own** Supabase project (free tier is fine). Schema and sample data li
    - **Remote:** `npm run db:seed-remote` — same as above but targets your linked Supabase project.
    - **Manual fallback:** after `db push`, open the Supabase **SQL Editor**, paste the contents of `supabase/seed.sql`, and run it once.
 
-4. **Auth URLs:** In **Authentication → URL configuration**, set **Site URL** to `http://localhost:3000` and add redirect URL `http://localhost:3000/auth/callback`.
+4. **Auth URLs:** In **Authentication → URL configuration**, set **Site URL** to `http://localhost:3000` and add redirect URL `http://localhost:3000/auth/callback` (password reset and email verification use this).
+
+### 3.5 Auth emails (SMTP + templates)
+
+Supabase confirmation links are “confirm on visit”. Some university/work email systems automatically scan links by visiting them, which can accidentally verify users without a real click.
+
+This repo includes an in-app confirmation page (`/auth/confirm`) that only verifies after a button click.
+
+1. In **Supabase Dashboard → Authentication → Email Templates → Confirm signup**, paste the HTML from `supabase/templates/confirmation.html`.
+2. In **Authentication → URL configuration**, ensure **Site URL** matches your environment (the template uses `{{ .SiteURL }}`):
+   - Local testing: `http://localhost:3000`
+   - Production: `https://www.coursify.ca`
+3. In **Authentication → URL configuration → Additional Redirect URLs**, allow both:
+   - `https://www.coursify.ca/auth/callback`
+   - `https://www.coursify.ca/auth/confirm`
 
 **Staying up to date:** The schema is stable and changes infrequently. If it does change, maintainers will add new SQL under `supabase/migrations/` and update `supabase/seed.sql`. Contributors just `git pull` then `npm run db:reseed` (local) or `npm run db:seed-remote` (remote) to get the latest schema and data.
 
