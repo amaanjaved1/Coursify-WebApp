@@ -12,6 +12,7 @@ const EXEMPT_PATHS = [
   "/sign-up",
   "/forgot-password",
   "/auth/callback",
+  "/auth/confirm",
 ];
 
 type Props = { children: ReactNode };
