@@ -61,13 +61,6 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-6 py-12">
-      {/* Ambient background blobs */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="liquid-blob w-[500px] h-[400px] bg-brand-navy" style={{ top: "-5%", left: "-8%", animationDelay: "0s" }} />
-        <div className="liquid-blob-alt w-[400px] h-[450px] bg-brand-red" style={{ bottom: "-10%", right: "-5%", animationDelay: "-4s" }} />
-        <div className="liquid-blob w-[350px] h-[350px] bg-brand-gold" style={{ top: "40%", left: "45%", animationDelay: "-8s" }} />
-      </div>
-
       <motion.div
         className="w-full max-w-md relative z-10"
         initial={false}
