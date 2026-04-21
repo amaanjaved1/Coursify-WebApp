@@ -140,15 +140,6 @@
   animation: gold-shine 3s linear infinite;
 }
 
-.gradient-bg {
-  background: radial-gradient(circle at 50% 50%, rgba(0, 48, 95, 0.1) 0%, rgba(255, 255, 255, 0) 70%),
-    radial-gradient(circle at 80% 20%, rgba(239, 178, 21, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-}
-
-.dark .gradient-bg {
-  background: radial-gradient(circle at 50% 50%, rgba(0, 48, 95, 0.15) 0%, transparent 70%),
-    radial-gradient(circle at 80% 20%, rgba(239, 178, 21, 0.08) 0%, transparent 70%);
-}
 
 /* ===================== LIQUID GLASS SYSTEM ===================== */
 
@@ -414,31 +405,6 @@
   transform: translateY(-2px) scale(1.02);
 }
 
-/* Shine sweep on glass surfaces */
-@keyframes glass-shine {
-  0%   { transform: translateX(-100%) skewX(-15deg); }
-  100% { transform: translateX(300%) skewX(-15deg); }
-}
-
-.glass-shine::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  transform: translateX(-100%) skewX(-15deg);
-}
-
-.glass-shine:hover::after {
-  opacity: 1;
-  animation: glass-shine 0.7s ease forwards;
-}
-
-.dark .glass-shine::after {
-  background: linear-gradient(90deg, transparent 20%, rgba(255,255,255,0.08) 50%, transparent 80%);
-}
 
 /* Section backdrop — transparent section base */
 .section-glass {
@@ -489,27 +455,6 @@
   background-clip: text;
 }
 
-.moving-gradient {
-  color: #00305f;
-  background: linear-gradient(-45deg, #00305f, #d62839, #efb215, #00305f);
-  background-size: 300% 300%;
-  animation: coursify-gradient-shift 6s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-}
-
-.dark .moving-gradient {
-  color: #e5e7eb;
-  background: linear-gradient(-45deg, #e5e7eb, #ff4d5e, #ffc940, #e5e7eb);
-  background-size: 300% 300%;
-  animation: coursify-gradient-shift 6s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-}
 
 @keyframes coursify-gradient-shift {
   0% {
@@ -523,136 +468,6 @@
   }
 }
 
-.blur-circle {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  z-index: -1;
-  opacity: 0.5;
-}
-
-.blur-circle-blue {
-  background-color: rgba(0, 48, 95, 0.3);
-}
-
-.blur-circle-gold {
-  background-color: rgba(239, 178, 21, 0.3);
-}
-
-.blur-circle-red {
-  background-color: rgba(214, 40, 57, 0.2);
-}
-
-@keyframes spin-slow {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-@keyframes ping-slow {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
-}
-.animate-ping-slow {
-  animation: ping-slow 2s ease-in-out infinite;
-}
-@keyframes subtle-bounce {
-  0%,
-  100% {
-    transform: translateY(0) translateZ(0);
-  }
-  50% {
-    transform: translateY(-8px) translateZ(0);
-  }
-}
-.animate-subtle-bounce {
-  animation: subtle-bounce 4s ease-in-out infinite;
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-@keyframes pulse-slow {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 0.95;
-  }
-}
-.animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
-}
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-.animate-float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-/* Enhanced animation for the traveling border effect */
-@keyframes border-travel {
-  0% {
-    clip-path: polygon(0 0, 8% 0, 8% 100%, 0 100%);
-    opacity: 1;
-  }
-  25% {
-    clip-path: polygon(0 0, 100% 0, 100% 8%, 0 8%);
-    opacity: 1;
-  }
-  50% {
-    clip-path: polygon(92% 0, 100% 0, 100% 100%, 92% 100%);
-    opacity: 1;
-  }
-  75% {
-    clip-path: polygon(0 92%, 100% 92%, 100% 100%, 0 100%);
-    opacity: 1;
-  }
-  100% {
-    clip-path: polygon(0 0, 8% 0, 8% 100%, 0 100%);
-    opacity: 1;
-  }
-}
-.animate-border-travel {
-  animation: border-travel 3s linear infinite;
-  filter: drop-shadow(0 0 3px #efb215);
-}
-
-/* Glowing effect for selected questions */
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow: 0 0 5px rgba(0, 48, 95, 0.5), 0 0 10px rgba(214, 40, 57, 0.3), 0 0 15px rgba(239, 178, 21, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 10px rgba(0, 48, 95, 0.7), 0 0 20px rgba(214, 40, 57, 0.5), 0 0 30px rgba(239, 178, 21, 0.3);
-  }
-}
-
-.glow-effect {
-  animation: glow 2s ease-in-out infinite;
-}
 
 /* Custom slider styles */
 .slider-thumb {
@@ -694,140 +509,6 @@
   --tw-ring-color: #4a9eff;
 }
 
-/* Auth page specific styles */
-.auth-gradient-bg {
-  background: linear-gradient(135deg, 
-    rgba(0, 48, 95, 0.9) 0%, 
-    rgba(0, 59, 113, 0.8) 50%, 
-    rgba(0, 48, 95, 0.9) 100%),
-    radial-gradient(circle at 90% 10%, rgba(214, 40, 57, 0.15) 0%, transparent 60%),
-    radial-gradient(circle at 10% 90%, rgba(239, 178, 21, 0.1) 0%, transparent 60%);
-  background-size: 200% 200%, 100% 100%, 100% 100%;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%, 0% 0%, 0% 0%;
-  }
-  50% {
-    background-position: 100% 50%, 0% 0%, 0% 0%;
-  }
-  100% {
-    background-position: 0% 50%, 0% 0%, 0% 0%;
-  }
-}
-
-.auth-card {
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 
-              0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-              0 0 64px rgba(0, 48, 95, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  animation: cardEntrance 0.6s ease-out;
-}
-
-.auth-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15),
-              0 0 0 1px rgba(255, 255, 255, 0.15) inset,
-              0 0 64px rgba(0, 48, 95, 0.15);
-}
-
-.dark .auth-card {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-              0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-              0 0 64px rgba(0, 0, 0, 0.2);
-}
-
-.dark .auth-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
-              0 0 0 1px rgba(255, 255, 255, 0.08) inset,
-              0 0 64px rgba(0, 0, 0, 0.25);
-}
-
-@keyframes cardEntrance {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.auth-button {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-.auth-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: all 0.4s ease;
-  z-index: -1;
-}
-
-.auth-button:hover::before {
-  left: 100%;
-}
-
-.auth-button:active {
-  transform: scale(0.97);
-}
-
-.auth-input {
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  background-color: rgba(255, 255, 255, 0.9);
-}
-
-.auth-input:focus {
-  border-color: #003B71;
-  box-shadow: 0 0 0 2px rgba(0, 59, 113, 0.2);
-  background-color: white;
-}
-
-.dark .auth-input {
-  background-color: rgba(35, 35, 35, 0.85);
-}
-
-.dark .auth-input:focus {
-  border-color: #4a9eff;
-  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
-  background-color: rgba(42, 42, 42, 0.98);
-}
-
-.auth-link {
-  position: relative;
-  display: inline-block;
-}
-
-.auth-link::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  transform: scaleX(0);
-  height: 2px;
-  bottom: -2px;
-  left: 0;
-  background: linear-gradient(90deg, #003B71, #d62839);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease-out;
-}
-
-.auth-link:hover::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
 
 .reddit-comment-header {
   background: linear-gradient(135deg, rgba(255,69,0,0.22) 0%, rgba(255,120,50,0.10) 50%, rgba(255,255,255,0.60) 100%);
@@ -1050,10 +731,6 @@
     -webkit-backdrop-filter: none !important;
   }
 
-  .blur-circle {
-    filter: blur(56px);
-    opacity: 0.35;
-  }
 }
 
 @media (max-width: 767px) and (pointer: coarse) {
