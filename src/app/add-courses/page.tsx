@@ -360,8 +360,7 @@ export default function AddCoursesPage() {
       />
 
       <style jsx global>{`
-        .mesh-gradient { background-color: hsla(0,0%,100%,1); background-image: none; }
-        :is(.dark) .mesh-gradient { background-color: #171717; background-image: none; }
+        .mesh-gradient { background: transparent; }
       `}</style>
     </div>
   )

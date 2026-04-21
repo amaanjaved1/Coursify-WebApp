@@ -87,8 +87,7 @@ export default function CourseSearchPage() {
     <div className="relative min-h-screen overflow-hidden mesh-gradient pt-20">
       <style jsx global>{`
         .mesh-gradient {
-          background-color: var(--page-bg);
-          background-image: none;
+          background: transparent;
         }
         .glass-card-deep {
           background: rgba(255, 255, 255, 0.72);

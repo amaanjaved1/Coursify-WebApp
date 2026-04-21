@@ -424,8 +424,7 @@ export default function QueensCourses() {
     <div className="relative min-h-screen overflow-hidden mesh-gradient pt-20">
       <style jsx global>{`
         .mesh-gradient {
-          background-color: var(--page-bg);
-          background-image: none;
+          background: transparent;
         }
 
         .glass-card-deep {
