@@ -19,6 +19,16 @@ const eslintConfig = [
       "react-hooks/exhaustive-deps": "warn",
       "prefer-const": "warn"
     }
+  },
+  {
+    ignores: [
+      ".next/**",
+      "out/**",
+      "build/**",
+      "backup/**",
+      "coursify-v1/**",
+      "next-env.d.ts"
+    ]
   }
 ];
 

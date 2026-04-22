@@ -105,7 +105,7 @@ This repo includes an in-app confirmation page (`/auth/confirm`) that only verif
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Production build: `npm run build` then `npm start`. Lint: `npm run lint`.
+Open [http://localhost:3000](http://localhost:3000). Production build: `npm run build` then `npm start`. Validation: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 **npm scripts (Supabase):** `npm run db:start`, `npm run db:reset`, `npm run db:reseed`, `npm run db:seed-remote`, `npm run db:push` (wrap `npx supabase …`).
 
