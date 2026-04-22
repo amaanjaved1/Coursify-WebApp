@@ -104,6 +104,7 @@ export interface AccessStatus {
 // PDF Upload Types
 /** Stored on `distribution_uploads.status` */
 export type DistributionUploadStatus = "processed" | "rejected" | "already_uploaded";
+export type UploadDistributionFailureReason = "already_uploaded" | "dependency_failure" | "partial_failure";
 
 export interface ParsedCourseRow {
   course_code: string;
@@ -115,6 +116,7 @@ export interface ParsedCourseRow {
 
 export interface UploadDistributionResponse {
   success: boolean;
+  reason?: UploadDistributionFailureReason;
   term?: string;
   inserted: number;
   skipped: string[];

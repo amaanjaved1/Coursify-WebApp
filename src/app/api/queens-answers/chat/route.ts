@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { redis } from "@/lib/redis";
+import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status";
+import { consumeQuestion } from "@/lib/queens-answers/rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "";
 
-function getTierLimit(semestersCompleted: number): number {
-  if (semestersCompleted <= 1) return 2;
-  if (semestersCompleted <= 4) return 3;
-  return 4;
-}
-
 export async function POST(request: NextRequest) {
   if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
-      { error: "Server configuration error", reason: "unauthorized" },
+      { error: "Server configuration error", reason: "dependency_failure", dependency: "supabase" },
       { status: 500 },
     );
   }
@@ -43,24 +38,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("semesters_completed")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError) {
-    console.warn(
-      "[queens-answers/chat] profile fetch error:",
-      profileError.message,
-    );
-  }
-
-  const semestersCompleted = profile?.semesters_completed ?? 0;
-  const tierLimit = getTierLimit(semestersCompleted);
-  const userKey = `qa:user:${user.id}`;
-
-  let question: string;
+  let question = "";
   try {
     const body = await request.json();
     question = typeof body.question === "string" ? body.question.trim() : "";
@@ -85,20 +63,44 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let newUserCount: number | null = null;
-  try {
-    newUserCount = await redis.incr(userKey);
-    if (newUserCount === 1) {
-      await redis.expire(userKey, 86400);
-    }
-  } catch (err) {
-    console.error("[queens-answers/chat] redis error:", err);
-  }
-
-  if (newUserCount !== null && newUserCount > tierLimit) {
+  const accessResult = await getConfirmedAccessStatus(supabase, user.id);
+  if (!accessResult.ok) {
     return NextResponse.json(
       {
-        error: `You've used your ${tierLimit} daily questions. Resets within 24 hours.`,
+        error: accessResult.error,
+        reason: accessResult.reason,
+        dependency: accessResult.dependency,
+      },
+      { status: 503 },
+    );
+  }
+
+  if (!accessResult.status.has_access) {
+    return NextResponse.json(
+      {
+        error: "Queen's Answers access is locked until your contribution requirements are met.",
+        reason: "entitlement_required",
+      },
+      { status: 403 },
+    );
+  }
+
+  const consumeResult = await consumeQuestion(user.id, accessResult.semestersCompleted);
+  if (!consumeResult.ok && consumeResult.reason === "dependency_failure") {
+    return NextResponse.json(
+      {
+        error: consumeResult.error,
+        reason: consumeResult.reason,
+        dependency: consumeResult.dependency,
+      },
+      { status: 503 },
+    );
+  }
+
+  if (!consumeResult.ok && consumeResult.reason === "rate_limit") {
+    return NextResponse.json(
+      {
+        error: `You've used your ${consumeResult.usage.dailyLimit} daily questions. Resets within 24 hours.`,
         reason: "rate_limit",
       },
       { status: 429 },
@@ -115,7 +117,6 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     answer,
-    remaining:
-      newUserCount !== null ? Math.max(0, tierLimit - newUserCount) : tierLimit,
+    remaining: consumeResult.usage.remaining,
   });
 }

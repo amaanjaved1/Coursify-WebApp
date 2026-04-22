@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { usePathname, useSearchParams } from "next/navigation"
 import { QUEENS_ANSWERS_DRAFT_STORAGE_KEY } from "@/constants/queens-answers"
-import { ArrowUp, Brain, Hammer, Search, MessageSquare, Target, TriangleAlert } from "lucide-react"
+import { ArrowUp, Brain, Hammer, Search, Target, TriangleAlert } from "lucide-react"
 import { useMotionTier } from "@/lib/motion-prefs"
 import { useAuth } from "@/lib/auth/auth-context"
 import { getSupabaseClient } from "@/lib/supabase/client"
@@ -26,6 +26,7 @@ function QueensAnswersSuspenseFallback() {
 }
 
 type ChatMessage = { role: "user" | "bot"; text: string }
+type QAResponseReason = "rate_limit" | "entitlement_required" | "dependency_failure"
 
 
 function AIFeatures() {
@@ -37,7 +38,8 @@ function AIFeatures() {
   const [isBotTyping, setIsBotTyping] = useState(false)
   const [remaining, setRemaining] = useState<number | null>(null)
   const [tierLimit, setTierLimit] = useState<number | null>(null)
-  const [limitHit, setLimitHit] = useState<"user" | null>(null)
+  const [limitHit, setLimitHit] = useState<QAResponseReason | null>(null)
+  const [serviceNotice, setServiceNotice] = useState<string | null>(null)
   const [statusLoading, setStatusLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const questionTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -78,11 +80,30 @@ function AIFeatures() {
       const res = await fetch("/api/queens-answers/status", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({} as { error?: string; reason?: QAResponseReason }))
+        setTierLimit(null)
+        setRemaining(null)
+        if (data.reason === "entitlement_required") {
+          setLimitHit("entitlement_required")
+          setServiceNotice(data.error ?? "Unlock Queen's Answers to view your daily question limit.")
+          return
+        }
+        if (data.reason === "dependency_failure") {
+          setLimitHit("dependency_failure")
+          setServiceNotice(data.error ?? "Queen's Answers is temporarily unavailable.")
+          return
+        }
+        // Unknown error reason — clear any stale banners from a previous state
+        setLimitHit(null)
+        setServiceNotice(null)
+        return
+      }
       const data = await res.json()
+      setServiceNotice(null)
       setTierLimit(data.dailyLimit)
       setRemaining(data.remaining)
-      if (typeof data.remaining === "number" && data.remaining <= 0) setLimitHit("user")
+      setLimitHit(typeof data.remaining === "number" && data.remaining <= 0 ? "rate_limit" : null)
     } finally {
       setStatusLoading(false)
     }
@@ -238,15 +259,23 @@ function AIFeatures() {
 
       if (!res.ok) {
         if (data.reason === "rate_limit") {
-          setLimitHit("user")
+          setLimitHit("rate_limit")
+          setServiceNotice(null)
+        } else if (data.reason === "entitlement_required") {
+          setLimitHit("entitlement_required")
+          setServiceNotice(data.error ?? "Queen's Answers access is locked right now.")
+        } else if (data.reason === "dependency_failure") {
+          setLimitHit("dependency_failure")
+          setServiceNotice(data.error ?? "Queen's Answers is temporarily unavailable.")
         }
         setMessages((prev) => [...prev, { role: "bot", text: data.error ?? "Something went wrong." }])
         return
       }
 
       setMessages((prev) => [...prev, { role: "bot", text: data.answer }])
+      setServiceNotice(null)
       setRemaining(data.remaining)
-      if (typeof data.remaining === "number" && data.remaining <= 0) setLimitHit("user")
+      setLimitHit(typeof data.remaining === "number" && data.remaining <= 0 ? "rate_limit" : null)
     } finally {
       setIsBotTyping(false)
     }
@@ -401,10 +430,22 @@ function AIFeatures() {
           className={`fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col w-[min(100%-1rem,46rem)] sm:w-[min(100%-2rem,46rem)] max-w-3xl items-center ${showHowItWorks ? "opacity-30 pointer-events-none blur-[1px]" : "opacity-100"}`}
           style={{ zIndex: 30 }}
         >
-          {limitHit === "user" && (
+          {limitHit === "rate_limit" && (
             <div className="w-full mb-2 px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 text-sm font-medium shadow-md flex items-center gap-2.5">
               <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400" strokeWidth={2} />
               You&apos;ve used all your questions for today. Check back in 24 hours.
+            </div>
+          )}
+          {limitHit === "entitlement_required" && (
+            <div className="w-full mb-2 px-4 py-3 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-700 text-sky-900 dark:text-sky-200 text-sm font-medium shadow-md flex items-center gap-2.5">
+              <TriangleAlert className="h-4 w-4 shrink-0 text-sky-500 dark:text-sky-400" strokeWidth={2} />
+              {serviceNotice ?? "Unlock Queen's Answers to keep asking questions."}
+            </div>
+          )}
+          {limitHit === "dependency_failure" && (
+            <div className="w-full mb-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-700 text-red-900 dark:text-red-200 text-sm font-medium shadow-md flex items-center gap-2.5">
+              <TriangleAlert className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2} />
+              {serviceNotice ?? "Queen's Answers is temporarily unavailable."}
             </div>
           )}
           <AnimatePresence>

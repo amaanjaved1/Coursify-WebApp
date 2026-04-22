@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UploadCloud } from "lucide-react";
+import { AlertTriangle, UploadCloud } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { AccessStatus } from "@/types";
@@ -16,16 +16,31 @@ export default function ContributionGate({ children }: Props) {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [status, setStatus] = useState<AccessStatus | null>(null);
+  const [statusState, setStatusState] = useState<"idle" | "checking" | "ready" | "unavailable">("idle");
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [seasonalSkipped, setSeasonalSkipped] = useState(false);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading) return;
+    if (!user) {
+      setStatus(null);
+      setStatusState("idle");
+      setStatusError(null);
+      return;
+    }
 
     const fetchStatus = async () => {
+      setStatusState("checking");
+      setStatusError(null);
       try {
         const { data: session } = await getSupabaseClient().auth.getSession();
         const token = session?.session?.access_token;
-        if (!token) return;
+        if (!token) {
+          setStatus(null);
+          setStatusState("unavailable");
+          setStatusError("We couldn't confirm your Queen's Answers access right now.");
+          return;
+        }
 
         const res = await fetch("/api/me/access-status", {
           headers: { Authorization: `Bearer ${token}` },
@@ -34,12 +49,20 @@ export default function ContributionGate({ children }: Props) {
         if (res.ok) {
           const data: AccessStatus = await res.json();
           setStatus(data);
+          setStatusState("ready");
           if (data.needs_onboarding) {
             router.push("/onboarding");
           }
+          return;
         }
+        const body = await res.json().catch(() => ({} as { error?: string }));
+        setStatus(null);
+        setStatusState("unavailable");
+        setStatusError(body.error ?? "We couldn't confirm your Queen's Answers access right now.");
       } catch {
-        // on error, let through
+        setStatus(null);
+        setStatusState("unavailable");
+        setStatusError("We couldn't confirm your Queen's Answers access right now.");
       }
     };
 
@@ -49,7 +72,10 @@ export default function ContributionGate({ children }: Props) {
   const handleSkipSeasonal = () => setSeasonalSkipped(true);
 
   const baseQuotaMet = status !== null && status.upload_count >= status.required_uploads;
+  const checkingAccess = !!user && statusState === "checking";
+  const unavailable = !!user && statusState === "unavailable";
   const locked =
+    statusState === "ready" &&
     status !== null &&
     !status.has_access &&
     !status.needs_onboarding &&
@@ -64,11 +90,34 @@ export default function ContributionGate({ children }: Props) {
         {children}
       </div>
 
-      {locked && (
+      {(checkingAccess || unavailable || locked) && (
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-sm bg-black/10 dark:bg-black/30">
           <div className="glass-modal-panel w-full max-w-sm rounded-[1.75rem] overflow-hidden">
-
-            {baseQuotaMet ? (
+            {checkingAccess ? (
+              <div className="px-7 py-8 flex flex-col items-center text-center">
+                <div className="glass-modal-accent h-1.5 w-20 rounded-full mb-5 opacity-90" />
+                <div className="w-10 h-10 border-4 border-brand-navy/20 border-t-brand-navy rounded-full animate-spin mb-4" />
+                <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
+                  Checking Queen&apos;s Answers access
+                </h2>
+                <p className="text-sm text-brand-navy/65 dark:text-white/60 leading-relaxed max-w-xs">
+                  We&apos;re confirming your contribution status before opening Queen&apos;s Answers.
+                </p>
+              </div>
+            ) : unavailable ? (
+              <div className="px-7 py-8 flex flex-col items-center text-center">
+                <div className="glass-modal-accent h-1.5 w-20 rounded-full mb-5 opacity-90" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 ring-1 ring-red-500/15 mb-5">
+                  <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" strokeWidth={1.8} />
+                </div>
+                <h2 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
+                  Queen&apos;s Answers is temporarily unavailable
+                </h2>
+                <p className="text-sm text-brand-navy/65 dark:text-white/60 leading-relaxed max-w-xs">
+                  {statusError ?? "We couldn't confirm your access right now. Please try again shortly."}
+                </p>
+              </div>
+            ) : baseQuotaMet ? (
               <>
                 {/* Congratulations section */}
                 <div className="px-7 pt-8 pb-5 text-center">

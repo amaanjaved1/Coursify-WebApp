@@ -60,16 +60,13 @@ export default function AddCoursesPage() {
 
       const result: UploadDistributionResponse = await response.json()
 
-      if (!response.ok) {
-        const errorMsg = result.errors?.[0] || "Upload failed."
-        // Duplicate term submission — dedicated amber state instead of generic error
-        if (errorMsg.toLowerCase().includes("already submitted")) {
-          const termMatch = errorMsg.match(/for (.+?)\./i)
-          setDuplicateTerm(termMatch ? termMatch[1] : null)
+      if (!response.ok || !result.success) {
+        if (result.reason === "already_uploaded") {
+          setDuplicateTerm(result.term ?? null)
           setUploadPhase("duplicate")
           return
         }
-        throw new Error(errorMsg)
+        throw new Error(result.errors?.[0] || "Upload failed.")
       }
 
       setUploadPhase("done")

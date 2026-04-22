@@ -112,7 +112,9 @@ export default function SettingsPage() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
+  const [accessStatusError, setAccessStatusError] = useState<string | null>(null);
   const [uploads, setUploads] = useState<UploadRow[]>([]);
+  const [uploadsError, setUploadsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [editing, setEditing] = useState(false);
@@ -124,6 +126,7 @@ export default function SettingsPage() {
     used: number
     remaining: number
   } | null>(null);
+  const [qaStatusError, setQaStatusError] = useState<string | null>(null);
 
   useAuthRedirect();
 
@@ -132,9 +135,21 @@ export default function SettingsPage() {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
+      const readError = async (response: Response, fallback: string) => {
+        const body = await response.json().catch(() => ({} as { error?: string; reason?: string }))
+        return {
+          error: typeof body.error === "string" ? body.error : fallback,
+          reason: typeof body.reason === "string" ? body.reason : undefined,
+        }
+      }
+
       const { data: session } = await getSupabaseClient().auth.getSession();
       const token = session?.session?.access_token;
       if (!token) return;
+
+      setAccessStatusError(null)
+      setUploadsError(null)
+      setQaStatusError(null)
 
       const headers = { Authorization: `Bearer ${token}` };
 
@@ -152,13 +167,38 @@ export default function SettingsPage() {
       if (statusRes.ok) {
         const s = await statusRes.json();
         setAccessStatus(s);
+        setAccessStatusError(null)
+      } else {
+        const statusError = await readError(statusRes, "Unable to load access status.")
+        setAccessStatus(null)
+        setAccessStatusError(
+          statusError.reason === "dependency_failure"
+            ? "Queen's Answers access status is temporarily unavailable."
+            : statusError.error
+        )
       }
       if (uploadsRes.ok) {
         const { uploads: u } = await uploadsRes.json();
         setUploads(u ?? []);
+        setUploadsError(null)
+      } else {
+        await readError(uploadsRes, "Upload history is temporarily unavailable.")
+        setUploads([])
+        setUploadsError("Upload history is temporarily unavailable.")
       }
       if (qaStatusRes.ok) {
         setQaStatus(await qaStatusRes.json())
+        setQaStatusError(null)
+      } else {
+        const qaError = await readError(qaStatusRes, "Unable to load daily question limit.")
+        setQaStatus(null)
+        if (qaError.reason === "entitlement_required") {
+          setQaStatusError("Unlock Queen's Answers to view your daily question limit.")
+        } else if (qaError.reason === "dependency_failure") {
+          setQaStatusError("Daily question limit is temporarily unavailable.")
+        } else {
+          setQaStatusError(qaError.error)
+        }
       }
     } finally {
       setLoading(false);
@@ -208,7 +248,13 @@ export default function SettingsPage() {
       const statusRes = await fetch("/api/me/access-status", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (statusRes.ok) setAccessStatus(await statusRes.json());
+      if (statusRes.ok) {
+        setAccessStatus(await statusRes.json());
+        setAccessStatusError(null)
+      } else {
+        setAccessStatus(null)
+        setAccessStatusError("Queen's Answers access status is temporarily unavailable.")
+      }
 
       toast({ title: "Profile updated", variant: "success" });
     } catch (err: unknown) {
@@ -266,6 +312,8 @@ export default function SettingsPage() {
                   </>
                 )}
               </div>
+            ) : accessStatusError ? (
+              <p className="text-sm text-red-600 dark:text-red-400">{accessStatusError}</p>
             ) : (
               <span className="text-sm text-gray-400">Loading…</span>
             )}
@@ -305,6 +353,8 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+          ) : qaStatusError ? (
+            <p className="text-sm text-red-600 dark:text-red-400">{qaStatusError}</p>
           ) : (
             <span className="text-sm text-gray-400">Loading…</span>
           )}
@@ -418,7 +468,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {uploads.length === 0 ? (
+          {uploadsError ? (
+            <div className="text-center py-6">
+              <p className="text-sm text-red-600 dark:text-red-400">{uploadsError}</p>
+            </div>
+          ) : uploads.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-sm text-brand-navy/60 dark:text-white/50 mb-3">
                 No uploads yet — upload your SOLUS distribution to unlock Queen&apos;s Answers.
