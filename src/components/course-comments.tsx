@@ -49,6 +49,11 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
   const currentRedditComment = redditComments[redditCommentIndex];
   const currentRmpComment = rmpComments[rmpCommentIndex];
 
+  const formatDate = (iso: string | null | undefined) => {
+    if (!iso) return null;
+    return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  };
+
   const sentimentBadge = (label: string) => {
     const normalized = label.toLowerCase();
     if (normalized.includes("positive")) return "bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200/60 dark:border-green-700/40";
@@ -186,11 +191,16 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
 
                 <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4">{currentRedditComment.text}</p>
 
-                <div className="mt-auto flex items-center text-xs text-gray-400 dark:text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-[#FF4500]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                  </svg>
-                  <span className="mr-3">{currentRedditComment.upvotes} upvotes</span>
+                <div className="mt-auto flex items-center gap-2 text-xs">
+                  <span className="glass-pill px-2.5 py-0.5 rounded-full flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-[#FF4500]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                    </svg>
+                    {currentRedditComment.upvotes} upvotes
+                  </span>
+                  {formatDate(currentRedditComment.created_at) && (
+                    <span className="glass-pill px-2.5 py-0.5 rounded-full text-gray-500 dark:text-gray-400">{formatDate(currentRedditComment.created_at)}</span>
+                  )}
                   {currentRedditComment.source_url && (
                     <a
                       href={currentRedditComment.source_url}
@@ -354,6 +364,9 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                     <span className="glass-pill px-2.5 py-1 rounded-full text-brand-red font-medium">
                       Difficulty: {currentRmpComment.difficulty_rating}/5
                     </span>
+                    {formatDate(currentRmpComment.created_at) && (
+                      <span className="glass-pill px-2.5 py-1 rounded-full text-gray-500 dark:text-gray-400">{formatDate(currentRmpComment.created_at)}</span>
+                    )}
                     {currentRmpComment.source_url && (
                       <a
                         href={currentRmpComment.source_url}

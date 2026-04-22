@@ -18,6 +18,7 @@ interface CachedRedditComment {
   tags: string[]
   upvotes: number
   sentiment_label: string
+  created_at: string | null
 }
 
 interface CachedRmpComment {
@@ -29,6 +30,7 @@ interface CachedRmpComment {
   quality_rating: number
   difficulty_rating: number
   sentiment_label: string
+  created_at: string | null
 }
 
 interface CachedPayload {
@@ -52,7 +54,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
   const [redditResult, rmpResult] = await Promise.all([
     supabase
       .from("rag_chunks")
-      .select("text, course_code, professor_name, source_url, tags, upvotes, sentiment_label")
+      .select("text, course_code, professor_name, source_url, tags, upvotes, sentiment_label, created_at")
       .eq("course_code", courseCode)
       .eq("source", "reddit")
       .order("upvotes", { ascending: false }),
@@ -83,6 +85,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     tags: Array.isArray(row.tags) ? row.tags : [],
     upvotes: Number(row.upvotes) || 0,
     sentiment_label: String(row.sentiment_label ?? "neutral"),
+    created_at: row.created_at ? String(row.created_at) : null,
   }))
 
   const rmpComments = (rmpResult.data || []).map((row: Record<string, unknown>) => ({
@@ -96,6 +99,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     quality_rating: Number(row.quality_rating) || 0,
     difficulty_rating: Number(row.difficulty_rating) || 0,
     sentiment_label: String(row.sentiment_label ?? "neutral"),
+    created_at: row.created_at ? String(row.created_at) : null,
   }))
 
   const payload: CachedPayload = { redditComments, rmpComments }

@@ -80,9 +80,9 @@
     @apply text-foreground;
     background-color: var(--page-bg);
     background-image:
-      radial-gradient(ellipse 800px 700px at 0% 0%, rgba(0, 48, 95, 0.20) 0%, transparent 65%),
-      radial-gradient(ellipse 700px 800px at 100% 100%, rgba(214, 40, 57, 0.18) 0%, transparent 65%),
-      radial-gradient(ellipse 600px 600px at 100% 0%, rgba(239, 178, 21, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 800px 700px at 0% 0%, rgba(0, 48, 95, 0.40) 0%, transparent 65%),
+      radial-gradient(ellipse 700px 800px at 100% 100%, rgba(214, 40, 57, 0.36) 0%, transparent 65%),
+      radial-gradient(ellipse 600px 600px at 100% 0%, rgba(239, 178, 21, 0.30) 0%, transparent 60%),
       linear-gradient(rgba(0, 48, 95, 0.07) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 48, 95, 0.07) 1px, transparent 1px);
     background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;
@@ -91,9 +91,9 @@
 
   .dark body {
     background-image:
-      radial-gradient(ellipse 800px 700px at 0% 0%, rgba(0, 48, 95, 0.15) 0%, transparent 65%),
-      radial-gradient(ellipse 700px 800px at 100% 100%, rgba(214, 40, 57, 0.12) 0%, transparent 65%),
-      radial-gradient(ellipse 600px 600px at 100% 0%, rgba(239, 178, 21, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 800px 700px at 0% 0%, rgba(0, 48, 95, 0.32) 0%, transparent 65%),
+      radial-gradient(ellipse 700px 800px at 100% 100%, rgba(214, 40, 57, 0.28) 0%, transparent 65%),
+      radial-gradient(ellipse 600px 600px at 100% 0%, rgba(239, 178, 21, 0.24) 0%, transparent 60%),
       linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
     background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;

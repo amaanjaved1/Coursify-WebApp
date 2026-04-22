@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export async function GET(request: NextRequest) {
@@ -36,9 +37,20 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    if (!error && sessionData?.user) {
+      const displayName = sessionData.user.user_metadata?.display_name as string | undefined;
+      if (displayName) {
+        const serviceKey = process.env.SUPABASE_SERVICE_KEY;
+        if (supabaseUrl && serviceKey) {
+          const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+          await admin.from("user_profiles").upsert(
+            { id: sessionData.user.id, display_name: displayName },
+            { onConflict: "id", ignoreDuplicates: false }
+          );
+        }
+      }
       return response;
     }
 
