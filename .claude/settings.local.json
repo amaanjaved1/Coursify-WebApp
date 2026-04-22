@@ -11,7 +11,8 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(npx next *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "mcp__plugin_supabase_supabase__list_tables"
     ]
   }
 }

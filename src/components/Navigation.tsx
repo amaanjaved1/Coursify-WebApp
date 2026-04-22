@@ -231,7 +231,7 @@ const Navigation = () => {
                       <User className="w-4 h-4" strokeWidth={1.5} />
                     </span>
                     <span className="hidden nav:block max-w-[80px] truncate text-xs">
-                      {user.email?.split("@")[0]}
+                      {(user.user_metadata?.display_name as string | undefined) || user.email?.split("@")[0]}
                     </span>
                   </button>
                 </DropdownMenuTrigger>
@@ -239,8 +239,13 @@ const Navigation = () => {
                   align="end"
                   className="rounded-2xl border border-black/10 dark:border-white/10 shadow-xl mt-2 bg-white dark:bg-neutral-900"
                 >
-                  <div className="p-2 text-xs font-medium text-gray-500 dark:text-white/50">
-                    {user.email}
+                  <div className="p-2">
+                    {(user.user_metadata?.display_name as string | undefined) && (
+                      <div className="text-xs font-semibold text-brand-navy dark:text-white">
+                        {user.user_metadata.display_name as string}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400 dark:text-white/40">{user.email}</div>
                   </div>
                   <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
                   <DropdownMenuItem
@@ -364,8 +369,13 @@ const Navigation = () => {
 
               {user ? (
                 <div className="pt-2 mt-1 border-t border-black/5 dark:border-white/5">
-                  <div className="text-xs font-medium text-gray-400 dark:text-white/45 mb-1 px-4">
-                    {user.email}
+                  <div className="mb-1 px-4">
+                    {(user.user_metadata?.display_name as string | undefined) && (
+                      <div className="text-xs font-semibold text-brand-navy dark:text-white">
+                        {user.user_metadata.display_name as string}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400 dark:text-white/45">{user.email}</div>
                   </div>
                   <button
                     type="button"
