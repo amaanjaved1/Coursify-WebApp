@@ -1,5 +1,9 @@
 import { getSupabaseClient } from "./supabase/client"
+import type { Tables } from "@/lib/database.types"
 import type { Course, GradeDistribution, CourseWithStats, CoursePageParams, CoursePageResult } from "@/types"
+
+type CourseRow = Tables<"courses">
+type CourseDistributionRow = Tables<"course_distributions">
 
 // Always use real Supabase data, never mock data
 export let isUsingMockData = false;
@@ -36,8 +40,9 @@ export async function getAllCourses(): Promise<CourseWithStats[]> {
     console.log(`Successfully fetched ${distributionsData?.length || 0} distributions`);
     
     // Create a map of course IDs to their distributions for faster lookup
-    const distributionsByCourseId = new Map<string, any[]>();
-    distributionsData?.forEach(dist => {
+    const distributionsByCourseId = new Map<string, CourseDistributionRow[]>();
+    const typedDistributionsData = (distributionsData ?? []) as CourseDistributionRow[];
+    typedDistributionsData.forEach(dist => {
       const courseId = String(dist.course_id);
       if (!distributionsByCourseId.has(courseId)) {
         distributionsByCourseId.set(courseId, []);
@@ -58,7 +63,8 @@ export async function getAllCourses(): Promise<CourseWithStats[]> {
     console.log(`Successfully fetched ${coursesData?.length || 0} courses`);
     
     // Map courses with their distributions
-    const coursesWithStats: CourseWithStats[] = coursesData.map((course: any) => {
+    const typedCoursesData = (coursesData ?? []) as CourseRow[];
+    const coursesWithStats: CourseWithStats[] = typedCoursesData.map((course) => {
       const courseId = String(course.id);
       const courseDistributionsData = distributionsByCourseId.get(courseId) || [];
       const courseDistributions = courseDistributionsData.map(toGradeDistribution);
