@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Code exchange failed (expired or already-used link) — tell the user explicitly
-    console.error("Auth callback: code exchange failed", error.message);
+    console.error("Auth callback: code exchange failed", error?.message);
     return NextResponse.redirect(new URL("/sign-in?error=link_expired", requestUrl));
   }
 
