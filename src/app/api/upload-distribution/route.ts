@@ -239,7 +239,8 @@ export async function POST(request: NextRequest) {
       .insert(toInsert);
 
     if (insertError) {
-      errors.push(`Failed to insert distributions: ${insertError.message}`);
+      console.error("[upload-distribution] insert distributions failed:", insertError.message);
+      errors.push("Some distributions could not be saved. Please try again shortly.");
     } else {
       inserted = toInsert.length;
     }
@@ -280,7 +281,8 @@ export async function POST(request: NextRequest) {
         inserted,
         skipped,
         duplicates,
-        errors,
+        // Return only user-safe messages; raw Supabase details are logged server-side above
+        errors: ["Some distributions could not be saved. Please try again shortly."],
         reason: "dependency_failure",
       },
       503,

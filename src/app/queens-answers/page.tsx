@@ -94,6 +94,9 @@ function AIFeatures() {
           setServiceNotice(data.error ?? "Queen's Answers is temporarily unavailable.")
           return
         }
+        // Unknown error reason — clear any stale banners from a previous state
+        setLimitHit(null)
+        setServiceNotice(null)
         return
       }
       const data = await res.json()

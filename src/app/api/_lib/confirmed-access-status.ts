@@ -76,7 +76,7 @@ export async function getConfirmedAccessStatus(
     semestersCompleted === null ||
     semestersCompleted === undefined
 
-  const required_uploads = needs_onboarding ? 0 : Math.min(semestersCompleted, 6)
+  const required_uploads = needs_onboarding ? 0 : Math.min(semestersCompleted ?? 0, 6)
   const is_exempt = required_uploads === 0
   const due_term = is_exempt || needs_onboarding ? null : getDueTerm()
 
