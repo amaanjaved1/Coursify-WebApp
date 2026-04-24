@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types";
 import { redis } from "@/lib/redis";
+import {
+  SEMESTER_ZERO_LOCKED_ERROR,
+  getSemestersCompletedValidationError,
+  isSemesterZeroLocked,
+} from "@/app/api/_lib/academic-profile-validation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "";
@@ -57,13 +62,10 @@ export async function POST(request: NextRequest) {
 
   const { semesters_completed } = body;
 
-  if (
-    !Number.isInteger(semesters_completed) ||
-    semesters_completed < 0 ||
-    semesters_completed > 8
-  ) {
+  const validationError = getSemestersCompletedValidationError(semesters_completed);
+  if (validationError) {
     return NextResponse.json(
-      { error: "semesters_completed must be 0–8" },
+      { error: validationError },
       { status: 400 },
     );
   }
@@ -75,12 +77,9 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (existing?.semester_zero_locked) {
+    if (isSemesterZeroLocked(semesters_completed, existing?.semester_zero_locked)) {
       return NextResponse.json(
-        {
-          error:
-            "Your account has been active for over a semester, so “semesters completed” can no longer be set to 0. If this seems incorrect, please use the Report a Bug feature.",
-        },
+        { error: SEMESTER_ZERO_LOCKED_ERROR },
         { status: 429 },
       );
     }

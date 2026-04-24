@@ -18,6 +18,23 @@ export type ConfirmedAccessStatusResult =
   | ConfirmedAccessStatusSuccess
   | ConfirmedAccessStatusFailure
 
+type AccessStatusProfileInput = {
+  onboarding_completed: boolean | null
+  semesters_completed: number | null
+} | null
+
+export type CalculateAccessStatusInput = {
+  profile: AccessStatusProfileInput
+  uploadCount: number
+  dueTerm: string | null
+  hasSeasonalUpload: boolean
+}
+
+export type CalculatedAccessStatus = {
+  status: AccessStatus
+  semestersCompleted: number | null
+}
+
 function getDueTerm(): string | null {
   const now = new Date()
   const month = now.getMonth() + 1
@@ -45,6 +62,40 @@ function dependencyFailure(context: string, error: unknown): ConfirmedAccessStat
   }
 }
 
+export function calculateAccessStatus({
+  profile,
+  uploadCount,
+  dueTerm,
+  hasSeasonalUpload,
+}: CalculateAccessStatusInput): CalculatedAccessStatus {
+  const semestersCompleted = profile?.semesters_completed ?? null
+  const needs_onboarding =
+    !profile ||
+    !profile.onboarding_completed ||
+    semestersCompleted === null ||
+    semestersCompleted === undefined
+
+  const required_uploads = needs_onboarding ? 0 : Math.min(semestersCompleted ?? 0, 6)
+  const is_exempt = required_uploads === 0
+  const effectiveDueTerm = is_exempt || needs_onboarding ? null : dueTerm
+  const pending_seasonal_upload = Boolean(effectiveDueTerm && !hasSeasonalUpload)
+
+  return {
+    semestersCompleted,
+    status: {
+      has_access: needs_onboarding
+        ? false
+        : uploadCount >= required_uploads && !pending_seasonal_upload,
+      is_exempt,
+      upload_count: uploadCount,
+      required_uploads,
+      needs_onboarding,
+      pending_seasonal_upload,
+      due_term: effectiveDueTerm,
+    },
+  }
+}
+
 export async function getConfirmedAccessStatus(
   supabase: SupabaseClient,
   userId: string,
@@ -68,19 +119,15 @@ export async function getConfirmedAccessStatus(
 
   const profile = profileResult.data
   const upload_count = uploadCountResult.count ?? 0
-  const semestersCompleted = profile?.semesters_completed ?? null
+  const preliminaryStatus = calculateAccessStatus({
+    profile,
+    uploadCount: upload_count,
+    dueTerm: getDueTerm(),
+    hasSeasonalUpload: false,
+  })
 
-  const needs_onboarding =
-    !profile ||
-    !profile.onboarding_completed ||
-    semestersCompleted === null ||
-    semestersCompleted === undefined
-
-  const required_uploads = needs_onboarding ? 0 : Math.min(semestersCompleted ?? 0, 6)
-  const is_exempt = required_uploads === 0
-  const due_term = is_exempt || needs_onboarding ? null : getDueTerm()
-
-  let pending_seasonal_upload = false
+  let hasSeasonalUpload = false
+  const due_term = preliminaryStatus.status.due_term
   if (due_term) {
     const seasonalUploadResult = await supabase
       .from("distribution_uploads")
@@ -94,22 +141,19 @@ export async function getConfirmedAccessStatus(
       return dependencyFailure("seasonal upload lookup", seasonalUploadResult.error)
     }
 
-    pending_seasonal_upload = !seasonalUploadResult.data
+    hasSeasonalUpload = Boolean(seasonalUploadResult.data)
   }
+
+  const calculated = calculateAccessStatus({
+    profile,
+    uploadCount: upload_count,
+    dueTerm: due_term,
+    hasSeasonalUpload,
+  })
 
   return {
     ok: true,
-    semestersCompleted,
-    status: {
-      has_access: needs_onboarding
-        ? false
-        : upload_count >= required_uploads && !pending_seasonal_upload,
-      is_exempt,
-      upload_count,
-      required_uploads,
-      needs_onboarding,
-      pending_seasonal_upload,
-      due_term,
-    },
+    semestersCompleted: calculated.semestersCompleted,
+    status: calculated.status,
   }
 }
