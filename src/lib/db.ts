@@ -1,6 +1,6 @@
 import { getSupabaseClient } from "./supabase/client"
 import type { Tables } from "@/lib/database.types"
-import type { Course, GradeDistribution, CourseWithStats, CoursePageParams, CoursePageResult } from "@/types"
+import type { GradeDistribution, CourseWithStats, CoursePageParams, CoursePageResult } from "@/types"
 
 type CourseRow = Tables<"courses">
 type CourseDistributionRow = Tables<"course_distributions">
@@ -9,14 +9,14 @@ type CourseDistributionRow = Tables<"course_distributions">
 export let isUsingMockData = false;
 
 // Helper function to safely convert a database row to a GradeDistribution
-function toGradeDistribution(row: any): GradeDistribution {
+function toGradeDistribution(row: CourseDistributionRow): GradeDistribution {
   return {
     id: Number(row.id) || 0,
     course_id: String(row.course_id) || "",
     term: String(row.term) || "",
     enrollment: Number(row.enrollment) || 0,
     average_gpa: Number(row.average_gpa) || 0,
-    grade_counts: Array.isArray(row.grade_counts) ? row.grade_counts : []
+    grade_counts: Array.isArray(row.grade_counts) ? (row.grade_counts as number[]) : []
   };
 }
 
@@ -41,8 +41,7 @@ export async function getAllCourses(): Promise<CourseWithStats[]> {
     
     // Create a map of course IDs to their distributions for faster lookup
     const distributionsByCourseId = new Map<string, CourseDistributionRow[]>();
-    const typedDistributionsData = (distributionsData ?? []) as CourseDistributionRow[];
-    typedDistributionsData.forEach(dist => {
+    (distributionsData ?? []).forEach(dist => {
       const courseId = String(dist.course_id);
       if (!distributionsByCourseId.has(courseId)) {
         distributionsByCourseId.set(courseId, []);
@@ -63,8 +62,7 @@ export async function getAllCourses(): Promise<CourseWithStats[]> {
     console.log(`Successfully fetched ${coursesData?.length || 0} courses`);
     
     // Map courses with their distributions
-    const typedCoursesData = (coursesData ?? []) as CourseRow[];
-    const coursesWithStats: CourseWithStats[] = typedCoursesData.map((course) => {
+    const coursesWithStats: CourseWithStats[] = (coursesData ?? []).map((course: CourseRow) => {
       const courseId = String(course.id);
       const courseDistributionsData = distributionsByCourseId.get(courseId) || [];
       const courseDistributions = courseDistributionsData.map(toGradeDistribution);
@@ -203,8 +201,6 @@ export async function getCourseDistributions(courseId: string, term: string): Pr
 
 export async function searchCourses(query: string): Promise<CourseWithStats[]> {
   try {
-    const supabase = getSupabaseClient();
-    
     // Filter courses by the search query
     const allCourses = await getAllCourses();
     

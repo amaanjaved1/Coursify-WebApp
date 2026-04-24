@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import type { Database, Json } from "@/lib/database.types"
 import { filterRmpTagsForDisplay } from "@/lib/rmp-comment-tags"
 import { redis } from "@/lib/redis"
 
@@ -38,6 +39,10 @@ interface CachedPayload {
   rmpComments: CachedRmpComment[]
 }
 
+function jsonStringArray(value: Json): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
+}
+
 async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
   const cacheKey = `course_comments:${courseCode}`
 
@@ -49,7 +54,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     throw new Error("Missing required Supabase environment variables for comments API")
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey)
+  const supabase = createClient<Database>(supabaseUrl, supabaseKey)
 
   const [redditResult, rmpResult] = await Promise.all([
     supabase
@@ -77,25 +82,23 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     throw new Error(`Failed to fetch RMP comments: ${rmpResult.error.message}`)
   }
 
-  const redditComments = (redditResult.data || []).map((row: Record<string, unknown>) => ({
+  const redditComments = (redditResult.data || []).map((row) => ({
     text: String(row.text ?? ""),
     course_code: String(row.course_code ?? ""),
     professor_name: String(row.professor_name ?? ""),
     source_url: String(row.source_url ?? ""),
-    tags: Array.isArray(row.tags) ? row.tags : [],
+    tags: jsonStringArray(row.tags),
     upvotes: Number(row.upvotes) || 0,
     sentiment_label: String(row.sentiment_label ?? "neutral"),
     created_at: row.created_at ? String(row.created_at) : null,
   }))
 
-  const rmpComments = (rmpResult.data || []).map((row: Record<string, unknown>) => ({
+  const rmpComments = (rmpResult.data || []).map((row) => ({
     text: String(row.text ?? ""),
     course_code: String(row.course_code ?? ""),
     professor_name: String(row.professor_name ?? ""),
     source_url: String(row.source_url ?? ""),
-    tags: filterRmpTagsForDisplay(
-      Array.isArray(row.tags) ? (row.tags as string[]).filter((t): t is string => typeof t === "string") : []
-    ),
+    tags: filterRmpTagsForDisplay(jsonStringArray(row.tags)),
     quality_rating: Number(row.quality_rating) || 0,
     difficulty_rating: Number(row.difficulty_rating) || 0,
     sentiment_label: String(row.sentiment_label ?? "neutral"),

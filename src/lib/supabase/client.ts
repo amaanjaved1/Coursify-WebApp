@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/database.types"
 
 // Use environment variables for Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -13,11 +14,11 @@ if ((!supabaseUrl || !supabaseAnonKey) && process.env.NODE_ENV === "development"
 }
 
 // Create a singleton instance for client-side usage
-let supabaseClient: ReturnType<typeof createClient> | null = null
+let supabaseClient: SupabaseClient<Database> | null = null
 
-export const getSupabaseClient = () => {
+export const getSupabaseClient = (): SupabaseClient<Database> => {
   if (!supabaseClient) {
-    supabaseClient = createClient(
+    supabaseClient = createClient<Database>(
       supabaseUrl || "",
       supabaseAnonKey || ""
     )

@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createHash } from "crypto"
 import { computeDataAvailability } from "@/lib/course-availability"
+import type { Database, Tables } from "@/lib/database.types"
 import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
 const CACHE_TTL = 14400 // 4 hours
+type CourseWithStatsRow = Tables<"courses_with_stats">
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached)
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient<Database>(supabaseUrl, supabaseKey)
 
     let query = supabase
       .from("courses_with_stats")
@@ -139,7 +141,7 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / limit)
 
     // Map to CourseWithStats shape
-    const courses = (data || []).map((row: any) => {
+    const courses = (data || []).map((row: CourseWithStatsRow) => {
       const averageGPA = Number(row.computed_avg_gpa) || 0
       const hasComments = Boolean(row.has_comments)
       return {

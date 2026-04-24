@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import type { Database, Tables } from "@/lib/database.types"
 import type { CourseWithStats, GradeDistribution } from "@/types"
 import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+type CourseDistributionRow = Tables<"course_distributions">
 
-function toGradeDistribution(row: Record<string, unknown>): GradeDistribution {
+function toGradeDistribution(row: CourseDistributionRow): GradeDistribution {
   return {
     id: Number(row.id) || 0,
-    course_id: String(row.course_id ?? ""),
-    term: String(row.term ?? ""),
+    course_id: String(row.course_id) || "",
+    term: String(row.term) || "",
     enrollment: Number(row.enrollment) || 0,
     average_gpa: Number(row.average_gpa) || 0,
     grade_counts: Array.isArray(row.grade_counts) ? (row.grade_counts as number[]) : [],
@@ -44,7 +46,7 @@ export async function GET(
       return NextResponse.json({ course: cached })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient<Database>(supabaseUrl, supabaseKey)
 
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
@@ -68,9 +70,7 @@ export async function GET(
       console.error(`Error fetching distributions for course ${courseCode}:`, distError)
     }
 
-    const distributions = (distError ? [] : distributionsData || []).map((row) =>
-      toGradeDistribution(row as Record<string, unknown>)
-    )
+    const distributions = (distError ? [] : distributionsData || []).map(toGradeDistribution)
 
     const uniqueDistributions = Array.from(new Map(distributions.map((d) => [d.term, d])).values())
 

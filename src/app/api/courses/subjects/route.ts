@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/database.types"
 import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
@@ -15,7 +16,7 @@ export async function GET() {
       return NextResponse.json({ subjects: cached })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient<Database>(supabaseUrl, supabaseKey)
 
     const { data, error } = await supabase
       .from("courses_with_stats")
@@ -29,7 +30,7 @@ export async function GET() {
     const subjects = [
       ...new Set(
         (data || [])
-          .map((row: any) => {
+          .map((row) => {
             const code = row.course_code || ""
             return code.split(" ")[0].trim().toUpperCase()
           })
