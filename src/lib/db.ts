@@ -16,7 +16,9 @@ function toGradeDistribution(row: CourseDistributionRow): GradeDistribution {
     term: String(row.term) || "",
     enrollment: Number(row.enrollment) || 0,
     average_gpa: Number(row.average_gpa) || 0,
-    grade_counts: Array.isArray(row.grade_counts) ? (row.grade_counts as number[]) : []
+    grade_counts: Array.isArray(row.grade_counts)
+      ? (row.grade_counts as unknown[]).filter((v): v is number => typeof v === "number")
+      : []
   };
 }
 
