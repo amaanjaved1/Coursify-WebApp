@@ -1,30 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import { redis } from "@/lib/redis";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "";
-
 export async function GET(request: NextRequest) {
-  if (!supabaseServiceKey) {
+  const auth = await getAuthenticatedSupabaseFromRequest(request);
+  if (!auth.ok && auth.reason === "server_configuration") {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
-
-  const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
-  if (!token) {
+  if (!auth.ok && auth.reason === "missing_token") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) {
+  if (!auth.ok) {
     return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
   }
 
+  const { supabase, user } = auth;
   const cacheKey = `uploads:${user.id}`;
   const cached = await redis.get(cacheKey);
   if (cached) {

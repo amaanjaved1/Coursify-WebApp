@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import { extractTextFromPdf, validateSolusFormat, parseCourseRows } from "@/lib/pdf/parse-distribution";
 import type { UploadDistributionResponse } from "@/types";
 import { redis } from "@/lib/redis";
 
 export const runtime = "nodejs";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "";
 
 function failureResponse(
   response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "duplicates" | "errors"> &
@@ -30,7 +27,8 @@ function failureResponse(
 }
 
 export async function POST(request: NextRequest) {
-  if (!supabaseUrl || !supabaseServiceKey) {
+  const auth = await getAuthenticatedSupabaseFromRequest(request);
+  if (!auth.ok && auth.reason === "server_configuration") {
     return failureResponse(
       {
         errors: ["Upload service is temporarily unavailable."],
@@ -39,21 +37,15 @@ export async function POST(request: NextRequest) {
       500,
     );
   }
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
 
-  // 1. Authenticate user
-  const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
-  if (!token) {
+  if (!auth.ok && auth.reason === "missing_token") {
     return NextResponse.json({ success: false, errors: ["Please sign in to upload."] }, { status: 401 });
   }
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) {
+  if (!auth.ok) {
     return NextResponse.json({ success: false, errors: ["Authentication failed. Please sign in again."] }, { status: 401 });
   }
+
+  const { supabase, user } = auth;
 
   // 2. Extract file from FormData
   let formData: FormData;

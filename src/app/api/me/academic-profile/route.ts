@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import type { UserProfile } from "@/types";
 import { redis } from "@/lib/redis";
 import {
@@ -8,28 +8,12 @@ import {
   isSemesterZeroLocked,
 } from "@/app/api/_lib/academic-profile-validation";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "";
-
-function getServiceClient() {
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
-}
-
 async function authenticate(request: NextRequest) {
-  if (!supabaseServiceKey)
-    return { user: null, error: "Server configuration error" };
-  const supabase = getServiceClient();
-  const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
-  if (!token) return { user: null, error: "Unauthorized" };
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
-  if (error || !user) return { user: null, error: "Authentication failed" };
-  return { user, error: null, supabase };
+  const auth = await getAuthenticatedSupabaseFromRequest(request);
+  if (!auth.ok) {
+    return { user: null, error: auth.error, supabase: null };
+  }
+  return { user: auth.user, error: null, supabase: auth.supabase };
 }
 
 export async function GET(request: NextRequest) {
