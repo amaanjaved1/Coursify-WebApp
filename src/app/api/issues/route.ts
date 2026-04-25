@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 
 const GITHUB_REPO = "amaanjaved1/Coursify-WebApp";
 const GITHUB_API_BASE = "https://api.github.com";
@@ -20,24 +20,15 @@ const TYPE_LABELS: Record<IssueType, string> = {
 };
 
 export async function POST(request: NextRequest) {
-  // Auth
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
-  if (!token) {
+  const auth = await getAuthenticatedSupabaseFromRequest(request);
+  if (!auth.ok && auth.reason === "server_configuration") {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+  }
+  if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!,
-  );
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser(token);
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { user } = auth;
 
   // Parse body
   let body: { title?: string; description?: string; issueType?: string };
