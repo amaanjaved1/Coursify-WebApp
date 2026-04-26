@@ -62,13 +62,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
-  let body: z.infer<typeof academicProfileSchema>;
+  let rawBody: unknown;
   try {
-    body = academicProfileSchema.parse(await request.json());
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const parsedBody = academicProfileSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const body = parsedBody.data;
   const { semesters_completed } = body;
 
   const validationError = getSemestersCompletedValidationError(semesters_completed);

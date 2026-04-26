@@ -120,7 +120,19 @@ export default function AddCoursesPage() {
     )
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <div
+          className="w-10 h-10 border-4 border-brand-navy/20 border-t-brand-navy rounded-full animate-spin"
+          aria-hidden="true"
+        />
+        <p className="text-sm text-gray-600 dark:text-gray-400" role="status" aria-live="polite">
+          Redirecting to sign in...
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden mesh-gradient pt-20">

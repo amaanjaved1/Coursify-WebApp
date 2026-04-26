@@ -56,13 +56,19 @@ async function findUserByEmail(admin: AdminClient, email: string) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: z.infer<typeof resendVerificationSchema>;
+  let rawBody: unknown;
   try {
-    body = resendVerificationSchema.parse(await request.json());
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const parsedBody = resendVerificationSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const body = parsedBody.data;
   const email = normalizeEmail(body.email);
 
   if (!isQueensEmail(email)) {

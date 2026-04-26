@@ -43,12 +43,9 @@ export async function GET(request: NextRequest) {
     availabilityFilter,
   } = parsedParams
 
-  // Build a stable cache key from sorted params (hashed to prevent cache poisoning)
-  const sortedParams = Array.from(searchParams.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${v}`)
-    .join("&")
-  const cacheKey = `courses:${createHash("sha256").update(sortedParams).digest("hex")}`
+  // Build a stable cache key from validated params (hashed to prevent cache poisoning)
+  const cacheKeyPayload = JSON.stringify(parsedParams)
+  const cacheKey = `courses:${createHash("sha256").update(cacheKeyPayload).digest("hex")}`
 
   try {
     const cached = await redis.get(cacheKey)

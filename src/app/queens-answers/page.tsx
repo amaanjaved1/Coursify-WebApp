@@ -288,6 +288,20 @@ function AIFeatures() {
     if (needsAuthToAsk) setAuthModalOpen(true)
   };
 
+  if (needsAuthToAsk) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--page-bg)] px-4 text-center">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-4 border-brand-navy/20 border-t-brand-navy dark:border-blue-400/20 dark:border-t-blue-400"
+          aria-hidden="true"
+        />
+        <p className="text-sm text-gray-600 dark:text-gray-400" role="status" aria-live="polite">
+          Redirecting to sign in...
+        </p>
+      </div>
+    )
+  }
+
   return (
       <ContributionGate>
     <div className="h-screen overflow-hidden bg-[var(--page-bg)] pt-16 sm:pt-20">
