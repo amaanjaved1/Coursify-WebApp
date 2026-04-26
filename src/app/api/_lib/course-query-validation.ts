@@ -7,7 +7,11 @@ const COMMENT_MODES = ["preview", "paginated"] as const;
 const COMMENT_SOURCES = ["reddit", "rmp", "all"] as const;
 
 const boundedText = z.string().trim().max(120);
+const courseSearchText = boundedText.refine((value) => !/[(),]/.test(value), {
+  message: "search contains unsupported filter characters",
+});
 const listItem = z.string().trim().min(1).max(80);
+const subjectCode = z.string().trim().regex(/^[A-Za-z0-9]{1,12}$/);
 
 function parsePositiveInt(raw: string | null, fallback: number): number {
   if (raw === null || raw.trim() === "") return fallback;
@@ -34,6 +38,7 @@ function requireValidCsv<T>(raw: string | null, schema: z.ZodType<T>): T {
 
 const csvSchema = z.array(listItem).max(30);
 const levelCsvSchema = z.array(z.string().regex(/^\d{1,3}$/)).max(10);
+const subjectCsvSchema = z.array(subjectCode).max(30);
 const availabilityCsvSchema = z.array(z.enum(AVAILABILITY_FILTERS)).max(2);
 
 export type CourseListQuery = {
@@ -56,10 +61,10 @@ export type CourseListQuery = {
 export function parseCourseListQuery(searchParams: URLSearchParams): CourseListQuery {
   const page = z.number().int().min(1).max(10000).parse(parsePositiveInt(searchParams.get("page"), 1));
   const limit = z.number().int().min(1).max(100).parse(parsePositiveInt(searchParams.get("limit"), 50));
-  const search = boundedText.parse(searchParams.get("search") ?? "");
+  const search = courseSearchText.parse(searchParams.get("search") ?? "");
   const departments = requireValidCsv(searchParams.get("departments"), csvSchema);
   const levels = requireValidCsv(searchParams.get("levels"), levelCsvSchema);
-  const subjects = requireValidCsv(searchParams.get("subjects"), csvSchema);
+  const subjects = requireValidCsv(searchParams.get("subjects"), subjectCsvSchema);
   const gpaMin = z.number().min(0).max(4.3).parse(parseFiniteNumber(searchParams.get("gpa_min"), 0));
   const gpaMax = z.number().min(0).max(4.3).parse(parseFiniteNumber(searchParams.get("gpa_max"), 4.3));
   const enrollMin = z.number().min(0).max(100000).parse(parseFiniteNumber(searchParams.get("enroll_min"), 0));
