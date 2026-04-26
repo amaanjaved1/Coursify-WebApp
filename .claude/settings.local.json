@@ -12,7 +12,14 @@
       "Bash(git commit *)",
       "Bash(npx next *)",
       "Bash(npx tsc *)",
-      "mcp__plugin_supabase_supabase__list_tables"
+      "mcp__plugin_supabase_supabase__list_tables",
+      "Bash(xargs wc *)",
+      "Bash(git checkout *)",
+      "Bash(npm run *)",
+      "Bash([ -f \"C:/Users/Amaan/Projects/Coursify-WebApp/$file\" ])",
+      "Bash(git mv *)",
+      "Bash(test -f /c/Users/Amaan/Projects/Coursify-WebApp/src/app/schools/queens/\\[courseCode\\]/_components/course-comments.tsx)",
+      "Bash(git stash *)"
     ]
   }
 }
