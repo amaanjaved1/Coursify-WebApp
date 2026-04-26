@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { getCourseByCode } from '@/lib/db';
 import type { CourseWithStats } from '@/types';
-import { CourseComments } from "@/components/course-comments";
+import { CourseComments } from "./_components/course-comments";
 import {
   Select,
   SelectContent,
