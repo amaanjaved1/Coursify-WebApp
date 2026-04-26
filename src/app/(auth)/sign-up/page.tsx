@@ -11,7 +11,7 @@ import { buildAuthHref, getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { Eye, EyeOff } from "lucide-react";
 import { useMotionTier } from "@/lib/motion-prefs";
 
-const RESEND_COOLDOWN_SECONDS = 60;
+const RESEND_COOLDOWN_SECONDS = 120;
 
 export default function SignUp() {
   const [displayName, setDisplayName] = useState("");
@@ -24,7 +24,9 @@ export default function SignUp() {
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
-  const [accountConflict, setAccountConflict] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<
+    "none" | "exists_unverified" | "exists_verified"
+  >("none");
   const { signUp, resendVerificationEmail } = useAuth();
   const lite = useMotionTier() === "lite";
   const searchParams = useSearchParams();
@@ -38,6 +40,20 @@ export default function SignUp() {
     () => buildAuthHref("/sign-in", nextPath),
     [nextPath],
   );
+
+  const forgotPasswordHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (nextPath && nextPath !== "/") params.set("redirect", nextPath);
+    const qs = params.toString();
+    return qs ? `/forgot-password?${qs}` : "/forgot-password";
+  }, [nextPath]);
+
+  const resendVerificationHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (nextPath && nextPath !== "/") params.set("redirect", nextPath);
+    const qs = params.toString();
+    return qs ? `/resend-verification?${qs}` : "/resend-verification";
+  }, [nextPath]);
 
   const isQueensEmail = (email: string) => email.endsWith("@queensu.ca");
 
@@ -86,43 +102,85 @@ export default function SignUp() {
     }
   };
 
+  const checkAccountStatus = async (candidateEmail: string) => {
+    const response = await fetch("/api/auth/signup-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: candidateEmail }),
+    });
+    const result = await response.json().catch(() => ({}) as any);
+    if (!response.ok) {
+      throw new Error(result?.error || "Unable to check account status");
+    }
+    return result as { exists: boolean; verified: boolean };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setAccountConflict(false);
-
-    if (!displayName.trim()) {
-      toast({
-        title: "Display name required",
-        description: "Please enter a display name",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (!isQueensEmail(email)) {
-      toast({
-        title: "Invalid email domain",
-        description:
-          "Please use your Queen's University email address (@queensu.ca)",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords do not match",
-        description: "Please make sure your passwords match",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
+    setAccountStatus("none");
 
     try {
+      if (!displayName.trim()) {
+        toast({
+          title: "Display name required",
+          description: "Please enter a display name",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!isQueensEmail(email)) {
+        toast({
+          title: "Invalid email domain",
+          description:
+            "Please use your Queen's University email address (@queensu.ca)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        const status = await checkAccountStatus(email);
+        if (status.exists && !status.verified) {
+          setAccountStatus("exists_unverified");
+          toast({
+            title: "Account not verified",
+            description:
+              "We found an account with this email that hasn't been verified yet. Resend the verification email to finish creating your account.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (status.exists && status.verified) {
+          setAccountStatus("exists_verified");
+          toast({
+            title: "Account already exists",
+            description:
+              "An account with this email already exists. Please sign in or reset your password.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error: any) {
+        toast({
+          title: "Couldn't check account",
+          description: error?.message ?? "Please try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        toast({
+          title: "Passwords do not match",
+          description: "Please make sure your passwords match",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await signUp(email, password, displayName);
       if (error) {
         if (
@@ -131,13 +189,16 @@ export default function SignUp() {
             error.message.includes("already exists") ||
             error.message.includes("already taken"))
         ) {
-          setAccountConflict(true);
-          toast({
-            title: "Account already exists",
-            description:
-              "This email is already registered. You can reset it or sign in instead.",
-            variant: "destructive",
-          });
+          try {
+            const status = await checkAccountStatus(email);
+            if (status.exists && !status.verified)
+              setAccountStatus("exists_unverified");
+            else if (status.exists && status.verified)
+              setAccountStatus("exists_verified");
+            else setAccountStatus("exists_verified");
+          } catch {
+            setAccountStatus("exists_verified");
+          }
           return;
         }
         toast({
@@ -211,7 +272,7 @@ export default function SignUp() {
                 </p>
                 <p className="text-gray-500 dark:text-gray-500 text-xs mt-3 leading-relaxed">
                   <span className="font-semibold text-amber-700 dark:text-amber-400">
-                    [!]
+                    (!)
                   </span>{" "}
                   Queen&apos;s Outlook can sometimes delay external emails while
                   they&apos;re being scanned, especially during busy periods. If
@@ -245,7 +306,7 @@ export default function SignUp() {
             </motion.div>
           ) : (
             <>
-              {accountConflict && (
+              {accountStatus === "exists_unverified" && (
                 <motion.div
                   initial={false}
                   animate={lite ? undefined : { opacity: 1, y: 0 }}
@@ -253,11 +314,18 @@ export default function SignUp() {
                   className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold"
                 >
                   <h3 className="font-semibold text-sm text-brand-navy dark:text-white mb-1">
-                    Account Conflict
+                    Account Exists (Unverified)
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                    An account with this email already exists or was previously
-                    created.
+                    We see that there is an account with this email that
+                    hasn&apos;t been verified yet. Need to verify your account?{" "}
+                    <Link
+                      href={resendVerificationHref}
+                      className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300"
+                    >
+                      Click here
+                    </Link>
+                    .
                   </p>
                   <div className="flex gap-2 flex-wrap">
                     <Button
@@ -281,7 +349,46 @@ export default function SignUp() {
                         size="sm"
                         className="text-brand-navy dark:text-white border-brand-gold/40 dark:border-brand-gold/40 hover:bg-brand-gold/10 dark:hover:bg-brand-gold/10 text-xs transition-all duration-300"
                       >
-                        Sign In Instead
+                        Sign In
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+
+              {accountStatus === "exists_verified" && (
+                <motion.div
+                  initial={false}
+                  animate={lite ? undefined : { opacity: 1, y: 0 }}
+                  transition={lite ? { duration: 0 } : { duration: 0.3 }}
+                  className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold"
+                >
+                  <h3 className="font-semibold text-sm text-brand-navy dark:text-white mb-1">
+                    Account Already Exists
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                    An account with this email already exists. Please sign in or
+                    reset your password.
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Link href={signInHref}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-brand-navy dark:text-white border-brand-gold/40 dark:border-brand-gold/40 hover:bg-brand-gold/10 dark:hover:bg-brand-gold/10 text-xs transition-all duration-300"
+                      >
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href={forgotPasswordHref}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-brand-navy dark:text-white border-brand-gold/40 dark:border-brand-gold/40 hover:bg-brand-gold/10 dark:hover:bg-brand-gold/10 text-xs transition-all duration-300"
+                      >
+                        Forgot Password
                       </Button>
                     </Link>
                   </div>
@@ -306,7 +413,7 @@ export default function SignUp() {
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       required
-                      maxLength={8}
+                      maxLength={9}
                       className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                     />
                   </div>
@@ -327,7 +434,10 @@ export default function SignUp() {
                       type="email"
                       placeholder="your.name@queensu.ca"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (accountStatus !== "none") setAccountStatus("none");
+                      }}
                       required
                       className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                     />

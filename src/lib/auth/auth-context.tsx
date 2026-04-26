@@ -86,13 +86,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resendVerificationEmail = async (email: string) => {
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-
-    return { error };
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return { error: { message: data?.error || "Failed to resend email" } };
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: { message: err?.message || "Failed to resend email" } };
+    }
   };
 
   const signOut = async () => {

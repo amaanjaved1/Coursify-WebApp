@@ -48,6 +48,13 @@ export default function SignIn() {
     [nextPath],
   );
 
+  const resendVerificationHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (nextPath && nextPath !== "/") params.set("redirect", nextPath);
+    const qs = params.toString();
+    return qs ? `/resend-verification?${qs}` : "/resend-verification";
+  }, [nextPath]);
+
   const resendEmail = async () => {
     if (!email) {
       toast({
@@ -296,6 +303,16 @@ export default function SignIn() {
                     className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300"
                   >
                     Reset it here
+                  </Link>
+                </p>
+
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  Need to resend a verification email?{" "}
+                  <Link
+                    href={resendVerificationHref}
+                    className="text-brand-red hover:text-brand-navy dark:hover:text-blue-400 font-medium transition-colors duration-300"
+                  >
+                    Click here
                   </Link>
                 </p>
               </motion.div>
