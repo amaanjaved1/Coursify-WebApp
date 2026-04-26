@@ -11,14 +11,17 @@ import {
 async function authenticate(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request);
   if (!auth.ok) {
-    return { user: null, error: auth.error, supabase: null };
+    return { user: null, error: auth.error, supabase: null, reason: auth.reason };
   }
-  return { user: auth.user, error: null, supabase: auth.supabase };
+  return { user: auth.user, error: null, supabase: auth.supabase, reason: null };
 }
 
 export async function GET(request: NextRequest) {
-  const { user, error, supabase } = await authenticate(request);
+  const { user, error, supabase, reason } = await authenticate(request);
   if (error || !user || !supabase) {
+    if (reason === "forbidden_domain") {
+      return NextResponse.json({ error }, { status: 403 });
+    }
     return NextResponse.json({ error }, { status: 401 });
   }
 
@@ -32,8 +35,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { user, error, supabase } = await authenticate(request);
+  const { user, error, supabase, reason } = await authenticate(request);
   if (error || !user || !supabase) {
+    if (reason === "forbidden_domain") {
+      return NextResponse.json({ error }, { status: 403 });
+    }
     return NextResponse.json({ error }, { status: 401 });
   }
 

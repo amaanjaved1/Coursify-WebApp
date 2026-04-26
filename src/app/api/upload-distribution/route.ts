@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
   if (!auth.ok && auth.reason === "missing_token") {
     return NextResponse.json({ success: false, errors: ["Please sign in to upload."] }, { status: 401 });
   }
+  if (!auth.ok && auth.reason === "forbidden_domain") {
+    return NextResponse.json({ success: false, errors: [auth.error] }, { status: 403 });
+  }
   if (!auth.ok) {
     return NextResponse.json({ success: false, errors: ["Authentication failed. Please sign in again."] }, { status: 401 });
   }

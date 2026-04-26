@@ -21,7 +21,6 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
@@ -55,36 +54,6 @@ export default function SignUp() {
     );
     return () => clearTimeout(id);
   }, [resendCooldown]);
-
-  const resetAccount = async () => {
-    if (!email) return;
-    setIsResetting(true);
-    try {
-      const response = await fetch("/api/auth/reset-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error || "Failed to reset account");
-      setAccountConflict(false);
-      toast({
-        title: "Account reset",
-        description: "You can now try to sign up again",
-        variant: "success",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error resetting account",
-        description:
-          error.message || "Failed to reset account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   const resendEmail = async () => {
     if (!email) return;
@@ -295,11 +264,15 @@ export default function SignUp() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={resetAccount}
-                      disabled={isResetting}
+                      onClick={resendEmail}
+                      disabled={isResending || resendCooldown > 0}
                       className="text-brand-navy dark:text-white border-brand-gold/40 dark:border-brand-gold/40 hover:bg-brand-gold/10 dark:hover:bg-brand-gold/10 text-xs transition-all duration-300"
                     >
-                      {isResetting ? "Processing..." : "Reset Account"}
+                      {isResending
+                        ? "Resending..."
+                        : resendCooldown > 0
+                          ? `Resend in ${resendCooldown}s`
+                          : "Resend Email"}
                     </Button>
                     <Link href={signInHref}>
                       <Button
