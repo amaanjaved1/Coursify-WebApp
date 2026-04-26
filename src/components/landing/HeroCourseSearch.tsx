@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { fetchCoursesPage } from "@/lib/db";
 
 function normalizeCourseCode(input: string) {
   const trimmed = input.trim().replace(/\s+/g, " ");
@@ -12,19 +11,14 @@ function normalizeCourseCode(input: string) {
   return `${match[1].toUpperCase()} ${match[2].toUpperCase()}`;
 }
 
-function toCourseSlug(courseCode: string) {
-  return courseCode.replace(/\s+/g, "-").toLowerCase();
-}
-
 export function HeroCourseSearch() {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const placeholder = useMemo(() => "Find a course (e.g. CISC 151)", []);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -41,32 +35,8 @@ export function HeroCourseSearch() {
       setValue(normalized);
     }
 
-    setIsLoading(true);
-    try {
-      const result = await fetchCoursesPage({
-        search: normalized,
-        limit: 5,
-        page: 1,
-        sortBy: "code",
-        sortDir: "asc",
-        hasData: false,
-      });
-
-      const exact = result.courses.find(
-        (c) => c.course_code.trim().toUpperCase() === normalized,
-      );
-
-      if (exact) {
-        router.push(`/schools/queens/${toCourseSlug(exact.course_code)}`);
-        return;
-      }
-
-      router.push(`/schools/queens?search=${encodeURIComponent(normalized)}`);
-    } catch {
-      router.push(`/schools/queens?search=${encodeURIComponent(normalized)}`);
-    } finally {
-      setIsLoading(false);
-    }
+    // Reuse the existing View Courses page logic and its "no results" state.
+    router.push(`/schools/queens?search=${encodeURIComponent(normalized)}`);
   };
 
   return (
@@ -85,10 +55,9 @@ export function HeroCourseSearch() {
           </div>
           <button
             type="submit"
-            disabled={isLoading}
-            className="liquid-btn-blue px-5 rounded-xl text-white text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+            className="liquid-btn-blue px-5 rounded-xl text-white text-sm font-medium"
           >
-            {isLoading ? "Searching..." : "Find"}
+            Find
           </button>
         </div>
         {error && (
