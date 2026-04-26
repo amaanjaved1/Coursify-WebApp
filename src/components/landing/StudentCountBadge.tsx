@@ -1,28 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 
 export function StudentCountBadge() {
-  const [studentCount, setStudentCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetch("/api/stats/user-count")
-      .then((r) => r.json())
-      .then((data) => {
-        // sorry for larping XD. keep it on the down low pls lmao
-        setStudentCount((data.count ?? 0) + 169);
-      })
-      .catch(() => {});
-  }, []);
-
-  if (studentCount === null) {
-    return (
-      <div className="inline-flex items-center rounded-full px-4 py-2 glass-pill">
-        <div className="h-3 w-28 rounded-full bg-brand-navy/10 dark:bg-white/10 animate-pulse" />
-      </div>
-    );
-  }
+  const studentCount = 181;
 
   return (
     <div
