@@ -12,10 +12,10 @@ import {
   Eye,
   Sparkles,
 } from "lucide-react";
-import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
-import { FeatureTabs } from "@/components/landing/FeatureTabs";
-import { PageFaq } from "@/components/landing/Faq";
-import HeroMockupsLoader from "@/components/landing/HeroMockupsLoader";
+import { StudentCountBadge } from "@/components/landing/student-count-badge";
+import { FeatureTabs } from "@/components/landing/feature-tabs";
+import { PageFaq } from "@/components/landing/faq";
+import HeroMockupsLoader from "@/components/landing/hero-mockups-loader";
 
 function SectionGlow({
   className,

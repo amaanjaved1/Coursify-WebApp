@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 const HeroMockups = dynamic(
-  () => import("@/components/landing/HeroMockups"),
+  () => import("@/components/landing/hero-mockups"),
   { ssr: false }
 );
 
