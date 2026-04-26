@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSafeRedirectPath, buildAuthHref } from "@/lib/auth/safe-redirect";
 import { toast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Eye, EyeOff } from "lucide-react";
-import { useMotionTier } from "@/lib/motion-prefs";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -25,7 +23,6 @@ export default function SignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn, resendVerificationEmail } = useAuth();
-  const lite = useMotionTier() === "lite";
 
   const nextPath = useMemo(
     () => getSafeRedirectPath(searchParams.get("redirect"), "/"),
@@ -157,38 +154,21 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-6 py-12">
-      <motion.div
-        className="w-full max-w-md relative z-10"
-        initial={false}
-        animate={lite ? undefined : { opacity: 1, y: 0 }}
-        transition={
-          lite ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
-        }
-      >
+      <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col gap-7">
           {/* Heading */}
-          <motion.div
-            initial={false}
-            animate={lite ? undefined : { opacity: 1, y: 0 }}
-            transition={lite ? { duration: 0 } : { duration: 0.6, delay: 0.15 }}
-          >
+          <div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-brand-navy dark:text-white">
               Welcome
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
               Access your account and continue your journey with us
             </p>
-          </motion.div>
+          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            <motion.div
-              initial={false}
-              animate={lite ? undefined : { opacity: 1, y: 0 }}
-              transition={
-                lite ? { duration: 0 } : { duration: 0.5, delay: 0.25 }
-              }
-            >
+            <div>
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                 Email Address
               </label>
@@ -202,15 +182,9 @@ export default function SignIn() {
                   className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={false}
-              animate={lite ? undefined : { opacity: 1, y: 0 }}
-              transition={
-                lite ? { duration: 0 } : { duration: 0.5, delay: 0.35 }
-              }
-            >
+            <div>
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                 Password
               </label>
@@ -235,17 +209,12 @@ export default function SignIn() {
                   )}
                 </button>
               </div>
-            </motion.div>
+            </div>
 
             <div className="space-y-2">
-              <motion.button
+              <button
                 type="submit"
                 disabled={isLoading}
-                initial={false}
-                animate={lite ? undefined : { opacity: 1, y: 0 }}
-                transition={
-                  lite ? { duration: 0 } : { duration: 0.5, delay: 0.45 }
-                }
                 className="liquid-btn-red w-full rounded-2xl py-4 font-medium text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
@@ -271,16 +240,9 @@ export default function SignIn() {
                 ) : (
                   "Sign In"
                 )}
-              </motion.button>
+              </button>
 
-              <motion.div
-                className="flex flex-col items-center gap-3"
-                initial={false}
-                animate={lite ? undefined : { opacity: 1 }}
-                transition={
-                  lite ? { duration: 0 } : { duration: 0.5, delay: 0.5 }
-                }
-              >
+              <div className="flex flex-col items-center gap-3">
                 <div className="flex items-center w-full gap-3 mt-1">
                   <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
                   <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -315,11 +277,11 @@ export default function SignIn() {
                     Click here
                   </Link>
                 </p>
-              </motion.div>
+              </div>
             </div>
           </form>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
