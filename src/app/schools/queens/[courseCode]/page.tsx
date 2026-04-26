@@ -75,14 +75,12 @@ export default function CourseDetailPage() {
     );
   }
 
-  const hasDistributions = course.distributions && course.distributions.length > 0;
-
   const enrollmentRounded = Math.round(course.totalEnrollment);
   const enrollmentBarMax = 600;
   const enrollmentBarPct = Math.min((enrollmentRounded / enrollmentBarMax) * 100, 100);
 
-  const termGpaData = hasDistributions
-    ? course.distributions.map(dist => ({ term: dist.term, gpa: dist.average_gpa })).reverse()
+  const termGpaData = course.distributions?.length
+    ? course.distributions.map((d) => ({ term: d.term, gpa: d.average_gpa })).reverse()
     : [];
 
   const facultyName = course.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
