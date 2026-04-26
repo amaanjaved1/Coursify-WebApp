@@ -49,7 +49,10 @@ export default function SignUp() {
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
-    const id = setTimeout(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    const id = setTimeout(
+      () => setResendCooldown((s) => Math.max(0, s - 1)),
+      1000,
+    );
     return () => clearTimeout(id);
   }, [resendCooldown]);
 
@@ -237,11 +240,14 @@ export default function SignUp() {
                   . Please check your inbox and click the link to verify your
                   account.
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-3">
-                  We&apos;re currently experiencing high server load, so it may
-                  take a little longer than usual to arrive. If you don&apos;t
-                  see it, check your spam/junk folder and wait at least 2
-                  minutes before trying again.
+                <p className="text-gray-500 dark:text-gray-500 text-xs mt-3 leading-relaxed">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">
+                    [!]
+                  </span>{" "}
+                  Queen&apos;s Outlook can sometimes delay external emails while
+                  they&apos;re being scanned, especially during busy periods. If
+                  you don&apos;t see it right away, wait a few minutes and check
+                  your spam/junk folder too.
                 </p>
               </div>
               <Link
