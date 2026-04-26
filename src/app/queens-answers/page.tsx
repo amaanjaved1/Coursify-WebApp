@@ -8,6 +8,7 @@ import { QUEENS_ANSWERS_DRAFT_STORAGE_KEY } from "@/constants/queens-answers"
 import { ArrowUp, Brain, Hammer, Search, Target, TriangleAlert } from "lucide-react"
 import { useMotionTier } from "@/lib/motion-prefs"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { buildAuthHref } from "@/lib/auth/safe-redirect"
 import { AuthModal } from "@/components/auth-modal"
@@ -66,6 +67,8 @@ function AIFeatures() {
   )
 
   const needsAuthToAsk = !authLoading && !user
+
+  useAuthRedirect(signInHref)
 
   const getToken = useCallback(async (): Promise<string | null> => {
     const { data: session } = await getSupabaseClient().auth.getSession()

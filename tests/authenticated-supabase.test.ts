@@ -85,7 +85,7 @@ describe("getAuthenticatedSupabaseFromRequest", () => {
   })
 
   it("returns the authenticated Supabase client, user, and token", async () => {
-    const user = { id: "user-1", email: "ada@example.com" }
+    const user = { id: "user-1", email: "ada@queensu.ca" }
     getUser.mockResolvedValueOnce({
       data: { user },
       error: null,

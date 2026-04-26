@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import type { Database, Tables } from "@/lib/database.types"
 import type { CourseWithStats, GradeDistribution } from "@/types"
 import { redis } from "@/lib/redis"
+import { normalizeCourseCodeFromPath } from "@/app/api/_lib/course-query-validation"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -17,10 +18,6 @@ function toGradeDistribution(row: CourseDistributionRow): GradeDistribution {
     average_gpa: Number(row.average_gpa) || 0,
     grade_counts: Array.isArray(row.grade_counts) ? (row.grade_counts as number[]) : [],
   }
-}
-
-function normalizeCourseCodeFromPath(segment: string): string {
-  return decodeURIComponent(segment).replace(/-/g, " ").trim().replace(/\s+/g, " ").toUpperCase()
 }
 
 export async function GET(

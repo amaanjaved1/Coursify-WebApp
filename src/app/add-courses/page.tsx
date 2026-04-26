@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AuthModal } from "@/components/auth-modal"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import type { UploadDistributionResponse } from "@/types"
 
@@ -21,7 +22,9 @@ export default function AddCoursesPage() {
   const [showSkipped, setShowSkipped] = useState(false)
   const [showDuplicates, setShowDuplicates] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
+
+  useAuthRedirect("/sign-in?redirect=/add-courses")
 
   const handleUpload = async (file: File) => {
     if (!user) {
@@ -108,6 +111,16 @@ export default function AddCoursesPage() {
     validating: "Validating PDF format...",
     processing: "Processing courses...",
   }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-brand-navy/20 border-t-brand-navy rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
     <div className="relative min-h-screen overflow-hidden mesh-gradient pt-20">

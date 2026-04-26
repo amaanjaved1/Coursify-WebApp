@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
+import { checkRateLimit } from "@/app/api/_lib/rate-limit";
+import { z } from "zod";
 
 const GITHUB_REPO = "amaanjaved1/Coursify-WebApp";
 const GITHUB_API_BASE = "https://api.github.com";
@@ -19,6 +21,12 @@ const TYPE_LABELS: Record<IssueType, string> = {
   feedback: "General Feedback",
 };
 
+const issueSubmissionSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().min(1).max(5000),
+  issueType: z.enum(VALID_ISSUE_TYPES),
+}).strict();
+
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request);
   if (!auth.ok && auth.reason === "server_configuration") {
@@ -33,36 +41,28 @@ export async function POST(request: NextRequest) {
 
   const { user } = auth;
 
+  const rateLimit = await checkRateLimit({
+    keyPrefix: "issues:create:user",
+    identifier: user.id,
+    limit: 5,
+    windowSeconds: 10 * 60,
+  });
+  if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
+    return NextResponse.json({ error: "Issue reporting is temporarily unavailable" }, { status: 503 });
+  }
+  if (!rateLimit.ok) {
+    return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+  }
+
   // Parse body
-  let body: { title?: string; description?: string; issueType?: string };
+  let body: z.infer<typeof issueSubmissionSchema>;
   try {
-    body = await request.json();
+    body = issueSubmissionSchema.parse(await request.json());
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const title = body.title?.trim() ?? "";
-  const description = body.description?.trim() ?? "";
-  const issueType = body.issueType as IssueType;
-
-  if (!title || title.length > 200) {
-    return NextResponse.json(
-      { error: "Title must be between 1 and 200 characters" },
-      { status: 400 },
-    );
-  }
-  if (!description || description.length > 5000) {
-    return NextResponse.json(
-      { error: "Description must be between 1 and 5000 characters" },
-      { status: 400 },
-    );
-  }
-  if (!VALID_ISSUE_TYPES.includes(issueType)) {
-    return NextResponse.json(
-      { error: "Invalid issue type" },
-      { status: 400 },
-    );
-  }
+  const { title, description, issueType } = body;
 
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) {

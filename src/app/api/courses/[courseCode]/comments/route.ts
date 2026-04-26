@@ -3,13 +3,14 @@ import { createClient } from "@supabase/supabase-js"
 import type { Database, Json } from "@/lib/database.types"
 import { filterRmpTagsForDisplay } from "@/lib/rmp-comment-tags"
 import { redis } from "@/lib/redis"
+import {
+  normalizeCourseCodeFromPath,
+  parseCourseCommentsQuery,
+} from "@/app/api/_lib/course-query-validation"
+import { ZodError } from "zod"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-
-function normalizeCourseCodeFromPath(segment: string): string {
-  return decodeURIComponent(segment).replace(/-/g, " ").trim().replace(/\s+/g, " ").toUpperCase()
-}
 
 interface CachedRedditComment {
   text: string
@@ -122,32 +123,32 @@ export async function GET(
   }
 
   const { searchParams } = request.nextUrl
-  const mode = searchParams.get("mode") || "paginated"
+  let parsedParams: ReturnType<typeof parseCourseCommentsQuery>
+  try {
+    parsedParams = parseCourseCommentsQuery(searchParams)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: "Invalid comments query parameters" }, { status: 400 })
+    }
+    throw error
+  }
+
+  const { mode, source, page, limit, professorFilter } = parsedParams
 
   try {
     const { redditComments, rmpComments } = await getOrFetchComments(courseCode)
 
     // ── Preview mode: return a small slice of each source (1 API call for carousel) ──
     if (mode === "preview") {
-      const parsedPreviewLimit = parseInt(searchParams.get("limit") || "5", 10)
-      const previewLimit = isNaN(parsedPreviewLimit) ? 5 : Math.max(1, Math.min(20, parsedPreviewLimit))
       return NextResponse.json({
-        redditComments: redditComments.slice(0, previewLimit),
-        rmpComments: rmpComments.slice(0, previewLimit),
+        redditComments: redditComments.slice(0, limit),
+        rmpComments: rmpComments.slice(0, limit),
         redditTotal: redditComments.length,
         rmpTotal: rmpComments.length,
       })
     }
 
     // ── Paginated mode: single-source pagination for the detail page ──
-    const source = (searchParams.get("source") || "all") as "reddit" | "rmp" | "all"
-    const parsedPage = parseInt(searchParams.get("page") || "1", 10)
-    const page = isNaN(parsedPage) ? 1 : Math.max(1, parsedPage)
-    
-    const parsedLimit = parseInt(searchParams.get("limit") || "20", 10)
-    const limit = isNaN(parsedLimit) ? 20 : Math.max(1, Math.min(100, parsedLimit))
-    const professorFilter = searchParams.get("professor") || null
-
     type TaggedComment =
       | (CachedRedditComment & { _type: "reddit" })
       | (CachedRmpComment & { _type: "rmp" })
