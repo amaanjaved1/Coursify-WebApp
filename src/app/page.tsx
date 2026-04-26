@@ -119,11 +119,14 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <Link
                   href="/queens-answers"
-                  className="liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
+                  className="relative liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     <Brain className="mr-2 h-5 w-5" />
                     Ask AI Assistant
+                  </span>
+                  <span className="absolute -top-1 -right-1 text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                    Coming Soon
                   </span>
                 </Link>
                 <Link
