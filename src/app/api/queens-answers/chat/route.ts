@@ -17,6 +17,12 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
+  if (!auth.ok && auth.reason === "forbidden_domain") {
+    return NextResponse.json(
+      { error: auth.error, reason: "forbidden_domain" },
+      { status: 403 },
+    );
+  }
   if (!auth.ok) {
     return NextResponse.json(
       { error: "Authentication failed", reason: "unauthorized" },

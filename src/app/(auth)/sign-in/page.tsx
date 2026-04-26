@@ -1,23 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSafeRedirectPath, buildAuthHref } from "@/lib/auth/safe-redirect";
 import { toast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useMotionTier } from "@/lib/motion-prefs";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const resendStateRef = useRef<{ inFlight: boolean; lockedUntilMs: number }>({
+    inFlight: false,
+    lockedUntilMs: 0,
+  });
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn } = useAuth();
+  const { signIn, resendVerificationEmail } = useAuth();
   const lite = useMotionTier() === "lite";
 
   const nextPath = useMemo(
@@ -41,15 +48,84 @@ export default function SignIn() {
     [nextPath],
   );
 
+  const resendEmail = async () => {
+    if (!email) {
+      toast({
+        title: "Enter your email",
+        description: "Add your email above so we know where to send the link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const now = Date.now();
+    const remainingMs = resendStateRef.current.lockedUntilMs - now;
+    if (remainingMs > 0) {
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
+      toast({
+        title: "Please wait a bit",
+        description: `You can resend another verification email in ${remainingSeconds}s.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resendStateRef.current.inFlight) return;
+    resendStateRef.current.inFlight = true;
+    try {
+      const { error } = await resendVerificationEmail(email);
+      if (error) {
+        toast({
+          title: "Couldn't resend email",
+          description: error.message ?? "Please try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Verification email resent",
+        description: "Check your inbox (and spam/junk) for the new link.",
+        variant: "success",
+      });
+      resendStateRef.current.lockedUntilMs = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+    } catch (error: any) {
+      toast({
+        title: "Couldn't resend email",
+        description: error.message ?? "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      resendStateRef.current.inFlight = false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
       const { error } = await signIn(email, password);
       if (error) {
+        const message = String(error.message ?? "");
+        const normalized = message.toLowerCase();
+        const looksUnconfirmed =
+          normalized.includes("email not confirmed") ||
+          normalized.includes("confirm your email") ||
+          (normalized.includes("not confirmed") && normalized.includes("email"));
+
         toast({
           title: "Error signing in",
-          description: error.message,
+          description: message,
+          action: looksUnconfirmed ? (
+            <ToastAction
+              altText="Resend verification email"
+              onClick={(e) => {
+                e.preventDefault();
+                void resendEmail();
+              }}
+            >
+              Resend email
+            </ToastAction>
+          ) : undefined,
           variant: "destructive",
         });
         setIsLoading(false);

@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
   if (!auth.ok && auth.reason === "server_configuration") {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
+  if (!auth.ok && auth.reason === "forbidden_domain") {
+    return NextResponse.json({ error: auth.error }, { status: 403 });
+  }
   if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

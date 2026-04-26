@@ -16,7 +16,11 @@ type AuthenticatedSupabaseSuccess = {
 
 type AuthenticatedSupabaseFailure = {
   ok: false;
-  reason: "server_configuration" | "missing_token" | "authentication_failed";
+  reason:
+    | "server_configuration"
+    | "missing_token"
+    | "authentication_failed"
+    | "forbidden_domain";
   error: string;
 };
 
@@ -59,6 +63,15 @@ export async function getAuthenticatedSupabaseFromRequest(
       ok: false,
       reason: "authentication_failed",
       error: "Authentication failed",
+    };
+  }
+
+  const email = (user.email ?? "").toLowerCase();
+  if (!email.endsWith("@queensu.ca")) {
+    return {
+      ok: false,
+      reason: "forbidden_domain",
+      error: "A Queen's University (@queensu.ca) email is required.",
     };
   }
 

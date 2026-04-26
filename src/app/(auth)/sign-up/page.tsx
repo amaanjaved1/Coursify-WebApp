@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,6 +11,8 @@ import { buildAuthHref, getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { Eye, EyeOff } from "lucide-react";
 import { useMotionTier } from "@/lib/motion-prefs";
 
+const RESEND_COOLDOWN_SECONDS = 60;
+
 export default function SignUp() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,10 +21,11 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [accountConflict, setAccountConflict] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, resendVerificationEmail } = useAuth();
   const lite = useMotionTier() === "lite";
   const searchParams = useSearchParams();
 
@@ -38,33 +41,48 @@ export default function SignUp() {
 
   const isQueensEmail = (email: string) => email.endsWith("@queensu.ca");
 
-  const resetAccount = async () => {
+  useEffect(() => {
+    if (!showVerificationMessage) return;
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+  }, [showVerificationMessage]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setTimeout(
+      () => setResendCooldown((s) => Math.max(0, s - 1)),
+      1000,
+    );
+    return () => clearTimeout(id);
+  }, [resendCooldown]);
+
+  const resendEmail = async () => {
     if (!email) return;
-    setIsResetting(true);
+    if (resendCooldown > 0) return;
+    setIsResending(true);
     try {
-      const response = await fetch("/api/auth/reset-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error || "Failed to reset account");
-      setAccountConflict(false);
+      const { error } = await resendVerificationEmail(email);
+      if (error) {
+        toast({
+          title: "Couldn't resend email",
+          description: error.message ?? "Please try again in a moment.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
-        title: "Account reset",
-        description: "You can now try to sign up again",
+        title: "Verification email resent",
+        description: "Check your inbox (and spam/junk) for the new link.",
         variant: "success",
       });
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (error: any) {
       toast({
-        title: "Error resetting account",
-        description:
-          error.message || "Failed to reset account. Please try again.",
+        title: "Couldn't resend email",
+        description: error.message ?? "Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
-      setIsResetting(false);
+      setIsResending(false);
     }
   };
 
@@ -191,11 +209,14 @@ export default function SignUp() {
                   . Please check your inbox and click the link to verify your
                   account.
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-3">
-                  We&apos;re currently experiencing high server load, so it may
-                  take a little longer than usual to arrive. If you don&apos;t
-                  see it, check your spam/junk folder and wait at least 2
-                  minutes before trying again.
+                <p className="text-gray-500 dark:text-gray-500 text-xs mt-3 leading-relaxed">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">
+                    [!]
+                  </span>{" "}
+                  Queen&apos;s Outlook can sometimes delay external emails while
+                  they&apos;re being scanned, especially during busy periods. If
+                  you don&apos;t see it right away, wait a few minutes and check
+                  your spam/junk folder too.
                 </p>
               </div>
               <Link
@@ -204,6 +225,23 @@ export default function SignUp() {
               >
                 Return to sign in
               </Link>
+
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={resendEmail}
+                  disabled={isResending || resendCooldown > 0}
+                  className="liquid-btn-red inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <span className="relative z-10">
+                    {isResending
+                      ? "Resending..."
+                      : resendCooldown > 0
+                        ? `Resend in ${resendCooldown}s`
+                        : "Resend verification email"}
+                  </span>
+                </button>
+              </div>
             </motion.div>
           ) : (
             <>
@@ -226,11 +264,15 @@ export default function SignUp() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={resetAccount}
-                      disabled={isResetting}
+                      onClick={resendEmail}
+                      disabled={isResending || resendCooldown > 0}
                       className="text-brand-navy dark:text-white border-brand-gold/40 dark:border-brand-gold/40 hover:bg-brand-gold/10 dark:hover:bg-brand-gold/10 text-xs transition-all duration-300"
                     >
-                      {isResetting ? "Processing..." : "Reset Account"}
+                      {isResending
+                        ? "Resending..."
+                        : resendCooldown > 0
+                          ? `Resend in ${resendCooldown}s`
+                          : "Resend Email"}
                     </Button>
                     <Link href={signInHref}>
                       <Button
