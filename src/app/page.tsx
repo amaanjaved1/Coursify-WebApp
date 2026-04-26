@@ -16,6 +16,7 @@ import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
 import { FeatureTabs } from "@/components/landing/FeatureTabs";
 import { PageFaq } from "@/components/landing/Faq";
 import HeroMockupsLoader from "@/components/landing/HeroMockupsLoader";
+import { HeroCourseSearch } from "@/components/landing/HeroCourseSearch";
 
 function SectionGlow({
   className,
@@ -139,6 +140,7 @@ export default function Home() {
                   </span>
                 </Link>
               </div>
+              <HeroCourseSearch />
             </div>
 
             {/* Right — structured UI mockup cards (desktop only, lazy loaded) */}
