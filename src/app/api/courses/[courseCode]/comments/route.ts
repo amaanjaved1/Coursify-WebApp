@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import type { Database, Json } from "@/lib/database.types"
+import type { Database, Json } from "@/types/database.types"
 import { filterRmpTagsForDisplay } from "@/lib/rmp-comment-tags"
 import { redis } from "@/lib/redis"
 
