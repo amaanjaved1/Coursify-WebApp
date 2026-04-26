@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, type Variants } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
@@ -20,8 +19,6 @@ interface GradeDistributionChartProps {
   selectedTerm: string
   onTermChange: (term: string) => void
   isDark: boolean
-  chartsAnimate: boolean
-  slideUp: Variants
 }
 
 export function GradeDistributionChart({
@@ -29,13 +26,8 @@ export function GradeDistributionChart({
   selectedTerm,
   onTermChange,
   isDark,
-  chartsAnimate,
-  slideUp,
 }: GradeDistributionChartProps) {
   const [activeGradeIndex, setActiveGradeIndex] = useState<number | null>(null)
-  const tooltipGlass = chartsAnimate ? ("blur(12px)" as const) : ("none" as const)
-  const barMotionShort = chartsAnimate ? { duration: 0.8, delay: 0.2 } : { duration: 0, delay: 0 }
-  const barMotionEnroll = chartsAnimate ? { duration: 0.8, delay: 0.25 } : { duration: 0, delay: 0 }
 
   useEffect(() => {
     setActiveGradeIndex(null)
@@ -63,7 +55,7 @@ export function GradeDistributionChart({
   }
 
   return (
-    <motion.div className="glass-card-deep flex h-full min-h-0 flex-col rounded-2xl p-5" variants={slideUp}>
+    <div className="glass-card-deep flex h-full min-h-0 flex-col rounded-2xl p-5">
       <div className="shrink-0 flex items-center justify-between mb-1">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-brand-red rounded-full flex items-center justify-center flex-shrink-0">
@@ -128,7 +120,7 @@ export function GradeDistributionChart({
                     labelStyle={{ color: isDark ? '#cbd5e1' : '#334155' }}
                     contentStyle={{
                       backgroundColor: isDark ? 'rgba(32,32,32,0.97)' : 'rgba(255,255,255,0.92)',
-                      backdropFilter: tooltipGlass,
+                      backdropFilter: 'none',
                       borderRadius: '10px',
                       border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.8)',
                       boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,48,95,0.12)',
@@ -136,7 +128,7 @@ export function GradeDistributionChart({
                       color: isDark ? '#e2e8f0' : '#0f172a',
                     }}
                   />
-                  <Bar dataKey="count" name="Students" isAnimationActive={chartsAnimate} animationDuration={chartsAnimate ? 1200 : 0} radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="count" name="Students" isAnimationActive={false} radius={[4, 4, 0, 0]}>
                     {gradeDistributionData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -156,7 +148,7 @@ export function GradeDistributionChart({
               <div className={`mb-2 text-base font-bold ${gpaValueTextClass(selectedDistribution.average_gpa)}`}>
                 {selectedDistribution.average_gpa.toFixed(2)}
               </div>
-              <GpaSpectrumBar gpa={selectedDistribution.average_gpa} heightClass="h-1.5" transition={barMotionShort} />
+              <GpaSpectrumBar gpa={selectedDistribution.average_gpa} heightClass="h-1.5" />
               <div className="mt-1 flex w-full justify-between text-[10px] leading-none text-brand-navy/40 dark:text-white/40">
                 <span>1.0</span><span>4.3</span>
               </div>
@@ -165,11 +157,9 @@ export function GradeDistributionChart({
               <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Enrollment</div>
               <div className="mb-2 text-base font-bold text-brand-navy dark:text-white">{selectedDistribution.enrollment}</div>
               <div className="w-full overflow-hidden h-1.5 rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]">
-                <motion.div
+                <div
                   className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((selectedDistribution.enrollment / ENROLLMENT_BAR_MAX) * 100, 100)}%` }}
-                  transition={barMotionEnroll}
+                  style={{ width: `${Math.min((selectedDistribution.enrollment / ENROLLMENT_BAR_MAX) * 100, 100)}%` }}
                 />
               </div>
               <div className="mt-1 flex w-full justify-between text-[10px] leading-none text-brand-navy/40 dark:text-white/40">
@@ -183,6 +173,6 @@ export function GradeDistributionChart({
           <p className="text-gray-400 dark:text-gray-500 text-sm">No grade distribution data available</p>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

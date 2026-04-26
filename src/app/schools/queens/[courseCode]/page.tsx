@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { getCourseByCode } from '@/lib/db';
 import type { CourseWithStats } from '@/types';
 import { CourseComments } from "./_components/course-comments";
@@ -11,20 +10,64 @@ import { CourseHeader } from './_components/course-header'
 import { GpaTrendChart } from './_components/gpa-trend-chart'
 import { GradeDistributionChart } from './_components/grade-distribution-chart'
 import { useTheme } from "next-themes";
-import { useMotionTier } from "@/lib/motion-prefs";
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   gpaBadgeClass,
-  pageMotionVariants,
   GpaSpectrumBar,
 } from './_lib/gpa-utils'
 
+function CourseDetailSkeleton() {
+  return (
+    <>
+      {/* Hero */}
+      <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full pt-10 md:pt-16">
+        <div className="glass-hero rounded-2xl overflow-hidden">
+          <div className="p-8 md:p-10 space-y-4">
+            <Skeleton className="h-4 w-32 bg-white/15" />
+            <Skeleton className="h-5 w-20 bg-white/15" />
+            <Skeleton className="h-12 w-52 bg-white/15" />
+            <Skeleton className="h-7 w-80 bg-white/15" />
+            <div className="rounded-xl bg-white/8 border border-white/10 p-4 space-y-2">
+              <Skeleton className="h-4 w-full bg-white/15" />
+              <Skeleton className="h-4 w-4/5 bg-white/15" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info cards */}
+      <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="glass-card-deep rounded-2xl p-6">
+              <Skeleton className="h-5 w-36 mb-5" />
+              <div className="space-y-2.5">
+                <Skeleton className="h-11 w-full rounded-xl" />
+                <Skeleton className="h-11 w-full rounded-xl" />
+                <Skeleton className="h-11 w-full rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Charts */}
+      <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {[0, 1].map(i => (
+          <div key={i} className="glass-card-deep rounded-2xl p-5">
+            <Skeleton className="h-5 w-32 mb-4" />
+            <Skeleton className="h-52 w-full rounded-xl" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function CourseDetailPage() {
   const params = useParams();
-  const motionTier = useMotionTier();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
-  const { slideUp, staggerContainer } = pageMotionVariants(motionTier);
-  const chartsAnimate = motionTier === "full";
   const courseCode = params?.courseCode ? (params.courseCode as string).replace(/-/g, ' ').toUpperCase() : '';
   const [selectedTerm, setSelectedTerm] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -59,33 +102,13 @@ export default function CourseDetailPage() {
     if (courseCode) fetchCourseData();
   }, [courseCode]);
 
-  if (loading) return null;
-
-  if (error || !course) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--page-bg)]">
-        <div className="text-center glass-card-deep rounded-2xl p-12">
-          <h1 className="text-3xl font-bold text-brand-red mb-4">Course Not Found</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">We couldn't find a course with code "{courseCode}".</p>
-          <Link href="/schools/queens" className="px-6 py-3 bg-brand-navy text-white rounded-xl hover:bg-[#002244] transition">
-            Return to Courses List
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const enrollmentRounded = Math.round(course.totalEnrollment);
+  const enrollmentRounded = course ? Math.round(course.totalEnrollment) : 0;
   const enrollmentBarMax = 600;
   const enrollmentBarPct = Math.min((enrollmentRounded / enrollmentBarMax) * 100, 100);
-
-  const termGpaData = course.distributions?.length
+  const termGpaData = course?.distributions?.length
     ? course.distributions.map((d) => ({ term: d.term, gpa: d.average_gpa })).reverse()
     : [];
-
-  const facultyName = course.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
-
-  const barMotionTransition = chartsAnimate ? { duration: 1, delay: 0.5 } : { duration: 0, delay: 0 };
+  const facultyName = course?.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
 
   return (
     <div className="relative min-h-screen overflow-hidden pb-16 pt-20 course-detail-bg">
@@ -254,148 +277,149 @@ export default function CourseDetailPage() {
         }
       `}</style>
 
-      {/* ── Hero Header ── */}
-      <CourseHeader
-        course={course}
-        courseCode={courseCode}
-        motionTier={motionTier}
-        facultyName={facultyName}
-      />
+      {loading && <CourseDetailSkeleton />}
 
-      {/* ── Info Cards Row ── */}
-      <motion.div
-        className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full mt-8"
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* Course Details */}
-          <motion.div className="glass-card-deep rounded-2xl p-6 flex flex-col" variants={slideUp}>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-brand-navy dark:text-white">Course Details</h3>
-            </div>
-            <ul className="space-y-2.5 flex-1">
-              {[
-                { label: 'Faculty', value: facultyName },
-                { label: 'Credits', value: String(course.credits || 3) },
-                { label: 'Available Terms', value: String(course.distributions?.length || 0) },
-              ].map(({ label, value }) => (
-                <li key={label} className="course-detail-inset-glass flex justify-between items-center gap-3 p-3 rounded-xl">
-                  <span className="text-sm font-medium text-brand-navy/70 dark:text-white/70 shrink-0">{label}</span>
-                  <span className="text-sm text-brand-navy dark:text-white font-semibold text-right max-w-[60%] truncate">{value}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Prerequisites */}
-          <motion.div className="glass-card-deep rounded-2xl p-6 flex flex-col" variants={slideUp}>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-brand-navy dark:text-white">Prerequisites</h3>
-            </div>
-            <div className="course-detail-inset-glass p-4 rounded-xl flex-1 flex items-start min-h-[5.5rem]">
-              <p className="text-sm leading-relaxed text-brand-navy/85 dark:text-white/85">
-                {course.course_requirements
-                  ? String(course.course_requirements)
-                  : course.description && course.description.toString().toLowerCase().includes('prerequisite')
-                    ? course.description
-                        .toString()
-                        .split(/\n/)
-                        .find(line =>
-                          line.toLowerCase().includes('prerequisite') || line.toLowerCase().includes('prereq')
-                        ) || 'No prerequisites on file.'
-                    : 'No prerequisites on file.'}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Performance Metrics */}
-          <motion.div className="glass-card-deep rounded-2xl p-6 flex flex-col" variants={slideUp}>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-base font-semibold text-brand-navy dark:text-white">Performance</h3>
-            </div>
-            <div className="space-y-3 flex-1">
-              <div className="course-detail-inset-glass rounded-xl p-3.5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-brand-navy dark:text-white">Average GPA</span>
-                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${gpaBadgeClass(course.averageGPA)}`}>
-                    {course.averageGPA.toFixed(2)}
-                  </span>
-                </div>
-                <GpaSpectrumBar gpa={course.averageGPA} heightClass="h-2" transition={barMotionTransition} />
-                <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
-                  <span>1.0</span>
-                  <span>4.3</span>
-                </div>
-              </div>
-              <div className="course-detail-inset-glass rounded-xl p-3.5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-brand-navy dark:text-white">Average Enrollment</span>
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-navy/12 dark:bg-blue-400/12 text-brand-navy dark:text-white">
-                    {enrollmentRounded}
-                  </span>
-                </div>
-                <div className="overflow-hidden h-2 rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${enrollmentBarPct}%` }}
-                    transition={chartsAnimate ? { duration: 1, delay: 0.55 } : { duration: 0, delay: 0 }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
-                  <span>0</span>
-                  <span>{enrollmentBarMax}</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+      {!loading && (error || !course) && (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--page-bg)]">
+          <div className="text-center glass-card-deep rounded-2xl p-12">
+            <h1 className="text-3xl font-bold text-brand-red mb-4">Course Not Found</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">We couldn't find a course with code "{courseCode}".</p>
+            <Link href="/schools/queens" className="px-6 py-3 bg-brand-navy text-white rounded-xl hover:bg-[#002244] transition">
+              Return to Courses List
+            </Link>
+          </div>
         </div>
-      </motion.div>
+      )}
 
-      {/* ── Charts Section ── */}
-      <motion.div
-        className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-      >
-        <GpaTrendChart
-          course={course}
-          termGpaData={termGpaData}
-          isDark={isDark}
-          chartsAnimate={chartsAnimate}
-          slideUp={slideUp}
-        />
-        <GradeDistributionChart
-          course={course}
-          selectedTerm={selectedTerm}
-          onTermChange={setSelectedTerm}
-          isDark={isDark}
-          chartsAnimate={chartsAnimate}
-          slideUp={slideUp}
-        />
-      </motion.div>
+      {!loading && course && (
+        <>
+          {/* ── Hero Header ── */}
+          <CourseHeader
+            course={course}
+            courseCode={courseCode}
+            facultyName={facultyName}
+          />
 
-      {/* ── Student Comments ── */}
-      <CourseComments courseCode={courseCode} />
+          {/* ── Info Cards Row ── */}
+          <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+              {/* Course Details */}
+              <div className="glass-card-deep rounded-2xl p-6 flex flex-col">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-brand-navy dark:text-white">Course Details</h3>
+                </div>
+                <ul className="space-y-2.5 flex-1">
+                  {[
+                    { label: 'Faculty', value: facultyName },
+                    { label: 'Credits', value: String(course.credits || 3) },
+                    { label: 'Available Terms', value: String(course.distributions?.length || 0) },
+                  ].map(({ label, value }) => (
+                    <li key={label} className="course-detail-inset-glass flex justify-between items-center gap-3 p-3 rounded-xl">
+                      <span className="text-sm font-medium text-brand-navy/70 dark:text-white/70 shrink-0">{label}</span>
+                      <span className="text-sm text-brand-navy dark:text-white font-semibold text-right max-w-[60%] truncate">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Prerequisites */}
+              <div className="glass-card-deep rounded-2xl p-6 flex flex-col">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-brand-navy dark:text-white">Prerequisites</h3>
+                </div>
+                <div className="course-detail-inset-glass p-4 rounded-xl flex-1 flex items-start min-h-[5.5rem]">
+                  <p className="text-sm leading-relaxed text-brand-navy/85 dark:text-white/85">
+                    {course.course_requirements
+                      ? String(course.course_requirements)
+                      : course.description && course.description.toString().toLowerCase().includes('prerequisite')
+                        ? course.description
+                            .toString()
+                            .split(/\n/)
+                            .find(line =>
+                              line.toLowerCase().includes('prerequisite') || line.toLowerCase().includes('prereq')
+                            ) || 'No prerequisites on file.'
+                        : 'No prerequisites on file.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Performance Metrics */}
+              <div className="glass-card-deep rounded-2xl p-6 flex flex-col">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-blue-400/10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-brand-navy dark:text-white">Performance</h3>
+                </div>
+                <div className="space-y-3 flex-1">
+                  <div className="course-detail-inset-glass rounded-xl p-3.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold text-brand-navy dark:text-white">Average GPA</span>
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${gpaBadgeClass(course.averageGPA)}`}>
+                        {course.averageGPA.toFixed(2)}
+                      </span>
+                    </div>
+                    <GpaSpectrumBar gpa={course.averageGPA} heightClass="h-2" />
+                    <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
+                      <span>1.0</span>
+                      <span>4.3</span>
+                    </div>
+                  </div>
+                  <div className="course-detail-inset-glass rounded-xl p-3.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold text-brand-navy dark:text-white">Average Enrollment</span>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-navy/12 dark:bg-blue-400/12 text-brand-navy dark:text-white">
+                        {enrollmentRounded}
+                      </span>
+                    </div>
+                    <div className="overflow-hidden h-2 rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#00305f]/50 via-[#0066CC] to-[#d62839]/90"
+                        style={{ width: `${enrollmentBarPct}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-brand-navy/45 dark:text-white/45 mt-0.5">
+                      <span>0</span>
+                      <span>{enrollmentBarMax}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Charts Section ── */}
+          <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <GpaTrendChart
+              course={course}
+              termGpaData={termGpaData}
+              isDark={isDark}
+            />
+            <GradeDistributionChart
+              course={course}
+              selectedTerm={selectedTerm}
+              onTermChange={setSelectedTerm}
+              isDark={isDark}
+            />
+          </div>
+
+          {/* ── Student Comments ── */}
+          <CourseComments courseCode={courseCode} />
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -12,15 +11,11 @@ interface GpaTrendChartProps {
   course: CourseWithStats
   termGpaData: Array<{ term: string; gpa: number }>
   isDark: boolean
-  chartsAnimate: boolean
-  slideUp: Variants
 }
 
-export function GpaTrendChart({ course, termGpaData, isDark, chartsAnimate, slideUp }: GpaTrendChartProps) {
-  const tooltipGlass = chartsAnimate ? ("blur(12px)" as const) : ("none" as const);
-
+export function GpaTrendChart({ course, termGpaData, isDark }: GpaTrendChartProps) {
   return (
-    <motion.div className="glass-card-deep flex h-full min-h-0 flex-col rounded-2xl p-5" variants={slideUp}>
+    <div className="glass-card-deep flex h-full min-h-0 flex-col rounded-2xl p-5">
       <div className="shrink-0 flex items-center justify-between mb-1">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-brand-red rounded-full flex items-center justify-center flex-shrink-0">
@@ -88,7 +83,7 @@ export function GpaTrendChart({ course, termGpaData, isDark, chartsAnimate, slid
                   ]}
                   contentStyle={{
                     backgroundColor: isDark ? 'rgba(32,32,32,0.97)' : 'rgba(255,255,255,0.92)',
-                    backdropFilter: tooltipGlass,
+                    backdropFilter: 'none',
                     borderRadius: '10px',
                     border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.8)',
                     boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,48,95,0.12)',
@@ -97,7 +92,7 @@ export function GpaTrendChart({ course, termGpaData, isDark, chartsAnimate, slid
                   }}
                 />
                 <Area
-                  isAnimationActive={chartsAnimate}
+                  isAnimationActive={false}
                   type="monotone"
                   dataKey="gpa"
                   stroke="#94a3b8"
@@ -141,6 +136,6 @@ export function GpaTrendChart({ course, termGpaData, isDark, chartsAnimate, slid
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

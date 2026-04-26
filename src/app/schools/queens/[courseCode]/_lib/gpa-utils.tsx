@@ -1,7 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import type { MotionTier } from '@/lib/motion-prefs'
 import { GPA_SCALE_MIN, GPA_SCALE_MAX } from './chart-helpers'
 
 export type GpaTier = 1 | 2 | 3 | 4 | 5
@@ -64,6 +62,8 @@ export const GPA_SPECTRUM_GRADIENT =
 export const GPA_TREND_Y_DOMAIN: [number, number] = [0, 4.3]
 export const GPA_TREND_Y_TICKS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.3]
 
+
+
 export function formatAcademicTerm(term: string): string {
   const compactMatch = term.match(/^([FWS])(\d{2})$/i);
   if (!compactMatch) return term;
@@ -74,42 +74,24 @@ export function formatAcademicTerm(term: string): string {
   return `${season} ${year}`;
 }
 
-export function pageMotionVariants(tier: MotionTier) {
-  const lite = tier === "lite";
-  return {
-    fadeIn: lite
-      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { duration: 0 } } }
-      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.5 } } },
-    slideUp: lite
-      ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
-      : { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } } },
-    staggerContainer: lite
-      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: 0 } } }
-      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } },
-  };
-}
-
 interface GpaSpectrumBarProps {
   gpa: number
   heightClass?: string
-  transition?: { duration?: number; delay?: number }
 }
 
-export function GpaSpectrumBar({ gpa, heightClass = 'h-2', transition = { duration: 1, delay: 0.5 } }: GpaSpectrumBarProps) {
+export function GpaSpectrumBar({ gpa, heightClass = 'h-2' }: GpaSpectrumBarProps) {
   const clip = gpaBarClipPercent(gpa);
   return (
     <div className={`overflow-hidden ${heightClass} rounded-full bg-brand-navy/[0.09] dark:bg-blue-400/[0.09] border border-brand-navy/[0.06] dark:border-blue-400/[0.06]`}>
-      <motion.div
+      <div
         className="h-full overflow-hidden rounded-full"
-        initial={{ width: 0 }}
-        animate={{ width: `${clip}%` }}
-        transition={transition}
+        style={{ width: `${clip}%` }}
       >
         <div
           className="h-full rounded-full"
           style={{ width: gpaSpectrumInnerWidth(clip), background: GPA_SPECTRUM_GRADIENT }}
         />
-      </motion.div>
+      </div>
     </div>
   );
 }
