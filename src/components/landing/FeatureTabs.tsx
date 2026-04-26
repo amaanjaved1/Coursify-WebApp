@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, LayoutGroup } from "framer-motion";
 import {
   Brain,
   BarChart3,
@@ -17,13 +16,6 @@ import {
   CourseAnalyticsMockup,
 } from "@/components/landing-mockups";
 import { cn } from "@/lib/utils";
-
-const featureTabSpring = {
-  type: "spring" as const,
-  stiffness: 320,
-  damping: 30,
-  mass: 0.55,
-};
 
 const featureTabs = [
   {
@@ -62,39 +54,27 @@ export function FeatureTabs() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <LayoutGroup>
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
-          {featureTabs.map((tab, i) => (
-            <button
-              key={tab.label}
-              type="button"
-              onClick={() => setActiveFeatureTab(i)}
-              className={cn(
-                "relative flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium [-webkit-tap-highlight-color:transparent]",
-                "outline-none focus-visible:ring-2 focus-visible:ring-brand-red/45 focus-visible:ring-inset",
-                i === activeFeatureTab
-                  ? "text-white"
-                  : "text-gray-700 dark:text-gray-300",
-                i !== activeFeatureTab &&
-                  "glass-pill border border-brand-navy/12 dark:border-white/12 bg-white/72 dark:bg-white/[0.08] shadow-[0_2px_10px_rgba(0,48,95,0.08)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.22)]",
-              )}
-            >
-              {i === activeFeatureTab && (
-                <motion.span
-                  layoutId="feature-tab-pill"
-                  className="absolute inset-0 z-0 rounded-full bg-brand-red shadow-lg shadow-brand-red/25"
-                  transition={featureTabSpring}
-                  style={{ willChange: "transform" }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </LayoutGroup>
+      <div className="mb-8 flex flex-wrap justify-center gap-2">
+        {featureTabs.map((tab, i) => (
+          <button
+            key={tab.label}
+            type="button"
+            onClick={() => setActiveFeatureTab(i)}
+            className={cn(
+              "relative flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium [-webkit-tap-highlight-color:transparent]",
+              "outline-none focus-visible:ring-2 focus-visible:ring-brand-red/45 focus-visible:ring-inset",
+              i === activeFeatureTab
+                ? "text-white bg-brand-red shadow-lg shadow-brand-red/25"
+                : "text-gray-700 dark:text-gray-300 glass-pill border border-brand-navy/12 dark:border-white/12 bg-white/72 dark:bg-white/[0.08] shadow-[0_2px_10px_rgba(0,48,95,0.08)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.22)]",
+            )}
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+            </span>
+          </button>
+        ))}
+      </div>
 
       <div className="glass-card overflow-hidden rounded-3xl p-6 sm:p-10">
         <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
