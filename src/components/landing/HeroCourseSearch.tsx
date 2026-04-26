@@ -34,6 +34,11 @@ export function HeroCourseSearch() {
       return;
     }
 
+    // If the user typed e.g. "cisc121", normalize the input display to "CISC 121".
+    if (value.trim() !== normalized) {
+      setValue(normalized);
+    }
+
     setIsLoading(true);
     try {
       const result = await fetchCoursesPage({
