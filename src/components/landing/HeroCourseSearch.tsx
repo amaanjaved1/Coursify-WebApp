@@ -30,7 +30,9 @@ export function HeroCourseSearch() {
 
     const normalized = normalizeCourseCode(value);
     if (!normalized) {
-      setError("Please use the format like CISC 151.");
+      setError(
+        'Please enter a course code in the format "CISC 151" (subject + space + number).',
+      );
       return;
     }
 
