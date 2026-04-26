@@ -33,18 +33,24 @@ const colorClasses = [
 ];
 
 export function PageFaq() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number[]>([]);
 
   return (
     <div className="space-y-3">
       {faqs.map((faq, index) => {
         const colors = colorClasses[index % 3];
-        const isOpen = open === index;
+        const isOpen = open.includes(index);
         return (
           <div
             key={index}
             className="glass-accordion rounded-2xl p-6 cursor-pointer select-none"
-            onClick={() => setOpen(isOpen ? null : index)}
+            onClick={() =>
+              setOpen((prev) =>
+                prev.includes(index)
+                  ? prev.filter((i) => i !== index)
+                  : [...prev, index],
+              )
+            }
           >
             <div className="flex items-start">
               <div className={`mr-4 mt-0.5 flex shrink-0 items-center justify-center w-6 h-6 rounded-full ${colors.iconBg} ${colors.iconText}`}>
