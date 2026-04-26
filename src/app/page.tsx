@@ -15,7 +15,6 @@ import {
 import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
 import { FeatureTabs } from "@/components/landing/FeatureTabs";
 import { PageFaq } from "@/components/landing/Faq";
-import HeroMockupsLoader from "@/components/landing/HeroMockupsLoader";
 import { HeroCourseSearch } from "@/components/landing/HeroCourseSearch";
 
 function SectionGlow({
@@ -88,10 +87,8 @@ export default function Home() {
         />
 
         <div className="container mx-auto px-6 sm:px-8 lg:px-12 relative z-10 min-h-[calc(100svh-6rem)] sm:min-h-[calc(100svh-7rem)] flex items-center">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left — text */}
-            <div>
-              <div className="inline-flex flex-wrap items-center gap-2 mb-8">
+          <div className="w-full max-w-3xl mx-auto text-center">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full glass-pill px-4 py-2">
                   <Zap className="h-3.5 w-3.5 text-brand-red" />
                   <span className="text-xs font-semibold text-brand-navy dark:text-white">
@@ -99,52 +96,48 @@ export default function Home() {
                   </span>
                 </div>
                 <StudentCountBadge />
-              </div>
-
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-7 leading-[1.05] tracking-tight">
-                <span className="gradient-text-animated">Course selection</span>
-                <br />
-                <span className="text-brand-navy dark:text-white">
-                  powered by
-                </span>
-                <br />
-                <span className="gradient-text-animated">AI</span>
-              </h1>
-
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-lg leading-relaxed">
-                Coursify helps you make smarter decisions around course
-                selection by giving you access to historical grade
-                distributions, student reviews, and an AI assistant.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-start gap-4">
-                <Link
-                  href="/queens-answers"
-                  className="relative liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    <Brain className="mr-2 h-5 w-5" />
-                    Ask AI Assistant
-                  </span>
-                  <span className="absolute -top-1 -right-1 text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
-                    Coming Soon
-                  </span>
-                </Link>
-                <Link
-                  href="/schools/queens"
-                  className="liquid-btn-blue text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    <BarChart className="mr-2 h-5 w-5" />
-                    Browse Courses
-                  </span>
-                </Link>
-              </div>
-              <HeroCourseSearch />
             </div>
 
-            {/* Right — structured UI mockup cards (desktop only, lazy loaded) */}
-            <HeroMockupsLoader />
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-7 leading-[1.05] tracking-tight">
+              <span className="gradient-text-animated">Course selection</span>
+              <br />
+              <span className="text-brand-navy dark:text-white">powered by</span>
+              <br />
+              <span className="gradient-text-animated">AI</span>
+            </h1>
+
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Coursify helps you make smarter decisions around course selection
+              by giving you access to historical grade distributions, student
+              reviews, and an AI assistant.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/queens-answers"
+                className="relative liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
+              >
+                <span className="relative z-10 flex items-center justify-center">
+                  <Brain className="mr-2 h-5 w-5" />
+                  Ask AI Assistant
+                </span>
+                <span className="absolute -top-1 -right-1 text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
+                  Coming Soon
+                </span>
+              </Link>
+              <Link
+                href="/schools/queens"
+                className="liquid-btn-blue text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
+              >
+                <span className="relative z-10 flex items-center justify-center">
+                  <BarChart className="mr-2 h-5 w-5" />
+                  Browse Courses
+                </span>
+              </Link>
+            </div>
+            <div className="flex justify-center">
+              <HeroCourseSearch />
+            </div>
           </div>
         </div>
       </section>
