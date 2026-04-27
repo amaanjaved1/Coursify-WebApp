@@ -95,6 +95,20 @@
     background-size: 100% 100%, 100% 100%, 100% 100%;
   }
 
+  .hero-grid {
+    background-image:
+      linear-gradient(rgba(0, 48, 95, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 48, 95, 0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  :is(.dark) .hero-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
   html body[data-scroll-locked],
   html body[data-scroll-locked="1"] {
     margin-right: 0 !important;
