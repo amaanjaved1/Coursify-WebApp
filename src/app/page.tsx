@@ -147,7 +147,7 @@ export default function Home() {
             </div>
             <h2 className="text-xl sm:text-2xl font-bold mb-2 text-brand-navy dark:text-white">
               Your path to{" "}
-              <span className="gradient-text">smarter decisions</span>
+              <span className="text-brand-gold">smarter decisions</span>
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Get started in minutes. Here&apos;s how Coursify helps you plan
@@ -251,7 +251,7 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
           <div className="text-center max-w-2xl">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
-              <span className="gradient-text">Ready to make smarter</span>
+              <span className="text-brand-gold">Ready to make smarter</span>
               <br />
               <span className="text-brand-navy dark:text-white">
                 course decisions?

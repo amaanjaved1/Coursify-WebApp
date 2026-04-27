@@ -535,7 +535,7 @@ export default function QueensCourses() {
             <span className="text-brand-navy dark:text-white">
               Queen's University
             </span>{" "}
-            <span className="gradient-text">Courses</span>
+            <span className="text-brand-gold">Courses</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto lg-filters:mx-0">
             Browse and filter through all courses offered at Queen's University.
