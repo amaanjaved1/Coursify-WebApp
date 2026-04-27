@@ -64,11 +64,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let rawBody: unknown;
   try {
-    chatQuestionSchema.parse(await request.json());
+    rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Invalid request body" },
+      { error: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
+
+  const parsedBody = chatQuestionSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json(
+      { error: parsedBody.error.issues[0]?.message ?? "Invalid request body" },
       { status: 400 },
     );
   }
