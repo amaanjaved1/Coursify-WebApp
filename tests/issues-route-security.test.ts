@@ -20,6 +20,14 @@ function request(body: unknown): NextRequest {
   })
 }
 
+function rawRequest(body: string): NextRequest {
+  return new NextRequest("http://localhost/api/issues", {
+    method: "POST",
+    body,
+    headers: { "Content-Type": "application/json" },
+  })
+}
+
 describe("issues route security behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -59,6 +67,14 @@ describe("issues route security behavior", () => {
     )
 
     expect(response.status).toBe(400)
+  })
+
+  it("rejects malformed JSON distinctly from schema validation", async () => {
+    const response = await POST(rawRequest("{"))
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.error).toBe("Invalid JSON body")
   })
 
   it("returns 429 when the user exceeds the submission limit", async () => {

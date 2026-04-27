@@ -54,14 +54,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
-  // Parse body
-  let body: z.infer<typeof issueSubmissionSchema>;
+  let rawBody: unknown;
   try {
-    body = issueSubmissionSchema.parse(await request.json());
+    rawBody = await request.json();
   } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsedBody = issueSubmissionSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
+  const body = parsedBody.data;
   const { title, description, issueType } = body;
 
   const githubToken = process.env.GITHUB_TOKEN;

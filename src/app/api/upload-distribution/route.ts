@@ -93,11 +93,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, errors: ["Invalid upload payload."] }, { status: 400 });
   }
 
-  const file = formData.get("file") as File | null;
-  if (!file) {
+  const fileEntry = formData.get("file");
+  if (!fileEntry) {
     return NextResponse.json({ success: false, errors: ["No file provided."] }, { status: 400 });
   }
 
+  if (!(fileEntry instanceof File)) {
+    return NextResponse.json({ success: false, errors: ["Invalid request. Expected a file upload."] }, { status: 400 });
+  }
+
+  const file = fileEntry;
   const safeFileName = safeUploadFileName(file.name);
 
   // 3. Validate file type and size
