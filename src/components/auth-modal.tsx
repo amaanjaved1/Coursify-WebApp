@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -29,25 +28,15 @@ export function AuthModal({
   };
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+        <div
           className="glass-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="glass-modal-panel max-w-md w-full rounded-[1.75rem] p-0 relative"
-          >
+          <div className="glass-modal-panel max-w-md w-full rounded-[1.75rem] p-0 relative">
             <button
               className="glass-modal-close absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold text-brand-navy/55 dark:text-white/55 hover:text-brand-red"
               onClick={onClose}
@@ -95,9 +84,9 @@ export function AuthModal({
                 </button>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 } 

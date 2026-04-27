@@ -176,6 +176,8 @@ export async function POST(request: NextRequest) {
 
     if (duplicateAuditInsert.error) {
       console.error("[upload-distribution] failed to record duplicate upload audit row:", duplicateAuditInsert.error);
+    } else {
+      await redis.del(`uploads:${user.id}`);
     }
 
     return failureResponse(
@@ -316,6 +318,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (errors.length > 0) {
+    await redis.del(`uploads:${user.id}`);
     return failureResponse(
       {
         term,

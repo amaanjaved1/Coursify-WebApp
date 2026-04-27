@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, LayoutGroup } from "framer-motion";
 import {
   Brain,
   BarChart3,
@@ -17,13 +16,6 @@ import {
   CourseAnalyticsMockup,
 } from "@/components/landing-mockups";
 import { cn } from "@/lib/utils";
-
-const featureTabSpring = {
-  type: "spring" as const,
-  stiffness: 320,
-  damping: 30,
-  mass: 0.55,
-};
 
 const featureTabs = [
   {
@@ -62,8 +54,7 @@ export function FeatureTabs() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <LayoutGroup>
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
+      <div className="mb-8 flex flex-wrap justify-center gap-2">
           {featureTabs.map((tab, i) => (
             <button
               key={tab.label}
@@ -80,12 +71,7 @@ export function FeatureTabs() {
               )}
             >
               {i === activeFeatureTab && (
-                <motion.span
-                  layoutId="feature-tab-pill"
-                  className="absolute inset-0 z-0 rounded-full bg-brand-red shadow-lg shadow-brand-red/25"
-                  transition={featureTabSpring}
-                  style={{ willChange: "transform" }}
-                />
+                <span className="absolute inset-0 z-0 rounded-full bg-brand-red shadow-lg shadow-brand-red/25" />
               )}
               <span className="relative z-10 flex items-center gap-2">
                 {tab.icon}
@@ -94,7 +80,6 @@ export function FeatureTabs() {
             </button>
           ))}
         </div>
-      </LayoutGroup>
 
       <div className="glass-card overflow-hidden rounded-3xl p-6 sm:p-10">
         <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">

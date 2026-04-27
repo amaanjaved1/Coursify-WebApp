@@ -26,7 +26,6 @@
 - **Radix UI** — accessible primitives (dialogs, dropdowns, tabs, etc.)
 - **Supabase** — PostgreSQL (course and distribution data) and authentication
 - **Redis** (optional) — Upstash REST; caches course list and related API responses
-- **Framer Motion** — UI motion
 - **Recharts** — charts for grade and stats visuals
 - **Zod** & **React Hook Form** — forms and validation
 
@@ -50,13 +49,13 @@ npm install
 
 Copy [.env.example](./.env.example) to `.env.local` and fill in:
 
-| Variable | Required | Where to get it |
-| -------- | -------- | ---------------- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase → **Project Settings → API** |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | **Project Settings → API → Legacy keys** tab → `anon` `public` |
-| `SUPABASE_SERVICE_KEY` | Yes for uploads & `/api/me/*` | **Project Settings → API → Legacy keys** tab → `service_role` (server only, never in client bundle) |
-| `UPSTASH_REDIS_REST_URL` | No | [Upstash](https://console.upstash.com/) Redis → REST API |
-| `UPSTASH_REDIS_REST_TOKEN` | No | Same |
+| Variable                        | Required                      | Where to get it                                                                                     |
+| ------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes                           | Supabase → **Project Settings → API**                                                               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes                           | **Project Settings → API → Legacy keys** tab → `anon` `public`                                      |
+| `SUPABASE_SERVICE_KEY`          | Yes for uploads & `/api/me/*` | **Project Settings → API → Legacy keys** tab → `service_role` (server only, never in client bundle) |
+| `UPSTASH_REDIS_REST_URL`        | No                            | [Upstash](https://console.upstash.com/) Redis → REST API                                            |
+| `UPSTASH_REDIS_REST_TOKEN`      | No                            | Same                                                                                                |
 
 > **⚠️ Use the Legacy API keys, not the newer "Publishable / Secret" keys.** The publishable keys don't work with the Supabase database API. See [`.env.example`](./.env.example) for the exact mapping.
 
@@ -76,7 +75,6 @@ Use your **own** Supabase project (free tier is fine). Schema and sample data li
    ```
 
 3. **Seed** sample courses and comments:
-
    - **Local (Docker):** `npm run db:reseed` — drops everything, re-applies migrations, and runs [`supabase/seed.sql`](./supabase/seed.sql).
    - **Remote:** `npm run db:seed-remote` — same as above but targets your linked Supabase project.
    - **Manual fallback:** after `db push`, open the Supabase **SQL Editor**, paste the contents of `supabase/seed.sql`, and run it once.

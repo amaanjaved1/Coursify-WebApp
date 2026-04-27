@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import type { Database, Tables } from "@/lib/database.types"
+import type { Database, Tables } from "@/types/database.types"
 import type { CourseWithStats, GradeDistribution } from "@/types"
 import { redis } from "@/lib/redis"
 import { normalizeCourseCodeFromPath } from "@/app/api/_lib/course-query-validation"

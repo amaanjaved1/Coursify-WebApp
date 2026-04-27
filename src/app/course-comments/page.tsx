@@ -2,25 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ExternalLink, MessageSquare, User, ChevronDown, X } from 'lucide-react';
 import { getCommentsForCoursePaginated } from '@/lib/db';
 import type { RedditComment, RmpComment, PaginatedCommentsResult } from '@/lib/db';
-import { useMotionTier, type MotionTier } from '@/lib/motion-prefs';
 
 type CommentItem = (RedditComment & { _type: 'reddit' }) | (RmpComment & { _type: 'rmp' });
-
-function listMotionVariants(tier: MotionTier) {
-  const lite = tier === 'lite';
-  return {
-    staggerContainer: lite
-      ? { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: 0 } } }
-      : { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } },
-    cardVariant: lite
-      ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0, transition: { duration: 0 } } }
-      : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } } },
-  };
-}
 
 const RedditIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" className={className}>
@@ -32,9 +18,6 @@ const RedditIcon = ({ className }: { className?: string }) => (
 export default function CourseCommentsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const motionTier = useMotionTier();
-  const liteMotion = motionTier === 'lite';
-  const { staggerContainer, cardVariant } = listMotionVariants(motionTier);
   const courseCode = searchParams.get('courseCode') || '';
   const rawTab = searchParams.get('tab');
   const [loading, setLoading] = useState(true);
@@ -189,12 +172,7 @@ export default function CourseCommentsPage() {
       <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-5xl">
 
         {/* ── Hero Header ── */}
-        <motion.div
-          className="glass-hero rounded-2xl overflow-hidden relative mb-6"
-          initial={liteMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: liteMotion ? 0 : 0.5 }}
-        >
+        <div className="glass-hero rounded-2xl overflow-hidden relative mb-6">
           <div className="relative px-8 py-8">
             <button
               onClick={() => router.back()}
@@ -244,15 +222,10 @@ export default function CourseCommentsPage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Tabs ── */}
-        <motion.div
-          className="flex flex-wrap gap-2 mb-8"
-          initial={liteMotion ? false : { opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: liteMotion ? 0 : 0.4, delay: liteMotion ? 0 : 0.2 }}
-        >
+        <div className="flex flex-wrap gap-2 mb-8">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -294,7 +267,7 @@ export default function CourseCommentsPage() {
               )}
             </button>
           ))}
-        </motion.div>
+        </div>
 
         {/* ── Loading ── */}
         {loading && (
@@ -310,12 +283,7 @@ export default function CourseCommentsPage() {
 
             {/* Professor sidebar — only on RateMyProfessors tab */}
             {activeTab === 'rmp' && tabProfessors.length > 0 && (
-              <motion.aside
-                className="w-full lg:w-52 lg:flex-shrink-0 lg:sticky lg:top-24"
-                initial={liteMotion ? false : { opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: liteMotion ? 0 : 0.35, delay: liteMotion ? 0 : 0.15 }}
-              >
+              <aside className="w-full lg:w-52 lg:flex-shrink-0 lg:sticky lg:top-24">
                 <div className="glass-card-deep rounded-2xl border border-brand-navy/10 dark:border-white/10 shadow-[0_4px_14px_rgba(0,48,95,0.08)] dark:shadow-none overflow-hidden">
 
                   {/* Header — acts as toggle on mobile */}
@@ -375,29 +343,21 @@ export default function CourseCommentsPage() {
                     </div>
                   </div>
                 </div>
-              </motion.aside>
+              </aside>
             )}
 
             {/* Comments list */}
             <div className="flex-1 min-w-0">
         {paginatedComments.length > 0 && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeTab}-${selectedProfessor ?? 'all'}-${currentPage}`}
-              className="grid grid-cols-1 gap-4"
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-            >
-              {paginatedComments.map((comment, index) => {
-                const isReddit = comment._type === 'reddit';
+          <div className="grid grid-cols-1 gap-4">
+            {paginatedComments.map((comment, index) => {
+              const isReddit = comment._type === 'reddit';
 
-                return (
-                  <motion.div
-                    key={index}
-                    className="glass-card-deep rounded-2xl p-5"
-                    variants={cardVariant}
-                  >
+              return (
+                <div
+                  key={index}
+                  className="glass-card-deep rounded-2xl p-5"
+                >
                     {/* Card Header */}
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -534,11 +494,10 @@ export default function CourseCommentsPage() {
                         </a>
                       )}
                     </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {/* ── Pagination ── */}
@@ -571,12 +530,7 @@ export default function CourseCommentsPage() {
 
         {/* ── Empty State ── */}
         {paginatedComments.length === 0 && !loading && (
-          <motion.div
-            className="glass-card-deep rounded-2xl p-12 text-center"
-            initial={liteMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: liteMotion ? 0 : 0.35 }}
-          >
+          <div className="glass-card-deep rounded-2xl p-12 text-center">
             <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400 text-base mb-2">
               {courseCode ? 'No comments found for this filter.' : 'No course code provided.'}
@@ -584,7 +538,7 @@ export default function CourseCommentsPage() {
             <p className="text-gray-400 dark:text-gray-500 text-sm">
               {courseCode ? 'Try switching tabs.' : 'Navigate here from a course page.'}
             </p>
-          </motion.div>
+          </div>
         )}
             </div>
           </div>

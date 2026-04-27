@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { useMotionTier } from "@/lib/motion-prefs";
 
 const SEMESTER_OPTIONS = [
   { label: "None", sublabel: "1st sem", value: 0 },
@@ -23,8 +21,6 @@ const SEMESTER_OPTIONS = [
 export default function OnboardingPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const lite = useMotionTier() === "lite";
-
   const [selected, setSelected] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -117,12 +113,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 py-12">
       {/* Card */}
-      <motion.div
-        className="relative z-10 glass-modal-panel w-full max-w-md rounded-[1.75rem] p-7 sm:p-8"
-        initial={lite ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={lite ? { duration: 0 } : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
+      <div className="relative z-10 glass-modal-panel w-full max-w-md rounded-[1.75rem] p-7 sm:p-8">
         {/* Accent bar */}
         <div className="glass-modal-accent mx-auto mb-5 h-1.5 w-20 rounded-full opacity-90" />
 
@@ -176,7 +167,7 @@ export default function OnboardingPage() {
         <p className="mt-4 text-xs text-center text-brand-navy/40 dark:text-white/35">
           Students in their first semester are exempt from contributing.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

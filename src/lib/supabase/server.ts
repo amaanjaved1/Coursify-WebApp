@@ -16,8 +16,6 @@ if (!supabaseUrl || !supabaseServiceKey) {
   }
 }
 
-console.log("Server: Connecting to Supabase URL:", supabaseUrl)
-
 export const getSupabaseServerClient = () => {
   return createClient(supabaseUrl || "", supabaseServiceKey || "", {
     auth: {

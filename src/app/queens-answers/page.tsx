@@ -2,11 +2,11 @@
 
 import { Suspense, useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from "react"
 import { createPortal } from "react-dom"
-import { motion, useAnimation, AnimatePresence } from "framer-motion"
+import useEmblaCarousel from "embla-carousel-react"
+import AutoScroll from "embla-carousel-auto-scroll"
 import { usePathname, useSearchParams } from "next/navigation"
 import { QUEENS_ANSWERS_DRAFT_STORAGE_KEY } from "@/constants/queens-answers"
 import { ArrowUp, Brain, Hammer, Search, Target, TriangleAlert } from "lucide-react"
-import { useMotionTier } from "@/lib/motion-prefs"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
 import { getSupabaseClient } from "@/lib/supabase/client"
@@ -42,12 +42,12 @@ function AIFeatures() {
   const [limitHit, setLimitHit] = useState<QAResponseReason | null>(null)
   const [serviceNotice, setServiceNotice] = useState<string | null>(null)
   const [statusLoading, setStatusLoading] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
   const questionTextareaRef = useRef<HTMLTextAreaElement>(null)
   const messagesBottomRef = useRef<HTMLDivElement>(null)
-  const controls = useAnimation()
-  const motionTier = useMotionTier()
-  const marqueeLite = motionTier === "lite"
+  const [emblaRef] = useEmblaCarousel(
+    { loop: true, dragFree: true, align: "start", watchDrag: false },
+    [AutoScroll({ speed: 1, stopOnInteraction: false, stopOnMouseEnter: true })]
+  )
   const { user, isLoading: authLoading } = useAuth()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -204,29 +204,6 @@ function AIFeatures() {
     { emoji: "🧑‍🏫", text: "strictest graders" },
   ]
 
-  // Duplicate the array to create a seamless loop effect
-  const duplicatedQuestions = [...sampleQuestions, ...sampleQuestions, ...sampleQuestions]
-
-  useEffect(() => {
-    const startAnimation = async () => {
-      await controls.start({
-        x: [0, -3000],
-        transition: {
-          duration: 60,
-          ease: "linear",
-          repeat: Number.POSITIVE_INFINITY,
-          repeatType: "loop",
-        },
-      })
-    }
-
-    void startAnimation()
-
-    return () => {
-      controls.stop()
-    }
-  }, [controls])
-
   // Function to handle click on sample questions (just set the question text, no auth check)
   const handleSampleQuestionClick = (questionText: string) => {
     setQuestion(questionText);
@@ -329,78 +306,48 @@ function AIFeatures() {
           </div>
         )}
 
-        <AnimatePresence>
-          {messages.length === 0 && (
-            <motion.div
-              key="landing"
-              initial={{ opacity: 1, y: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
-              className="flex-1 w-full max-w-3xl flex flex-col items-center justify-center pb-24 sm:pb-28"
-            >
-              {/* Header */}
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-center mb-4 sm:mb-12 tracking-tight animated-title">
-                <span className="gradient-text">Queen's Answers</span>
-              </h1>
+        {messages.length === 0 && (
+          <div className="flex-1 w-full max-w-3xl flex flex-col items-center justify-center pb-24 sm:pb-28">
+            {/* Header */}
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-center mb-4 sm:mb-12 tracking-tight animated-title">
+              <span className="gradient-text">Queen's Answers</span>
+            </h1>
 
-              {/* Continuous Carousel */}
-              <div className="w-full mb-4 sm:mb-6 overflow-hidden relative carousel-container" ref={containerRef}>
-                <motion.div className="flex gap-2.5 sm:gap-4 px-3 sm:px-4" animate={controls} style={{ width: "max-content" }}>
-                  {duplicatedQuestions.map((q, i) => (
-                    <motion.button
-                      key={i}
+            {/* Continuous Carousel */}
+            <div className="w-full mb-4 sm:mb-6 overflow-hidden relative carousel-container" ref={emblaRef}>
+              <div className="flex gap-2.5 sm:gap-4 px-3 sm:px-4">
+                {sampleQuestions.map((q, i) => (
+                  <div key={i} className="flex-none">
+                    <button
                       type="button"
                       tabIndex={0}
-                      onClick={() => {
-                        handleSampleQuestionClick(q.text);
-                      }}
-                      className={`relative mx-0.5 flex items-center rounded-full px-4 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium whitespace-nowrap box-border
-                        border border-brand-navy/28 dark:border-white/[0.12]
-                        ${marqueeLite ? "bg-white/95 dark:bg-zinc-800/95" : "bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md"}
-                        text-brand-navy dark:text-white
-                        shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)]
-                        transition-colors duration-[420ms] ease-in-out
-                        motion-reduce:transition-none
-                        hover:border-brand-navy/42 dark:hover:border-white/[0.18]
-                        hover:bg-white/92 dark:hover:bg-zinc-800/90
-                        hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]`}
+                      onClick={() => handleSampleQuestionClick(q.text)}
+                      className="relative mx-0.5 flex items-center rounded-full px-4 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium whitespace-nowrap box-border border border-brand-navy/28 dark:border-white/[0.12] bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md text-brand-navy dark:text-white shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none hover:border-brand-navy/42 dark:hover:border-white/[0.18] hover:bg-white/92 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]"
                       style={{ lineHeight: "1.2" }}
                       aria-label={q.text}
-                      whileHover={{
-                        scale: 1.026,
-                        y: -2.5,
-                        zIndex: 20,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 320,
-                        damping: 26,
-                        mass: 0.95,
-                      }}
-                      whileTap={{ scale: 0.985 }}
                     >
                       <span className="mr-2 text-lg">{q.emoji}</span>
                       {q.text}
-                    </motion.button>
-                  ))}
-                </motion.div>
+                    </button>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              {/* How it works link */}
-              <button
-                type="button"
-                onClick={() => {
-                  setPromptBuilderOpen(false)
-                  setShowHowItWorks(true)
-                }}
-                className="text-brand-navy dark:text-white underline text-sm sm:text-base hover:text-brand-red transition cursor-pointer"
-                style={{ background: "none", border: "none", padding: 0 }}
-              >
-                Learn how Queen's Answers works &gt;
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* How it works link */}
+            <button
+              type="button"
+              onClick={() => {
+                setPromptBuilderOpen(false)
+                setShowHowItWorks(true)
+              }}
+              className="text-brand-navy dark:text-white underline text-sm sm:text-base hover:text-brand-red transition cursor-pointer"
+              style={{ background: "none", border: "none", padding: 0 }}
+            >
+              Learn how Queen's Answers works &gt;
+            </button>
+          </div>
+        )}
 
         {messages.length > 0 && (
           <>
@@ -465,21 +412,12 @@ function AIFeatures() {
               {serviceNotice ?? "Queen's Answers is temporarily unavailable."}
             </div>
           )}
-          <AnimatePresence>
-            {question.length > 500 && (
-              <motion.div
-                key="char-limit-warning"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="w-full mb-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-700 text-red-900 dark:text-red-200 text-sm font-medium shadow-md flex items-center gap-2.5"
-              >
-                <TriangleAlert className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2} />
-                Your question is too long — please shorten it to 500 characters or fewer ({question.length - 500} over).
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {question.length > 500 && (
+            <div className="w-full mb-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-700 text-red-900 dark:text-red-200 text-sm font-medium shadow-md flex items-center gap-2.5">
+              <TriangleAlert className="h-4 w-4 shrink-0 text-red-500 dark:text-red-400" strokeWidth={2} />
+              Your question is too long — please shorten it to 500 characters or fewer ({question.length - 500} over).
+            </div>
+          )}
           <div className="flex w-full items-center">
             <div
               className={`group/composer flex min-w-0 flex-1 items-end gap-1 box-border rounded-[2rem] pl-1.5 pr-1.5 py-1.5
@@ -574,24 +512,16 @@ function AIFeatures() {
 
       {typeof document !== "undefined" &&
         createPortal(
-          <AnimatePresence>
+          <>
             {showHowItWorks && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+              <div
                 className="glass-modal-overlay modal-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain p-3 sm:items-center sm:p-4"
                 onClick={(e) => {
                   if (e.target === e.currentTarget) setShowHowItWorks(false)
                 }}
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="glass-modal-panel relative my-auto w-full max-w-2xl rounded-[1.75rem] p-5 sm:p-6"
+                <div
+                  className="glass-modal-panel animate-fade-in relative my-auto w-full max-w-2xl rounded-[1.75rem] p-5 sm:p-6"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
@@ -642,10 +572,10 @@ function AIFeatures() {
                       <li>5+ semesters completed: <span className="font-semibold text-brand-navy dark:text-white">4 questions/day</span></li>
                     </ul>
                   </div>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             )}
-          </AnimatePresence>,
+          </>,
           document.body
         )}
 

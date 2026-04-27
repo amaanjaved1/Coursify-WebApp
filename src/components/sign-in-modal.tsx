@@ -1,5 +1,4 @@
 "use client"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Lock } from "lucide-react"
 
@@ -15,20 +14,11 @@ export function SignInModal({ isOpen, onClose, onLogin, onSignUp }: SignInModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ type: "spring", duration: 0.5 }}
-        className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 max-w-md w-full mx-4 z-50"
-      >
+      <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 max-w-md w-full mx-4 z-50">
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-brand-navy/10 dark:bg-blue-400/10 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-8 w-8 text-brand-navy dark:text-white" />
@@ -54,7 +44,7 @@ export function SignInModal({ isOpen, onClose, onLogin, onSignUp }: SignInModalP
             Cancel
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

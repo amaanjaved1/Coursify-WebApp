@@ -3,16 +3,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { getSafeRedirectPath, buildAuthHref } from "@/lib/auth/safe-redirect";
-import { useMotionTier } from "@/lib/motion-prefs";
 
 export default function ResendVerificationEmailPage() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
-  const lite = useMotionTier() === "lite";
   const searchParams = useSearchParams();
 
   const nextPath = useMemo(
@@ -58,27 +55,16 @@ export default function ResendVerificationEmailPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-6 py-12">
-      <motion.div
-        className="w-full max-w-md relative z-10"
-        initial={false}
-        animate={lite ? undefined : { opacity: 1, y: 0 }}
-        transition={
-          lite ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
-        }
-      >
+      <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col gap-7">
-          <motion.div
-            initial={false}
-            animate={lite ? undefined : { opacity: 1, y: 0 }}
-            transition={lite ? { duration: 0 } : { duration: 0.6, delay: 0.15 }}
-          >
+          <div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-brand-navy dark:text-white">
               Resend Verification
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
               Enter your Queen&apos;s email to receive a new verification link.
             </p>
-          </motion.div>
+          </div>
 
           {sent ? (
             <div className="space-y-5">
@@ -112,13 +98,7 @@ export default function ResendVerificationEmailPage() {
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-5">
-              <motion.div
-                initial={false}
-                animate={lite ? undefined : { opacity: 1, y: 0 }}
-                transition={
-                  lite ? { duration: 0 } : { duration: 0.5, delay: 0.25 }
-                }
-              >
+              <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                   Email Address
                 </label>
@@ -132,20 +112,15 @@ export default function ResendVerificationEmailPage() {
                     className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                   />
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={isSubmitting}
-                initial={false}
-                animate={lite ? undefined : { opacity: 1, y: 0 }}
-                transition={
-                  lite ? { duration: 0 } : { duration: 0.5, delay: 0.45 }
-                }
                 className="liquid-btn-red w-full rounded-2xl py-4 font-medium text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Sending..." : "Send Verification Email"}
-              </motion.button>
+              </button>
 
               <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                 Remembered your password?{" "}
@@ -159,7 +134,7 @@ export default function ResendVerificationEmailPage() {
             </form>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

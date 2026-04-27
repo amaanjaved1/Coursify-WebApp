@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/database.types"
+import type { Database } from "@/types/database.types"
 import { redis } from "@/lib/redis"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
