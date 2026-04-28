@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
     windowSeconds: 10 * 60,
   });
   if (!ipRateLimit.ok && ipRateLimit.reason === "dependency_failure") {
-    return NextResponse.json({ error: "Verification email service is temporarily unavailable." }, { status: 503 });
+    console.warn("[resend-verification] ip rate-limit unavailable, failing open");
   }
-  if (!ipRateLimit.ok) {
+  if (!ipRateLimit.ok && ipRateLimit.reason !== "dependency_failure") {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
     windowSeconds: 10 * 60,
   });
   if (!emailRateLimit.ok && emailRateLimit.reason === "dependency_failure") {
-    return NextResponse.json({ error: "Verification email service is temporarily unavailable." }, { status: 503 });
+    console.warn("[resend-verification] email rate-limit unavailable, failing open");
   }
-  if (!emailRateLimit.ok) {
+  if (!emailRateLimit.ok && emailRateLimit.reason !== "dependency_failure") {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 

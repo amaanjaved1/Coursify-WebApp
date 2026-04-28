@@ -322,7 +322,7 @@ function AIFeatures() {
                       type="button"
                       tabIndex={0}
                       onClick={() => handleSampleQuestionClick(q.text)}
-                      className="relative mx-0.5 flex items-center rounded-full px-4 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium whitespace-nowrap box-border border border-brand-navy/28 dark:border-white/[0.12] bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md text-brand-navy dark:text-white shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none hover:border-brand-navy/42 dark:hover:border-white/[0.18] hover:bg-white/92 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]"
+                      className="relative mx-0.5 flex items-center rounded-full px-4 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-medium whitespace-nowrap box-border border border-brand-navy/28 dark:border-white/[0.12] bg-white/82 dark:bg-zinc-800/82 backdrop-blur-md text-brand-navy dark:text-white shadow-[0_2px_6px_rgba(0,48,95,0.07),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.28),0_1px_2px_rgba(0,0,0,0.2)] transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none hover:border-brand-navy/42 dark:hover:border-white/[0.18] hover:bg-white/92 dark:hover:bg-zinc-800/90 hover:shadow-[0_4px_14px_rgba(0,48,95,0.1),0_2px_4px_rgba(0,48,95,0.05)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.38),0_2px_6px_rgba(0,0,0,0.22)]"
                       style={{ lineHeight: "1.2" }}
                       aria-label={q.text}
                     >
@@ -421,7 +421,7 @@ function AIFeatures() {
           <div className="flex w-full items-center">
             <div
               className={`group/composer flex min-w-0 flex-1 items-end gap-1 box-border rounded-[2rem] pl-1.5 pr-1.5 py-1.5
-              [transition-property:background-color,border-color,box-shadow,opacity] duration-[420ms] ease-in-out
+              [transition-property:background-color,border-color,box-shadow,opacity] [transition-duration:420ms] ease-in-out
               motion-reduce:transition-none
               bg-[#fcfcfd] dark:bg-[#262626]
               border border-brand-navy/20 dark:border-white/10
@@ -450,7 +450,7 @@ function AIFeatures() {
                 <textarea
                   ref={questionTextareaRef}
                   rows={1}
-                  className="min-h-[44px] min-w-0 w-full resize-none overflow-y-auto border-0 bg-transparent py-2.5 pl-2 pr-2 text-base sm:text-[17px] leading-normal text-[#222] shadow-none outline-none ring-0 ring-offset-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 dark:text-gray-100 placeholder:text-[#8e9196] dark:placeholder:text-gray-500 placeholder:font-normal transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                  className="min-h-[44px] min-w-0 w-full resize-none overflow-y-auto border-0 bg-transparent py-2.5 pl-2 pr-2 text-base sm:text-[17px] leading-normal text-[#222] shadow-none outline-none ring-0 ring-offset-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 dark:text-gray-100 placeholder:text-[#8e9196] dark:placeholder:text-gray-500 placeholder:font-normal transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none"
                   placeholder="Ask anything"
                   value={question}
                   readOnly={showHowItWorks || needsAuthToAsk || limitHit !== null}

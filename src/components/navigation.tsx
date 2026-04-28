@@ -202,7 +202,7 @@ const Navigation = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Buy me a coffee"
-              className="flex items-center justify-center p-2 rounded-full bg-[#FFDD00] hover:bg-[#FFDD00]/80 border border-[#FFDD00] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+              className="flex items-center justify-center p-2 rounded-full bg-[#FFDD00] hover:bg-[#FFDD00]/80 border border-[#FFDD00] transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none"
             >
               <Image src="/bmc-logo.svg" alt="Buy me a coffee" width={11} height={16} />
             </a>
@@ -210,7 +210,7 @@ const Navigation = () => {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+              className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none"
               aria-label="Toggle theme"
             >
               {mounted && theme === "dark" ? (
@@ -348,14 +348,14 @@ const Navigation = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Buy me a coffee"
-                    className="flex items-center justify-center p-2 rounded-full bg-[#FFDD00] hover:bg-[#FFDD00]/80 border border-[#FFDD00] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                    className="flex items-center justify-center p-2 rounded-full bg-[#FFDD00] hover:bg-[#FFDD00]/80 border border-[#FFDD00] transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none"
                   >
                     <Image src="/bmc-logo.svg" alt="Buy me a coffee" width={11} height={16} />
                   </a>
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors duration-[420ms] ease-in-out motion-reduce:transition-none"
+                    className="flex items-center justify-center p-2 rounded-full text-sm font-medium bg-black/[0.06] dark:bg-white/[0.10] hover:bg-black/[0.10] dark:hover:bg-white/[0.16] text-gray-600 dark:text-white/75 border border-black/[0.06] dark:border-white/[0.10] transition-colors [transition-duration:420ms] ease-in-out motion-reduce:transition-none"
                     aria-label="Toggle theme"
                   >
                     {mounted && theme === "dark" ? (
