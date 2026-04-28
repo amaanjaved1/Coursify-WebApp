@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getCourseByCode } from '@/lib/db';
+import { getCourseByCode } from '@/lib/course-api';
 import type { CourseWithStats } from '@/types';
 import { CourseComments } from "./_components/course-comments";
 import { CourseHeader } from './_components/course-header'

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { getCommentsForCourse } from "@/lib/db";
-import type { RedditComment, RmpComment } from "@/lib/db";
+import { getCommentsForCourse } from "@/lib/course-api";
+import type { RedditComment, RmpComment } from "@/lib/comment-contracts";
 
 const CAROUSEL_LIMIT = 5;
 

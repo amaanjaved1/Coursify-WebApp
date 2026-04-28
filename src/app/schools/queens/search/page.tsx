@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, ArrowLeft, Upload, BarChart3, MessageSquare } from "lucide-react"
-import { fetchCoursesPage } from "@/lib/db"
+import { fetchCoursesPage } from "@/lib/course-api"
 import { getCourseDataAvailability } from "@/lib/course-availability"
 import type { CourseWithStats } from "@/types"
 

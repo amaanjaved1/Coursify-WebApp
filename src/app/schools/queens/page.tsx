@@ -30,8 +30,12 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { fetchCoursesPage, fetchDepartments, fetchSubjects } from "@/lib/db";
+import { fetchCoursesPage, fetchDepartments, fetchSubjects } from "@/lib/course-api";
 import { getCourseDataAvailability } from "@/lib/course-availability";
+import {
+  isCourseAvailabilityFilter,
+  type CourseAvailabilityFilter,
+} from "@/lib/course-contracts";
 import type { CourseWithStats } from "@/types";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -95,13 +99,11 @@ export default function QueensCourses() {
   const [subjectOpen, setSubjectOpen] = useState(false);
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const [selectedAvailability, setSelectedAvailability] = useState<
-    ("data" | "comments")[]
+    CourseAvailabilityFilter[]
   >(() => {
     const raw =
       searchParams.get("availability")?.split(",").filter(Boolean) ?? [];
-    const v = raw.filter(
-      (x): x is "data" | "comments" => x === "data" || x === "comments",
-    );
+    const v = raw.filter(isCourseAvailabilityFilter);
     if (v.length === 0) return ["data", "comments"];
     return v;
   });
