@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
     windowSeconds: 10 * 60,
   });
   if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
-    return NextResponse.json({ error: "Issue reporting is temporarily unavailable" }, { status: 503 });
+    console.warn("[issues] rate-limit unavailable, failing open");
   }
-  if (!rateLimit.ok) {
+  if (!rateLimit.ok && rateLimit.reason !== "dependency_failure") {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 

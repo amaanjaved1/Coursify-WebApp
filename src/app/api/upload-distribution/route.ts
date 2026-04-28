@@ -63,15 +63,9 @@ export async function POST(request: NextRequest) {
     windowSeconds: 60 * 60,
   });
   if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
-    return failureResponse(
-      {
-        errors: ["Upload service is temporarily unavailable."],
-        reason: "dependency_failure",
-      },
-      503,
-    );
+    console.warn("[upload-distribution] rate-limit unavailable, failing open");
   }
-  if (!rateLimit.ok) {
+  if (!rateLimit.ok && rateLimit.reason !== "dependency_failure") {
     return failureResponse(
       {
         errors: ["Too many upload attempts. Try again later."],
