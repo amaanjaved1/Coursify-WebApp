@@ -16,7 +16,8 @@ export type CourseCommentSource = (typeof COMMENT_SOURCES)[number]
 type CourseDistributionRow = Tables<"course_distributions">
 
 function gradeCountsArray(value: Json): number[] {
-  return Array.isArray(value) ? (value as number[]) : []
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is number => typeof item === "number" && Number.isFinite(item))
 }
 
 export function isCourseAvailabilityFilter(value: string): value is CourseAvailabilityFilter {
