@@ -8,6 +8,10 @@ import type { RedditComment, RmpComment, PaginatedCommentsResult } from '@/lib/d
 
 type CommentItem = (RedditComment & { _type: 'reddit' }) | (RmpComment & { _type: 'rmp' });
 
+const COMMENTS_PAGE_CACHE_TTL_MS = 5 * 60 * 1000;
+const COMMENTS_PAGE_CACHE = new Map<string, { cachedAt: number; result: PaginatedCommentsResult }>();
+const COMMENTS_PAGE_INFLIGHT = new Map<string, Promise<PaginatedCommentsResult>>();
+
 const RedditIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" className={className}>
     <circle fill="#FF4500" cx="10" cy="10" r="10" />
@@ -37,21 +41,71 @@ export default function CourseCommentsPage() {
 
   const requestCounter = useRef(0);
 
+  const getCacheKey = useCallback(
+    (tab: 'reddit' | 'rmp', page: number, professor: string | null) => {
+      return [
+        courseCode.trim().toLowerCase(),
+        tab,
+        String(page),
+        String(commentsPerPage),
+        (professor ?? '').trim().toLowerCase(),
+      ].join('|');
+    },
+    [courseCode, commentsPerPage]
+  );
+
   const fetchPage = useCallback(async (tab: 'reddit' | 'rmp', page: number, professor: string | null) => {
     requestCounter.current += 1;
     const currentRequestId = requestCounter.current;
 
     if (!courseCode) { setLoading(false); return; }
+
+    const cacheKey = getCacheKey(tab, page, professor);
+    const cached = COMMENTS_PAGE_CACHE.get(cacheKey);
+    if (cached && Date.now() - cached.cachedAt <= COMMENTS_PAGE_CACHE_TTL_MS) {
+      setPaginatedComments(cached.result.comments);
+      setTotal(cached.result.total);
+      setTotalPages(cached.result.totalPages);
+      setRedditTotal(cached.result.redditTotal);
+      setRmpTotal(cached.result.rmpTotal);
+      setProfessorCounts(cached.result.professorCounts);
+      setLoading(false);
+      return;
+    }
+    if (cached) COMMENTS_PAGE_CACHE.delete(cacheKey);
+
+    const inflight = COMMENTS_PAGE_INFLIGHT.get(cacheKey);
+    if (inflight) {
+      setLoading(true);
+      try {
+        const result = await inflight;
+        if (requestCounter.current !== currentRequestId) return;
+        setPaginatedComments(result.comments);
+        setTotal(result.total);
+        setTotalPages(result.totalPages);
+        setRedditTotal(result.redditTotal);
+        setRmpTotal(result.rmpTotal);
+        setProfessorCounts(result.professorCounts);
+      } finally {
+        if (requestCounter.current === currentRequestId) {
+          setLoading(false);
+        }
+      }
+      return;
+    }
     
     setLoading(true);
+    const fetchPromise = getCommentsForCoursePaginated({
+      courseCode,
+      source: tab,
+      page,
+      limit: commentsPerPage,
+      professor: professor ?? undefined,
+    });
+    COMMENTS_PAGE_INFLIGHT.set(cacheKey, fetchPromise);
     try {
-      const result: PaginatedCommentsResult = await getCommentsForCoursePaginated({
-        courseCode,
-        source: tab,
-        page,
-        limit: commentsPerPage,
-        professor: professor ?? undefined,
-      });
+      const result: PaginatedCommentsResult = await fetchPromise;
+      COMMENTS_PAGE_CACHE.set(cacheKey, { cachedAt: Date.now(), result });
       
       // Prevent stale response from overwriting newer state
       if (requestCounter.current !== currentRequestId) return;
@@ -65,11 +119,12 @@ export default function CourseCommentsPage() {
     } catch (err) {
       console.error('Error fetching comments:', err);
     } finally {
+      COMMENTS_PAGE_INFLIGHT.delete(cacheKey);
       if (requestCounter.current === currentRequestId) {
         setLoading(false);
       }
     }
-  }, [courseCode, commentsPerPage]);
+  }, [courseCode, commentsPerPage, getCacheKey]);
 
   useEffect(() => {
     fetchPage(activeTab, currentPage, selectedProfessor);
@@ -101,9 +156,9 @@ export default function CourseCommentsPage() {
     setActiveTab(tab);
     setCurrentPage(1);
     setSelectedProfessor(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState(null, '', url);
   };
 
   return (
