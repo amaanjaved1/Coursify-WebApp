@@ -2,7 +2,6 @@
 
 import { ReactNode, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildAuthHref } from "@/lib/auth/safe-redirect";
 
@@ -58,19 +57,13 @@ export default function AuthRequired({
     }
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
+      <div
         className="glass-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
         onClick={(e) => {
           if (e.target === e.currentTarget) handleClose();
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
+        <div
           className="glass-modal-panel relative max-h-[min(100vh-2rem,36rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] p-0"
           onClick={(e) => e.stopPropagation()}
         >
@@ -123,8 +116,8 @@ export default function AuthRequired({
               </button>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     );
   }
 

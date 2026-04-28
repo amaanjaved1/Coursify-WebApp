@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { ArrowLeft } from "lucide-react";
-import { useMotionTier } from "@/lib/motion-prefs";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const supabase = getSupabaseClient();
-  const lite = useMotionTier() === "lite";
 
   const isQueensEmail = (email: string) => {
     return email.endsWith("@queensu.ca");
@@ -55,19 +52,10 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-6 py-12">
-      <motion.div
-        className="w-full max-w-md relative z-10"
-        initial={false}
-        animate={lite ? undefined : { opacity: 1, y: 0 }}
-        transition={lite ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
+      <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col gap-7">
           {/* Back link */}
-          <motion.div
-            initial={false}
-            animate={lite ? undefined : { opacity: 1, x: 0 }}
-            transition={lite ? { duration: 0 } : { duration: 0.4, delay: 0.1 }}
-          >
+          <div>
             <Link
               href="/sign-in"
               className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-brand-navy dark:hover:text-blue-400 transition-colors duration-300"
@@ -75,29 +63,20 @@ export default function ForgotPassword() {
               <ArrowLeft className="w-4 h-4" />
               Back to sign in
             </Link>
-          </motion.div>
+          </div>
 
           {/* Heading */}
-          <motion.div
-            initial={false}
-            animate={lite ? undefined : { opacity: 1, y: 0 }}
-            transition={lite ? { duration: 0 } : { duration: 0.6, delay: 0.2 }}
-          >
+          <div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-brand-navy dark:text-white">
               Reset Password
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
               Enter your Queen&apos;s email and we&apos;ll send you a reset link
             </p>
-          </motion.div>
+          </div>
 
           {isSuccess ? (
-            <motion.div
-              initial={false}
-              animate={lite ? undefined : { opacity: 1, y: 0 }}
-              transition={lite ? { duration: 0 } : { duration: 0.5 }}
-              className="space-y-5"
-            >
+            <div className="space-y-5">
               <div className="glass-card rounded-2xl p-6 border-l-4 border-brand-navy dark:border-blue-400">
                 <h3 className="font-semibold text-lg mb-2 text-brand-navy dark:text-white">Check your email</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
@@ -111,14 +90,10 @@ export default function ForgotPassword() {
               >
                 Return to sign in
               </Link>
-            </motion.div>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              <motion.div
-                initial={false}
-                animate={lite ? undefined : { opacity: 1, y: 0 }}
-                transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.3 }}
-              >
+              <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                   Email Address
                 </label>
@@ -132,14 +107,11 @@ export default function ForgotPassword() {
                     className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                   />
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={isLoading}
-                initial={false}
-                animate={lite ? undefined : { opacity: 1, y: 0 }}
-                transition={lite ? { duration: 0 } : { duration: 0.5, delay: 0.4 }}
                 className="liquid-btn-red w-full rounded-2xl py-4 font-medium text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
@@ -153,12 +125,12 @@ export default function ForgotPassword() {
                 ) : (
                   "Send Reset Link"
                 )}
-              </motion.button>
+              </button>
             </form>
           )}
 
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

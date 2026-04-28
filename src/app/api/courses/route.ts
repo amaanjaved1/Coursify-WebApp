@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createHash } from "crypto"
 import { computeDataAvailability } from "@/lib/course-availability"
-import type { Database, Tables } from "@/lib/database.types"
+import type { Database, Tables } from "@/types/database.types"
 import { redis } from "@/lib/redis"
+import { parseCourseListQuery } from "@/app/api/_lib/course-query-validation"
+import { ZodError } from "zod"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -14,29 +16,36 @@ type CourseWithStatsRow = Tables<"courses_with_stats">
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
 
-  const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")))
-  const search = searchParams.get("search") || ""
-  const departments = searchParams.get("departments")?.split(",").filter(Boolean) || []
-  const levels = searchParams.get("levels")?.split(",").filter(Boolean) || []
-  const subjects = searchParams.get("subjects")?.split(",").filter(Boolean) || []
-  const gpaMin = parseFloat(searchParams.get("gpa_min") || "0")
-  const gpaMax = parseFloat(searchParams.get("gpa_max") || "4.3")
-  const enrollMin = parseFloat(searchParams.get("enroll_min") || "0")
-  const enrollMax = parseFloat(searchParams.get("enroll_max") || "0")
-  const sortBy = searchParams.get("sort_by") || "availability"
-  const sortDir = searchParams.get("sort_dir") || "desc"
-  const hasData = searchParams.get("has_data") !== "false" // default true
-  const availabilityFilter = (
-    searchParams.get("availability")?.split(",").filter(Boolean) ?? []
-  ).filter((x): x is "data" | "comments" => x === "data" || x === "comments")
+  let parsedParams: ReturnType<typeof parseCourseListQuery>
+  try {
+    parsedParams = parseCourseListQuery(searchParams)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: "Invalid course query parameters" }, { status: 400 })
+    }
+    throw error
+  }
 
-  // Build a stable cache key from sorted params (hashed to prevent cache poisoning)
-  const sortedParams = Array.from(searchParams.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${v}`)
-    .join("&")
-  const cacheKey = `courses:${createHash("sha256").update(sortedParams).digest("hex")}`
+  const {
+    page,
+    limit,
+    search,
+    departments,
+    levels,
+    subjects,
+    gpaMin,
+    gpaMax,
+    enrollMin,
+    enrollMax,
+    sortBy,
+    sortDir,
+    hasData,
+    availabilityFilter,
+  } = parsedParams
+
+  // Build a stable cache key from validated params (hashed to prevent cache poisoning)
+  const cacheKeyPayload = JSON.stringify(parsedParams)
+  const cacheKey = `courses:${createHash("sha256").update(cacheKeyPayload).digest("hex")}`
 
   try {
     const cached = await redis.get(cacheKey)

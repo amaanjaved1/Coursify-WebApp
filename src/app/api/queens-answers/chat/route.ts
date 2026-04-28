@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status";
+import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 import { consumeQuestion } from "@/lib/queens-answers/rate-limit";
+import { z } from "zod";
+
+const chatQuestionSchema = z.object({
+  question: z.string().trim().min(1, "Question is required").max(2000, "Question is too long (max 2000 characters)"),
+}).strict();
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request);
@@ -31,27 +37,47 @@ export async function POST(request: NextRequest) {
   }
 
   const { supabase, user } = auth;
-  let question = "";
+
+  const burstLimit = await checkRateLimit({
+    keyPrefix: "queens-answers:chat:user",
+    identifier: user.id,
+    limit: 20,
+    windowSeconds: 60,
+  });
+  if (!burstLimit.ok && burstLimit.reason === "dependency_failure") {
+    return NextResponse.json(
+      {
+        error: "Queen's Answers is temporarily unavailable.",
+        reason: "dependency_failure",
+        dependency: "redis",
+      },
+      { status: 503 },
+    );
+  }
+  if (!burstLimit.ok) {
+    return NextResponse.json(
+      {
+        error: "Too many requests. Try again shortly.",
+        reason: "rate_limit",
+      },
+      { status: 429 },
+    );
+  }
+
+  let rawBody: unknown;
   try {
-    const body = await request.json();
-    question = typeof body.question === "string" ? body.question.trim() : "";
+    rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Invalid request body" },
+      { error: "Invalid JSON body" },
       { status: 400 },
     );
   }
 
-  if (!question) {
+  const parsedBody = chatQuestionSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
     return NextResponse.json(
-      { error: "Question is required" },
-      { status: 400 },
-    );
-  }
-
-  if (question.length > 2000) {
-    return NextResponse.json(
-      { error: "Question is too long (max 2000 characters)" },
+      { error: parsedBody.error.issues[0]?.message ?? "Invalid request body" },
       { status: 400 },
     );
   }

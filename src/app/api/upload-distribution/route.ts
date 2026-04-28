@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
+import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 import { extractTextFromPdf, validateSolusFormat, parseCourseRows } from "@/lib/pdf/parse-distribution";
 import type { UploadDistributionResponse } from "@/types";
 import { redis } from "@/lib/redis";
@@ -26,6 +27,11 @@ function failureResponse(
   );
 }
 
+function safeUploadFileName(name: string): string {
+  const cleaned = name.replace(/[^\w.\-]+/g, "_").slice(0, 120);
+  return cleaned || "upload.pdf";
+}
+
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request);
   if (!auth.ok && auth.reason === "server_configuration") {
@@ -50,6 +56,30 @@ export async function POST(request: NextRequest) {
 
   const { supabase, user } = auth;
 
+  const rateLimit = await checkRateLimit({
+    keyPrefix: "upload-distribution:user",
+    identifier: user.id,
+    limit: 5,
+    windowSeconds: 60 * 60,
+  });
+  if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
+    return failureResponse(
+      {
+        errors: ["Upload service is temporarily unavailable."],
+        reason: "dependency_failure",
+      },
+      503,
+    );
+  }
+  if (!rateLimit.ok) {
+    return failureResponse(
+      {
+        errors: ["Too many upload attempts. Try again later."],
+      },
+      429,
+    );
+  }
+
   // 2. Extract file from FormData
   let formData: FormData;
   try {
@@ -58,10 +88,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, errors: ["Invalid request. Expected a file upload."] }, { status: 400 });
   }
 
-  const file = formData.get("file") as File | null;
-  if (!file) {
+  const formKeys = Array.from(formData.keys());
+  if (formKeys.some((key) => key !== "file") || formData.getAll("file").length !== 1) {
+    return NextResponse.json({ success: false, errors: ["Invalid upload payload."] }, { status: 400 });
+  }
+
+  const fileEntry = formData.get("file");
+  if (!fileEntry) {
     return NextResponse.json({ success: false, errors: ["No file provided."] }, { status: 400 });
   }
+
+  if (!(fileEntry instanceof File)) {
+    return NextResponse.json({ success: false, errors: ["Invalid request. Expected a file upload."] }, { status: 400 });
+  }
+
+  const file = fileEntry;
+  const safeFileName = safeUploadFileName(file.name);
 
   // 3. Validate file type and size
   if (file.type !== "application/pdf") {
@@ -71,6 +113,10 @@ export async function POST(request: NextRequest) {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   if (file.size > MAX_SIZE) {
     return NextResponse.json({ success: false, errors: ["File must be under 5MB."] }, { status: 400 });
+  }
+
+  if (file.name.length > 255) {
+    return NextResponse.json({ success: false, errors: ["File name is too long."] }, { status: 400 });
   }
 
   // 4. Extract text from PDF
@@ -121,7 +167,7 @@ export async function POST(request: NextRequest) {
   if (existingUserUploadResult.data) {
     const duplicateAuditInsert = await supabase.from("distribution_uploads").insert({
       user_id: user.id,
-      file_path: `${user.id}/${Date.now()}_${file.name}`,
+      file_path: `${user.id}/${Date.now()}_${safeFileName}`,
       original_filename: file.name,
       term,
       status: "already_uploaded",
@@ -130,6 +176,8 @@ export async function POST(request: NextRequest) {
 
     if (duplicateAuditInsert.error) {
       console.error("[upload-distribution] failed to record duplicate upload audit row:", duplicateAuditInsert.error);
+    } else {
+      await redis.del(`uploads:${user.id}`);
     }
 
     return failureResponse(
@@ -244,7 +292,7 @@ export async function POST(request: NextRequest) {
   // 12. Record the upload
   const uploadRecordResult = await supabase.from("distribution_uploads").insert({
     user_id: user.id,
-    file_path: `${user.id}/${Date.now()}_${file.name}`,
+    file_path: `${user.id}/${Date.now()}_${safeFileName}`,
     original_filename: file.name,
     term,
     status: errors.length > 0 ? "rejected" : "processed",
@@ -270,6 +318,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (errors.length > 0) {
+    await redis.del(`uploads:${user.id}`);
     return failureResponse(
       {
         term,

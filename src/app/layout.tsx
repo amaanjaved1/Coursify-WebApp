@@ -2,7 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth/auth-context";

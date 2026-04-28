@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { redis } from "@/lib/redis";
+import { z } from "zod";
+import { checkRateLimit, getClientIp } from "@/app/api/_lib/rate-limit";
 
-type Body = { email?: unknown };
+const signupStatusSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(254),
+}).strict();
+
+type ListedUser = {
+  email?: string | null;
+  email_confirmed_at?: string | null;
+  confirmed_at?: string | null;
+};
+
+type AdminClient = {
+  auth: {
+    admin: {
+      listUsers: (options: { page: number; perPage: number }) => Promise<{
+        data?: { users?: ListedUser[]; total?: number | null } | null;
+        error?: unknown;
+      }>;
+    };
+  };
+};
 
 function normalizeEmail(raw: string): string {
   return raw.trim().toLowerCase();
@@ -12,19 +33,11 @@ function isQueensEmail(email: string): boolean {
   return email.endsWith("@queensu.ca");
 }
 
-function getClientIp(request: NextRequest): string {
-  const xff = request.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0]?.trim() || "unknown";
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp.trim();
-  return "unknown";
-}
-
-function getIsEmailVerified(user: any): boolean {
+function getIsEmailVerified(user: ListedUser): boolean {
   return Boolean(user?.email_confirmed_at || user?.confirmed_at);
 }
 
-async function findUserByEmail(admin: any, email: string) {
+async function findUserByEmail(admin: AdminClient, email: string) {
   const perPage = 1000;
   let page = 1;
   while (page <= 50) {
@@ -32,7 +45,7 @@ async function findUserByEmail(admin: any, email: string) {
     if (error) throw error;
 
     const users = data?.users ?? [];
-    const match = users.find((u: any) => (u?.email ?? "").toLowerCase() === email);
+    const match = users.find((u) => (u?.email ?? "").toLowerCase() === email);
     if (match) return match;
 
     const total = typeof data?.total === "number" ? data.total : null;
@@ -44,18 +57,20 @@ async function findUserByEmail(admin: any, email: string) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: Body = {};
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as Body;
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const rawEmail = typeof body.email === "string" ? body.email : "";
-  const email = normalizeEmail(rawEmail);
-  if (!email || !email.includes("@")) {
-    return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
+  const parsedBody = signupStatusSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
+
+  const body = parsedBody.data;
+  const email = normalizeEmail(body.email);
   if (!isQueensEmail(email)) {
     return NextResponse.json(
       { error: "A Queen's University (@queensu.ca) email is required." },
@@ -70,12 +85,16 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request);
-  const rateKey = `auth:signup_status:ip:${ip}`;
-  const count = await redis.incr(rateKey);
-  if (count !== null && count === 1) {
-    await redis.expire(rateKey, 10 * 60);
+  const rateLimit = await checkRateLimit({
+    keyPrefix: "auth:signup-status:ip",
+    identifier: ip,
+    limit: 30,
+    windowSeconds: 10 * 60,
+  });
+  if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
+    return NextResponse.json({ error: "Signup status is temporarily unavailable." }, { status: 503 });
   }
-  if (count !== null && count > 30) {
+  if (!rateLimit.ok) {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
@@ -97,4 +116,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ email, exists, verified });
 }
-

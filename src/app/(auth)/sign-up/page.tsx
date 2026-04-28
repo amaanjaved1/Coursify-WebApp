@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { buildAuthHref, getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { Eye, EyeOff } from "lucide-react";
-import { useMotionTier } from "@/lib/motion-prefs";
 
 const RESEND_COOLDOWN_SECONDS = 120;
 
@@ -28,7 +26,6 @@ export default function SignUp() {
     "none" | "exists_unverified" | "exists_verified"
   >("none");
   const { signUp, resendVerificationEmail } = useAuth();
-  const lite = useMotionTier() === "lite";
   const searchParams = useSearchParams();
 
   const nextPath = useMemo(
@@ -228,36 +225,20 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-6 py-12">
-      <motion.div
-        className="w-full max-w-md relative z-10"
-        initial={false}
-        animate={lite ? undefined : { opacity: 1, y: 0 }}
-        transition={
-          lite ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
-        }
-      >
+      <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col gap-7">
           {/* Heading */}
-          <motion.div
-            initial={false}
-            animate={lite ? undefined : { opacity: 1, y: 0 }}
-            transition={lite ? { duration: 0 } : { duration: 0.6, delay: 0.15 }}
-          >
+          <div>
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-brand-navy dark:text-white">
               Create Account
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
               Enter your Queen&apos;s University email to get started
             </p>
-          </motion.div>
+          </div>
 
           {showVerificationMessage ? (
-            <motion.div
-              initial={false}
-              animate={lite ? undefined : { opacity: 1, y: 0 }}
-              transition={lite ? { duration: 0 } : { duration: 0.5 }}
-              className="space-y-5"
-            >
+            <div className="space-y-5">
               <div className="glass-card rounded-2xl p-6 border-l-4 border-brand-navy dark:border-blue-400">
                 <h3 className="font-semibold text-lg mb-2 text-brand-navy dark:text-white">
                   Check your email
@@ -303,16 +284,11 @@ export default function SignUp() {
                   </span>
                 </button>
               </div>
-            </motion.div>
+            </div>
           ) : (
             <>
               {accountStatus === "exists_unverified" && (
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={lite ? { duration: 0 } : { duration: 0.3 }}
-                  className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold"
-                >
+                <div className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold">
                   <h3 className="font-semibold text-sm text-brand-navy dark:text-white mb-1">
                     Account Exists (Unverified)
                   </h3>
@@ -353,16 +329,11 @@ export default function SignUp() {
                       </Button>
                     </Link>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {accountStatus === "exists_verified" && (
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={lite ? { duration: 0 } : { duration: 0.3 }}
-                  className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold"
-                >
+                <div className="glass-card rounded-2xl p-5 border-l-4 border-brand-gold">
                   <h3 className="font-semibold text-sm text-brand-navy dark:text-white mb-1">
                     Account Already Exists
                   </h3>
@@ -392,17 +363,11 @@ export default function SignUp() {
                       </Button>
                     </Link>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.25 }
-                  }
-                >
+                <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                     Display Name
                   </label>
@@ -417,15 +382,9 @@ export default function SignUp() {
                       className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                     />
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.32 }
-                  }
-                >
+                <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                     Email Address
                   </label>
@@ -442,15 +401,9 @@ export default function SignUp() {
                       className="w-full bg-transparent text-sm text-brand-navy dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 px-4 py-4 rounded-2xl focus:outline-none"
                     />
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.35 }
-                  }
-                >
+                <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                     Password
                   </label>
@@ -475,15 +428,9 @@ export default function SignUp() {
                       )}
                     </button>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.45 }
-                  }
-                >
+                <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
                     Confirm Password
                   </label>
@@ -508,16 +455,11 @@ export default function SignUp() {
                       )}
                     </button>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.button
+                <button
                   type="submit"
                   disabled={isLoading}
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1, y: 0 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.55 }
-                  }
                   className="liquid-btn-red w-full rounded-2xl py-4 font-medium text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
@@ -543,16 +485,9 @@ export default function SignUp() {
                   ) : (
                     "Sign Up"
                   )}
-                </motion.button>
+                </button>
 
-                <motion.p
-                  className="text-center text-xs text-gray-400 dark:text-gray-500 px-2"
-                  initial={false}
-                  animate={lite ? undefined : { opacity: 1 }}
-                  transition={
-                    lite ? { duration: 0 } : { duration: 0.5, delay: 0.58 }
-                  }
-                >
+                <p className="text-center text-xs text-gray-400 dark:text-gray-500 px-2">
                   By creating an account, you agree to our{" "}
                   <Link
                     href="/terms"
@@ -568,17 +503,10 @@ export default function SignUp() {
                     Privacy Policy
                   </Link>
                   .
-                </motion.p>
+                </p>
               </form>
 
-              <motion.p
-                className="text-center text-sm text-gray-500 dark:text-gray-400"
-                initial={false}
-                animate={lite ? undefined : { opacity: 1 }}
-                transition={
-                  lite ? { duration: 0 } : { duration: 0.5, delay: 0.6 }
-                }
-              >
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                 Already have an account?{" "}
                 <Link
                   href={signInHref}
@@ -586,11 +514,11 @@ export default function SignUp() {
                 >
                   Sign in
                 </Link>
-              </motion.p>
+              </p>
             </>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

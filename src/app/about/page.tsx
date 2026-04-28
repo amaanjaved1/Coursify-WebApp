@@ -10,9 +10,9 @@ import {
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import type { LucideIcon } from "lucide-react"
-import { EmailCopyButton } from "./_components/EmailCopyButton"
-import { CommunityContributors } from "./_components/CommunityContributors"
-import Footer from "@/components/Footer"
+import { EmailCopyButton } from "./_components/email-copy-button"
+import { CommunityContributors } from "./_components/community-contributors"
+import Footer from "@/components/footer"
 import type { ContributorRepoConfig } from "./_lib/community-contributors"
 import type { TeamMember } from "./_types"
 

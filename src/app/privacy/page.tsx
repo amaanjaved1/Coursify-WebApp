@@ -1,6 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import Footer from "@/components/Footer"
+import Footer from "@/components/footer"
 
 export const metadata: Metadata = {
   title: "Privacy Policy – Coursify",

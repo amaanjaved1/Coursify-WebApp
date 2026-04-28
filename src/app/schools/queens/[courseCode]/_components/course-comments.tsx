@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -92,27 +91,19 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
 
   return (
     <div className="container mx-auto px-6 md:px-10 lg:px-20 max-w-full mt-6">
-      <motion.h2
+      <h2
         className="text-xl font-bold text-brand-navy dark:text-white mb-6 flex items-center justify-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-brand-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
         </svg>
         Wanna see what students are saying?
-      </motion.h2>
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
         {/* ── Reddit Card ── */}
-        <motion.div
-          className="glass-card-deep rounded-xl overflow-hidden flex flex-col"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-        >
+        <div className="glass-card-deep rounded-xl overflow-hidden flex flex-col">
           {/* Header with integrated nav */}
           <div
             className="px-4 py-3 flex-shrink-0 reddit-comment-header"
@@ -129,13 +120,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
               {/* Nav controls in header */}
               <div className="ml-auto flex items-center gap-1.5">
                 {redditComments.length > 1 && (
-                  <motion.button
+                  <button
                     className="w-7 h-7 rounded-full flex items-center justify-center glass-pill transition-colors"
                     onClick={prevRedditComment}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <ChevronLeft className="h-3.5 w-3.5 text-[#FF4500]" />
-                  </motion.button>
+                  </button>
                 )}
                 <span className="text-xs font-semibold px-2 min-w-[44px] text-center rounded-full glass-pill text-brand-navy dark:text-white">
                   {redditComments.length > 0 ? `${redditCommentIndex + 1}/${redditComments.length}` : "0"}
@@ -147,13 +137,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                   )}
                 </span>
                 {redditComments.length > 1 && (
-                  <motion.button
+                  <button
                     className="w-7 h-7 rounded-full flex items-center justify-center glass-pill transition-colors"
                     onClick={nextRedditComment}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <ChevronRight className="h-3.5 w-3.5 text-[#FF4500]" />
-                  </motion.button>
+                  </button>
                 )}
               </div>
             </div>
@@ -162,14 +151,7 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
           {/* Body — natural height, no fixed constraint */}
           <div className="flex-1">
             {currentRedditComment ? (
-              <motion.div
-                key={`reddit-${redditCommentIndex}`}
-                className="p-5 flex flex-col gap-3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
+              <div className="p-5 flex flex-col gap-3">
                 <div className="flex items-center">
                   <div className="h-8 w-8 rounded-full mr-2 overflow-hidden flex-shrink-0">
                     <img src="/queens_reddit_icon.png" alt="Queen's Reddit" className="h-full w-full object-cover" />
@@ -213,7 +195,7 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                     </a>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ) : (
               <div className="p-6 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm min-h-[160px]">
                 No Reddit comments for this course.
@@ -235,15 +217,10 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
               </svg>
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── RateMyProfessors Card ── */}
-        <motion.div
-          className="glass-card-deep rounded-xl overflow-hidden flex flex-col"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-        >
+        <div className="glass-card-deep rounded-xl overflow-hidden flex flex-col">
           {/* Header with integrated nav */}
           <div
             className="px-4 py-3 flex-shrink-0 rmp-comment-header"
@@ -259,13 +236,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
               {/* Nav controls in header */}
               <div className="ml-auto flex items-center gap-1.5">
                 {rmpComments.length > 1 && (
-                  <motion.button
+                  <button
                     className="w-7 h-7 rounded-full flex items-center justify-center glass-pill transition-colors"
                     onClick={prevRmpComment}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <ChevronLeft className="h-3.5 w-3.5 text-brand-navy dark:text-white" />
-                  </motion.button>
+                  </button>
                 )}
                 <span className="text-xs font-semibold px-2 min-w-[44px] text-center rounded-full glass-pill text-brand-navy dark:text-white">
                   {rmpComments.length > 0 ? `${rmpCommentIndex + 1}/${rmpComments.length}` : "0"}
@@ -277,13 +253,12 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                   )}
                 </span>
                 {rmpComments.length > 1 && (
-                  <motion.button
+                  <button
                     className="w-7 h-7 rounded-full flex items-center justify-center glass-pill transition-colors"
                     onClick={nextRmpComment}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <ChevronRight className="h-3.5 w-3.5 text-brand-navy dark:text-white" />
-                  </motion.button>
+                  </button>
                 )}
               </div>
             </div>
@@ -292,14 +267,7 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
           {/* Body — natural height, no fixed constraint */}
           <div className="flex-1">
             {currentRmpComment ? (
-              <motion.div
-                key={`rmp-${rmpCommentIndex}`}
-                className="p-5 flex flex-col gap-3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
+              <div className="p-5 flex flex-col gap-3">
                 <div className="flex items-center">
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Anonymous</div>
@@ -380,7 +348,7 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ) : (
               <div className="p-6 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm min-h-[160px]">
                 No RateMyProfessors comments for this course.
@@ -402,16 +370,11 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
               </svg>
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* See All Comments */}
-      <motion.div
-        className="mt-8 mb-4 flex justify-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
-      >
+      <div className="mt-8 mb-4 flex justify-center">
         <Link
           href={`/course-comments?courseCode=${encodeURIComponent(courseCode)}`}
           className="liquid-btn-blue text-white flex items-center gap-2 px-8 py-2.5 rounded-full"
@@ -419,16 +382,11 @@ export function CourseComments({ courseCode }: CourseCommentsProps) {
           <ExternalLink className="h-4 w-4" />
           See More Details
         </Link>
-      </motion.div>
+      </div>
 
-      <motion.div
-        className="text-center text-xs text-gray-400 dark:text-gray-500 mb-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.4 }}
-      >
+      <div className="text-center text-xs text-gray-400 dark:text-gray-500 mb-2">
         Click the button to filter reviews by professors.
-      </motion.div>
+      </div>
 
     </div>
   );

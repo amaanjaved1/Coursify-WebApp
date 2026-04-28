@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
+import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 import type { UserProfile } from "@/types";
 import { redis } from "@/lib/redis";
+import { z } from "zod";
 import {
   SEMESTER_ZERO_LOCKED_ERROR,
   getSemestersCompletedValidationError,
   isSemesterZeroLocked,
 } from "@/app/api/_lib/academic-profile-validation";
+
+const academicProfileSchema = z.object({
+  semesters_completed: z.number().int().min(0).max(8),
+}).strict();
 
 async function authenticate(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request);
@@ -43,13 +49,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error }, { status: 401 });
   }
 
-  let body: { semesters_completed: number };
+  const rateLimit = await checkRateLimit({
+    keyPrefix: "me:academic-profile:update:user",
+    identifier: user.id,
+    limit: 20,
+    windowSeconds: 10 * 60,
+  });
+  if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
+    return NextResponse.json({ error: "Profile updates are temporarily unavailable." }, { status: 503 });
+  }
+  if (!rateLimit.ok) {
+    return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+  }
+
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const parsedBody = academicProfileSchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const body = parsedBody.data;
   const { semesters_completed } = body;
 
   const validationError = getSemestersCompletedValidationError(semesters_completed);

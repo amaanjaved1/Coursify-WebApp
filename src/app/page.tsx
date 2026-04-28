@@ -1,9 +1,8 @@
 import { type CSSProperties } from "react";
 import Link from "next/link";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer";
 import {
   Brain,
-  BarChart,
   Info,
   Zap,
   Award,
@@ -12,10 +11,10 @@ import {
   Eye,
   Sparkles,
 } from "lucide-react";
-import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
-import { FeatureTabs } from "@/components/landing/FeatureTabs";
-import { PageFaq } from "@/components/landing/Faq";
-import HeroMockupsLoader from "@/components/landing/HeroMockupsLoader";
+import { StudentCountBadge } from "@/components/landing/student-count-badge";
+import { FeatureTabs } from "@/components/landing/feature-tabs";
+import { PageFaq } from "@/components/landing/faq";
+import { CourseSearchBar } from "@/components/course-search-bar";
 
 function SectionGlow({
   className,
@@ -66,13 +65,11 @@ const steps = [
   },
 ];
 
-
 export default function Home() {
   return (
     <div className="relative overflow-hidden">
-
       {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative min-h-screen overflow-x-hidden pt-24 sm:pt-28 pb-6 sm:pb-10">
+      <section className="hero-grid relative min-h-screen overflow-x-hidden pt-16 sm:pt-20 pb-6 sm:pb-10">
         <SectionGlow
           className="left-[6%] top-28 h-72 w-72 blur-[145px] opacity-90"
           gradient="radial-gradient(circle, rgba(0,48,95,0.18) 0%, rgba(0,48,95,0.07) 48%, transparent 76%)"
@@ -87,59 +84,44 @@ export default function Home() {
         />
 
         <div className="container mx-auto px-6 sm:px-8 lg:px-12 relative z-10 min-h-[calc(100svh-6rem)] sm:min-h-[calc(100svh-7rem)] flex items-center">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left — text */}
-            <div>
-              <div className="inline-flex flex-wrap items-center gap-2 mb-8">
-                <div className="inline-flex items-center gap-2 rounded-full glass-pill px-4 py-2">
-                  <Zap className="h-3.5 w-3.5 text-brand-red" />
-                  <span className="text-xs font-semibold text-brand-navy dark:text-white">
-                    Built for Queen&apos;s Students
-                  </span>
-                </div>
-                <StudentCountBadge />
-              </div>
-
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-7 leading-[1.05] tracking-tight">
-                <span className="gradient-text-animated">Course selection</span>
-                <br />
-                <span className="text-brand-navy dark:text-white">
-                  powered by
+          <div className="w-full flex flex-col items-center text-center max-w-3xl mx-auto">
+            {/* Two tags */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+              <div className="inline-flex items-center gap-1.5 rounded-full glass-pill px-3.5 py-1.5">
+                <Zap className="h-3 w-3 text-brand-red" />
+                <span className="text-xs font-medium text-brand-navy dark:text-white">
+                  Queen&apos;s University
                 </span>
-                <br />
-                <span className="gradient-text-animated">AI</span>
-              </h1>
-
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-lg leading-relaxed">
-                Coursify helps you make smarter decisions around course
-                selection by giving you access to historical grade
-                distributions, student reviews, and an AI assistant.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-start gap-4">
-                <Link
-                  href="/queens-answers"
-                  className="liquid-btn-red text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    <Brain className="mr-2 h-5 w-5" />
-                    Ask AI Assistant
-                  </span>
-                </Link>
-                <Link
-                  href="/schools/queens"
-                  className="liquid-btn-blue text-white px-7 py-3 rounded-xl inline-block font-medium w-full sm:w-auto text-center"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    <BarChart className="mr-2 h-5 w-5" />
-                    Browse Courses
-                  </span>
-                </Link>
               </div>
+              <StudentCountBadge />
             </div>
 
-            {/* Right — structured UI mockup cards (desktop only, lazy loaded) */}
-            <HeroMockupsLoader />
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight tracking-tight">
+              <span className="gradient-text-animated">
+                Know your courses before you enroll
+              </span>
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 mb-10 max-w-lg leading-relaxed">
+              Real grade distributions, professor reviews, and an AI assistant
+            </p>
+
+            {/* Search bar — primary CTA */}
+            <CourseSearchBar
+              className="w-full max-w-xl mb-5"
+              placeholder="Search courses by code or name..."
+            />
+
+            {/* Secondary action */}
+            <Link
+              href="/queens-answers"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-navy/60 dark:text-white/50 hover:text-brand-red dark:hover:text-brand-red transition-colors duration-200"
+            >
+              <Brain className="h-4 w-4" />
+              Or ask the AI Assistant
+            </Link>
           </div>
         </div>
       </section>
@@ -165,7 +147,7 @@ export default function Home() {
             </div>
             <h2 className="text-xl sm:text-2xl font-bold mb-2 text-brand-navy dark:text-white">
               Your path to{" "}
-              <span className="gradient-text">smarter decisions</span>
+              <span className="text-brand-gold">smarter decisions</span>
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Get started in minutes. Here&apos;s how Coursify helps you plan
@@ -233,7 +215,6 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* ═══════════════ FAQ ═══════════════ */}
       <section className="section-glass py-12 sm:py-16 px-4 relative overflow-hidden [overflow-anchor:none]">
         <div className="container max-w-4xl mx-auto relative z-10">
@@ -270,15 +251,15 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
           <div className="text-center max-w-2xl">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
-              <span className="gradient-text">Ready to make smarter</span>
+              <span className="text-brand-gold">Ready to make smarter</span>
               <br />
               <span className="text-brand-navy dark:text-white">
                 course decisions?
               </span>
             </h2>
             <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-7">
-              Join Queen&apos;s students who are using Coursify to
-              plan their academic journey.
+              Join Queen&apos;s students who are using Coursify to plan their
+              academic journey.
             </p>
             <Link
               href="/sign-up"
