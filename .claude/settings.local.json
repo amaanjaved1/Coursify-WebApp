@@ -19,7 +19,9 @@
       "Bash([ -f \"C:/Users/Amaan/Projects/Coursify-WebApp/$file\" ])",
       "Bash(git mv *)",
       "Bash(test -f /c/Users/Amaan/Projects/Coursify-WebApp/src/app/schools/queens/\\[courseCode\\]/_components/course-comments.tsx)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(node -e \"const v = require\\('./node_modules/tailwindcss/package.json'\\); console.log\\(v.version\\)\")",
+      "Bash(node -e \"const v = require\\('./node_modules/@tailwindcss/postcss/package.json'\\); console.log\\(v.version\\)\")"
     ]
   }
 }
