@@ -3,52 +3,32 @@ import { createClient } from "@supabase/supabase-js"
 import type { Database, Json } from "@/types/database.types"
 import { filterRmpTagsForDisplay } from "@/lib/rmp-comment-tags"
 import { redis } from "@/lib/redis"
+import type {
+  CourseCommentsPayload,
+  RedditComment,
+  RmpComment,
+  TaggedComment,
+} from "@/lib/comment-contracts"
 import {
   normalizeCourseCodeFromPath,
+} from "@/lib/course-contracts"
+import {
   parseCourseCommentsQuery,
-} from "@/app/api/_lib/course-query-validation"
+} from "@/lib/course-query-validation"
 import { ZodError } from "zod"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-interface CachedRedditComment {
-  text: string
-  course_code: string
-  professor_name: string
-  source_url: string
-  tags: string[]
-  upvotes: number
-  sentiment_label: string
-  created_at: string | null
-}
-
-interface CachedRmpComment {
-  text: string
-  course_code: string
-  professor_name: string
-  source_url: string
-  tags: string[]
-  quality_rating: number
-  difficulty_rating: number
-  sentiment_label: string
-  created_at: string | null
-}
-
-interface CachedPayload {
-  redditComments: CachedRedditComment[]
-  rmpComments: CachedRmpComment[]
-}
-
 function jsonStringArray(value: Json): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
 
-async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
+async function getOrFetchComments(courseCode: string): Promise<CourseCommentsPayload> {
   const cacheKey = `course_comments:${courseCode}`
 
   // Try cache first
-  const cached = await redis.get<CachedPayload>(cacheKey)
+  const cached = await redis.get<CourseCommentsPayload>(cacheKey)
   if (cached) return cached
 
   if (!supabaseUrl || !supabaseKey) {
@@ -83,7 +63,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     throw new Error(`Failed to fetch RMP comments: ${rmpResult.error.message}`)
   }
 
-  const redditComments = (redditResult.data || []).map((row) => ({
+  const redditComments: RedditComment[] = (redditResult.data || []).map((row) => ({
     text: String(row.text ?? ""),
     course_code: String(row.course_code ?? ""),
     professor_name: String(row.professor_name ?? ""),
@@ -94,7 +74,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     created_at: row.created_at ? String(row.created_at) : null,
   }))
 
-  const rmpComments = (rmpResult.data || []).map((row) => ({
+  const rmpComments: RmpComment[] = (rmpResult.data || []).map((row) => ({
     text: String(row.text ?? ""),
     course_code: String(row.course_code ?? ""),
     professor_name: String(row.professor_name ?? ""),
@@ -106,7 +86,7 @@ async function getOrFetchComments(courseCode: string): Promise<CachedPayload> {
     created_at: row.created_at ? String(row.created_at) : null,
   }))
 
-  const payload: CachedPayload = { redditComments, rmpComments }
+  const payload: CourseCommentsPayload = { redditComments, rmpComments }
   await redis.set(cacheKey, payload, { ex: 43200 }) // 12 hours
   return payload
 }
@@ -149,10 +129,6 @@ export async function GET(
     }
 
     // ── Paginated mode: single-source pagination for the detail page ──
-    type TaggedComment =
-      | (CachedRedditComment & { _type: "reddit" })
-      | (CachedRmpComment & { _type: "rmp" })
-
     let comments: TaggedComment[] = []
 
     if (source === "reddit" || source === "all") {

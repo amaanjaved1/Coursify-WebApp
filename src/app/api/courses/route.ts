@@ -4,7 +4,7 @@ import { createHash } from "crypto"
 import { computeDataAvailability } from "@/lib/course-availability"
 import type { Database, Tables } from "@/types/database.types"
 import { redis } from "@/lib/redis"
-import { parseCourseListQuery } from "@/app/api/_lib/course-query-validation"
+import { parseCourseListQuery } from "@/lib/course-query-validation"
 import { ZodError } from "zod"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""

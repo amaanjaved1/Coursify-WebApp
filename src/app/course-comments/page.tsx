@@ -3,10 +3,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, ExternalLink, MessageSquare, User, ChevronDown, X } from 'lucide-react';
-import { getCommentsForCoursePaginated } from '@/lib/db';
-import type { RedditComment, RmpComment, PaginatedCommentsResult } from '@/lib/db';
+import { getCommentsForCoursePaginated } from '@/lib/course-api';
+import type {
+  PaginatedCommentsResult,
+  RedditComment,
+  RmpComment,
+  TaggedComment,
+} from '@/lib/comment-contracts';
 
-type CommentItem = (RedditComment & { _type: 'reddit' }) | (RmpComment & { _type: 'rmp' });
+type CommentItem = TaggedComment;
 
 const COMMENTS_PAGE_CACHE_TTL_MS = 5 * 60 * 1000;
 const COMMENTS_PAGE_CACHE = new Map<string, { cachedAt: number; result: PaginatedCommentsResult }>();
