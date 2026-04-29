@@ -64,15 +64,12 @@ export async function checkRateLimit({
       await client.expire(key, windowSeconds);
     }
 
-    const ttl = await client.ttl(key);
-    const resetSeconds = ttl > 0 ? ttl : windowSeconds;
-
     if (count > limit) {
       return {
         ok: false,
         reason: "rate_limit",
         limit,
-        resetSeconds,
+        resetSeconds: windowSeconds,
       };
     }
 
@@ -80,7 +77,7 @@ export async function checkRateLimit({
       ok: true,
       limit,
       remaining: Math.max(0, limit - count),
-      resetSeconds,
+      resetSeconds: windowSeconds,
     };
   } catch (error) {
     console.error(`[rate-limit] ${keyPrefix} failed:`, error);

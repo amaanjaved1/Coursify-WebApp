@@ -45,16 +45,9 @@ export async function POST(request: NextRequest) {
     windowSeconds: 60,
   });
   if (!burstLimit.ok && burstLimit.reason === "dependency_failure") {
-    return NextResponse.json(
-      {
-        error: "Queen's Answers is temporarily unavailable.",
-        reason: "dependency_failure",
-        dependency: "redis",
-      },
-      { status: 503 },
-    );
+    console.warn("[queens-answers/chat] burst rate-limit unavailable, failing open");
   }
-  if (!burstLimit.ok) {
+  if (!burstLimit.ok && burstLimit.reason !== "dependency_failure") {
     return NextResponse.json(
       {
         error: "Too many requests. Try again shortly.",
@@ -104,7 +97,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const consumeResult = await consumeQuestion(user.id, accessResult.semestersCompleted);
+  const consumeResult = await consumeQuestion(supabase, user.id, accessResult.semestersCompleted);
   if (!consumeResult.ok && consumeResult.reason === "dependency_failure") {
     return NextResponse.json(
       {
