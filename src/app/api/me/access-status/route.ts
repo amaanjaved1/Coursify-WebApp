@@ -40,6 +40,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  await redis.set(cacheKey, accessResult.status, { ex: 1200 });
+  await redis.set(cacheKey, accessResult.status, { ex: 7200 });
   return NextResponse.json(accessResult.status);
 }
