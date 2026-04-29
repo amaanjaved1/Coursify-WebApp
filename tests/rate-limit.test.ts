@@ -3,13 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const incr = vi.hoisted(() => vi.fn())
 const expire = vi.hoisted(() => vi.fn())
-const ttl = vi.hoisted(() => vi.fn())
 const getRequiredRedisClient = vi.hoisted(() => vi.fn())
 
 vi.mock("server-only", () => ({}))
 vi.mock("@/lib/redis", () => ({ getRequiredRedisClient }))
 
-const client = { incr, expire, ttl }
+const client = { incr, expire }
 
 function request(headers: Record<string, string>): NextRequest {
   return new NextRequest("http://localhost/api/test", { headers })
@@ -20,7 +19,6 @@ describe("rate-limit helper", () => {
     vi.clearAllMocks()
     getRequiredRedisClient.mockReturnValue(client)
     expire.mockResolvedValue(undefined)
-    ttl.mockResolvedValue(600)
   })
 
   it("allows requests under the limit and sets the window on the first hit", async () => {
@@ -45,7 +43,6 @@ describe("rate-limit helper", () => {
 
   it("returns a 429-style result after the limit is exceeded", async () => {
     incr.mockResolvedValueOnce(6)
-    ttl.mockResolvedValueOnce(120)
     const { checkRateLimit } = await import("@/app/api/_lib/rate-limit")
 
     const result = await checkRateLimit({
@@ -59,7 +56,7 @@ describe("rate-limit helper", () => {
       ok: false,
       reason: "rate_limit",
       limit: 5,
-      resetSeconds: 120,
+      resetSeconds: 600,
     })
     expect(expire).not.toHaveBeenCalled()
   })
