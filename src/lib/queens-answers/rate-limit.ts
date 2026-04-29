@@ -1,4 +1,4 @@
-import { getRequiredRedisClient } from "@/lib/redis"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export const QA_TIER_LIMITS = { low: 2, mid: 3, high: 4 } as const
 
@@ -11,11 +11,11 @@ export type QAUsage = {
 export type QAConsumeResult =
   | { ok: true; usage: QAUsage }
   | { ok: false; reason: "rate_limit"; usage: QAUsage }
-  | { ok: false; reason: "dependency_failure"; dependency: "redis"; error: string }
+  | { ok: false; reason: "dependency_failure"; dependency: "supabase"; error: string }
 
 export type QAReadUsageResult =
   | { ok: true; usage: QAUsage }
-  | { ok: false; reason: "dependency_failure"; dependency: "redis"; error: string }
+  | { ok: false; reason: "dependency_failure"; dependency: "supabase"; error: string }
 
 export function tierLimitForSemesters(semesters: number | null | undefined): number {
   if (semesters == null || semesters <= 1) return QA_TIER_LIMITS.low
@@ -23,41 +23,58 @@ export function tierLimitForSemesters(semesters: number | null | undefined): num
   return QA_TIER_LIMITS.high
 }
 
-function userKey(userId: string) {
-  return `qa:user:${userId}`
-}
-const ROLLING_USER_TTL_SECONDS = 24 * 60 * 60
-
-async function readCount(key: string): Promise<number> {
-  const client = getRequiredRedisClient()
-  const v = await client.get<number | string>(key)
-  if (v == null) return 0
-  return typeof v === "number" ? v : Number(v) || 0
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
 }
 
 function dependencyFailure(error: unknown) {
-  console.error("[queens-answers/rate-limit] redis failure:", error)
+  console.error("[queens-answers/rate-limit] supabase failure:", error)
   return {
     ok: false as const,
     reason: "dependency_failure" as const,
-    dependency: "redis" as const,
+    dependency: "supabase" as const,
     error: "Queen's Answers quota is temporarily unavailable.",
   }
 }
 
+/**
+ * Resolve the effective daily limit from a raw value.
+ * - null/undefined  → low tier (2)
+ * - any number      → clamped to [low, high] = [2, 4]
+ */
+function resolveLimit(raw: number | null | undefined): number {
+  if (raw == null) return QA_TIER_LIMITS.low
+  return Math.min(Math.max(raw, QA_TIER_LIMITS.low), QA_TIER_LIMITS.high)
+}
+
 export async function readUsage(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any>,
   userId: string,
-  semesters: number | null | undefined,
+  dailyLimit: number | null | undefined,
 ): Promise<QAReadUsageResult> {
   try {
-    const dailyLimit = tierLimitForSemesters(semesters)
-    const used = await readCount(userKey(userId))
+    const limit = resolveLimit(dailyLimit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("qa_daily_usage")
+      .select("count")
+      .eq("user_id", userId)
+      .eq("date", todayIso())
+      .single()
+
+    // PGRST116 = no rows found — user hasn't asked anything today
+    if (error && error.code !== "PGRST116") {
+      return dependencyFailure(error)
+    }
+
+    const used: number = data?.count ?? 0
     return {
       ok: true,
       usage: {
-        dailyLimit,
+        dailyLimit: limit,
         used,
-        remaining: Math.max(0, dailyLimit - used),
+        remaining: Math.max(0, limit - used),
       },
     }
   } catch (error) {
@@ -65,50 +82,41 @@ export async function readUsage(
   }
 }
 
-/**
- * Gate + increment. Order matters:
- *   1. Check user cap → reject "rate_limit" if hit
- *   2. INCR user counter
- *   3. Set TTL on first write (when previous count was 0)
- */
 export async function consumeQuestion(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any>,
   userId: string,
-  semesters: number | null | undefined,
+  dailyLimit: number | null | undefined,
 ): Promise<QAConsumeResult> {
   try {
-    const dailyLimit = tierLimitForSemesters(semesters)
-    const uKey = userKey(userId)
-    const client = getRequiredRedisClient()
+    const limit = resolveLimit(dailyLimit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc("qa_consume_question", {
+      p_user_id: userId,
+      p_daily_limit: limit,
+    })
 
-    const usedBefore = await readCount(uKey)
+    if (error) {
+      return dependencyFailure(error)
+    }
 
-    if (usedBefore >= dailyLimit) {
+    const result = data as { new_count: number; allowed: boolean }
+    const used = result.new_count
+
+    if (!result.allowed) {
       return {
         ok: false,
         reason: "rate_limit",
-        usage: {
-          dailyLimit,
-          used: usedBefore,
-          remaining: 0,
-        },
+        usage: { dailyLimit: limit, used, remaining: 0 },
       }
     }
-
-    const usedAfter = await client.incr(uKey)
-
-    // First write of this user key in the rolling window → set 24h TTL.
-    if (usedBefore === 0) {
-      await client.expire(uKey, ROLLING_USER_TTL_SECONDS)
-    }
-
-    const used = usedAfter ?? usedBefore + 1
 
     return {
       ok: true,
       usage: {
-        dailyLimit,
+        dailyLimit: limit,
         used,
-        remaining: Math.max(0, dailyLimit - used),
+        remaining: Math.max(0, limit - used),
       },
     }
   } catch (error) {
