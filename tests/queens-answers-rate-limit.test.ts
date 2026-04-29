@@ -40,10 +40,11 @@ describe("tierLimitForSemesters", () => {
 
 // ── readUsage ─────────────────────────────────────────────────────────────────
 describe("readUsage", () => {
+  // semesters=1 → tierLimitForSemesters(1) = 2 (low tier)
   it("returns used=0 when no row exists for today (PGRST116)", async () => {
     mockSingle.mockResolvedValue({ data: null, error: { code: "PGRST116" } })
 
-    const result = await readUsage(supabase, "user-1", 2)
+    const result = await readUsage(supabase, "user-1", 1)
 
     expect(result).toEqual({
       ok: true,
@@ -51,6 +52,7 @@ describe("readUsage", () => {
     })
   })
 
+  // semesters=5 → tierLimitForSemesters(5) = 4 (high tier)
   it("returns the current count when a row exists", async () => {
     mockSingle.mockResolvedValue({ data: { count: 2 }, error: null })
 
@@ -62,6 +64,7 @@ describe("readUsage", () => {
     })
   })
 
+  // semesters=null → tierLimitForSemesters(null) = 2; count=5 → remaining clamped to 0
   it("clamps remaining to 0 when count exceeds limit", async () => {
     mockSingle.mockResolvedValue({ data: { count: 5 }, error: null })
 
@@ -89,13 +92,14 @@ describe("readUsage", () => {
 
 // ── consumeQuestion ───────────────────────────────────────────────────────────
 describe("consumeQuestion", () => {
+  // semesters=1 → tierLimitForSemesters(1) = 2 (low tier)
   it("returns ok=true with updated usage when allowed", async () => {
     mockRpc.mockResolvedValue({
       data: { new_count: 1, allowed: true },
       error: null,
     })
 
-    const result = await consumeQuestion(supabase, "user-1", 2)
+    const result = await consumeQuestion(supabase, "user-1", 1)
 
     expect(result).toEqual({
       ok: true,
@@ -107,13 +111,14 @@ describe("consumeQuestion", () => {
     })
   })
 
+  // semesters=1 → limit=2; RPC says not allowed at count=2
   it("returns rate_limit when RPC says not allowed", async () => {
     mockRpc.mockResolvedValue({
       data: { new_count: 2, allowed: false },
       error: null,
     })
 
-    const result = await consumeQuestion(supabase, "user-1", 2)
+    const result = await consumeQuestion(supabase, "user-1", 1)
 
     expect(result).toEqual({
       ok: false,
@@ -126,7 +131,7 @@ describe("consumeQuestion", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
     mockRpc.mockResolvedValue({ data: null, error: { message: "connection failed" } })
 
-    const result = await consumeQuestion(supabase, "user-1", 2)
+    const result = await consumeQuestion(supabase, "user-1", 1)
 
     expect(result).toEqual({
       ok: false,
@@ -141,7 +146,7 @@ describe("consumeQuestion", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
     mockRpc.mockRejectedValue(new Error("network error"))
 
-    const result = await consumeQuestion(supabase, "user-1", 2)
+    const result = await consumeQuestion(supabase, "user-1", 1)
 
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.reason).toBe("dependency_failure")

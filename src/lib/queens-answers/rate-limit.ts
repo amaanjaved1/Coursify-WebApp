@@ -37,24 +37,14 @@ function dependencyFailure(error: unknown) {
   }
 }
 
-/**
- * Resolve the effective daily limit from a raw value.
- * - null/undefined  → low tier (2)
- * - any number      → clamped to [low, high] = [2, 4]
- */
-function resolveLimit(raw: number | null | undefined): number {
-  if (raw == null) return QA_TIER_LIMITS.low
-  return Math.min(Math.max(raw, QA_TIER_LIMITS.low), QA_TIER_LIMITS.high)
-}
-
 export async function readUsage(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any>,
   userId: string,
-  dailyLimit: number | null | undefined,
+  semesters: number | null | undefined,
 ): Promise<QAReadUsageResult> {
   try {
-    const limit = resolveLimit(dailyLimit)
+    const dailyLimit = tierLimitForSemesters(semesters)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("qa_daily_usage")
@@ -72,9 +62,9 @@ export async function readUsage(
     return {
       ok: true,
       usage: {
-        dailyLimit: limit,
+        dailyLimit,
         used,
-        remaining: Math.max(0, limit - used),
+        remaining: Math.max(0, dailyLimit - used),
       },
     }
   } catch (error) {
@@ -86,14 +76,14 @@ export async function consumeQuestion(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any>,
   userId: string,
-  dailyLimit: number | null | undefined,
+  semesters: number | null | undefined,
 ): Promise<QAConsumeResult> {
   try {
-    const limit = resolveLimit(dailyLimit)
+    const dailyLimit = tierLimitForSemesters(semesters)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any).rpc("qa_consume_question", {
       p_user_id: userId,
-      p_daily_limit: limit,
+      p_daily_limit: dailyLimit,
     })
 
     if (error) {
@@ -107,16 +97,16 @@ export async function consumeQuestion(
       return {
         ok: false,
         reason: "rate_limit",
-        usage: { dailyLimit: limit, used, remaining: 0 },
+        usage: { dailyLimit, used, remaining: 0 },
       }
     }
 
     return {
       ok: true,
       usage: {
-        dailyLimit: limit,
+        dailyLimit,
         used,
-        remaining: Math.max(0, limit - used),
+        remaining: Math.max(0, dailyLimit - used),
       },
     }
   } catch (error) {
