@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { redis } from "@/lib/redis";
 import { z } from "zod";
 import { checkRateLimit, getClientIp } from "@/app/api/_lib/rate-limit";
 
@@ -98,12 +97,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
-  const cacheKey = `auth:signup_status:email:${email}`;
-  const cached = await redis.get<{ exists: boolean; verified: boolean }>(cacheKey);
-  if (cached) {
-    return NextResponse.json({ email, ...cached });
-  }
-
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -111,8 +104,6 @@ export async function POST(request: NextRequest) {
   const user = await findUserByEmail(admin, email);
   const exists = Boolean(user);
   const verified = user ? getIsEmailVerified(user) : false;
-
-  await redis.set(cacheKey, { exists, verified }, { ex: 10 * 60 });
 
   return NextResponse.json({ email, exists, verified });
 }
