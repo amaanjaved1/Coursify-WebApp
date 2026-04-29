@@ -88,6 +88,17 @@ describe("readUsage", () => {
     })
     consoleError.mockRestore()
   })
+
+  it("returns dependency_failure when .single() throws", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    mockSingle.mockRejectedValue(new Error("network error"))
+
+    const result = await readUsage(supabase, "user-1", 1)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe("dependency_failure")
+    consoleError.mockRestore()
+  })
 })
 
 // ── consumeQuestion ───────────────────────────────────────────────────────────
