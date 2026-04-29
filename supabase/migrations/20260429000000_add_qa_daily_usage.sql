@@ -37,6 +37,7 @@ begin
   for update;
 
   if v_count >= p_daily_limit then
+    -- denied: v_count is the current (non-incremented) count, returned as new_count for client consistency
     return jsonb_build_object('new_count', v_count, 'allowed', false);
   end if;
 
