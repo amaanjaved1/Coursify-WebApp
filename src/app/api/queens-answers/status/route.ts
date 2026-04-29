@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const usageResult = await readUsage(user.id, accessResult.semestersCompleted)
+  const usageResult = await readUsage(supabase, user.id, accessResult.semestersCompleted)
   if (!usageResult.ok) {
     return NextResponse.json(
       {
