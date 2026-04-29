@@ -16,11 +16,13 @@ create policy "qa_daily_usage_select_own" on public.qa_daily_usage
   for select using (auth.uid () = user_id);
 
 -- Atomic gate-then-increment. Returns { new_count, allowed }.
+-- SECURITY DEFINER lets authenticated callers execute this without direct table INSERT/UPDATE rights.
 -- FOR UPDATE prevents concurrent requests from both passing the cap check.
 create or replace function public.qa_consume_question (p_user_id uuid, p_daily_limit integer)
 returns jsonb
 language plpgsql
 security definer
+set search_path = public, pg_catalog
 as $$
 declare
   v_count integer;
@@ -46,3 +48,5 @@ begin
   return jsonb_build_object('new_count', v_count, 'allowed', true);
 end;
 $$;
+
+grant execute on function public.qa_consume_question (uuid, integer) to authenticated;
