@@ -21,7 +21,10 @@
       "Bash(test -f /c/Users/Amaan/Projects/Coursify-WebApp/src/app/schools/queens/\\[courseCode\\]/_components/course-comments.tsx)",
       "Bash(git stash *)",
       "Bash(node -e \"const v = require\\('./node_modules/tailwindcss/package.json'\\); console.log\\(v.version\\)\")",
-      "Bash(node -e \"const v = require\\('./node_modules/@tailwindcss/postcss/package.json'\\); console.log\\(v.version\\)\")"
+      "Bash(node -e \"const v = require\\('./node_modules/@tailwindcss/postcss/package.json'\\); console.log\\(v.version\\)\")",
+      "Bash(npx vitest *)",
+      "mcp__plugin_supabase_supabase__list_migrations",
+      "mcp__plugin_supabase_supabase__apply_migration"
     ]
   }
 }

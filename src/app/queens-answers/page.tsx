@@ -286,7 +286,7 @@ function AIFeatures() {
         {/* Limit info pill — always visible at top when user is loaded */}
         {user && !authLoading && !statusLoading && (remaining !== null || limitHit !== null) && (
           <div
-            className="mt-6 sm:mt-3 px-4 py-3 shrink-0 rounded-2xl w-64 bg-white dark:bg-zinc-800 border border-brand-navy/10 dark:border-white/10 shadow-[0_2px_8px_rgba(0,48,95,0.08),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]"
+            className="mt-8 sm:mt-4 px-4 py-3 shrink-0 rounded-2xl w-64 bg-white dark:bg-zinc-800 border border-brand-navy/10 dark:border-white/10 shadow-[0_2px_8px_rgba(0,48,95,0.08),0_1px_2px_rgba(0,48,95,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]"
           >
             {/* Personal row */}
             {remaining !== null && tierLimit !== null && (
@@ -598,22 +598,20 @@ function AIFeatures() {
         
         .gradient-text {
           background: linear-gradient(
-            90deg, 
-            #00305f 0%, 
-            #d62839 30%, 
-            #efb215 60%, 
+            90deg,
+            #00305f 0%,
+            #d62839 30%,
+            #efb215 60%,
             #00305f 100%
           );
-          background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          text-fill-color: transparent;
-          animation: shine 8s linear infinite, float 3s ease-in-out infinite;
+          animation: float 3s ease-in-out infinite;
           display: inline-block;
-          text-shadow: 0 0 3px rgba(0, 48, 95, 0.1);
+          will-change: transform;
         }
-        
+
         :is(.dark) .gradient-text {
           background: linear-gradient(
             90deg,
@@ -622,18 +620,9 @@ function AIFeatures() {
             #ffc940 58%,
             #e5e7eb 100%
           );
-          background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          text-fill-color: transparent;
-          text-shadow: none;
-        }
-        
-        @keyframes shine {
-          to {
-            background-position: 200% center;
-          }
         }
         
         @keyframes float {
