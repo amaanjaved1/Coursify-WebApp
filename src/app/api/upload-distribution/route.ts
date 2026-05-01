@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const rateLimit = await checkRateLimit({
     keyPrefix: "upload-distribution:user",
     identifier: user.id,
-    limit: 5,
+    limit: 8,
     windowSeconds: 60 * 60,
   });
   if (!rateLimit.ok && rateLimit.reason === "dependency_failure") {
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
   if (!rateLimit.ok && rateLimit.reason !== "dependency_failure") {
     return failureResponse(
       {
-        errors: ["Too many upload attempts. Try again later."],
+        errors: ["You've reached the limit of 8 uploads per hour. Try again in 1 hour."],
       },
       429,
     );

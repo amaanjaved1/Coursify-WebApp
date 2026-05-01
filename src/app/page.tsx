@@ -1,5 +1,6 @@
 import { type CSSProperties } from "react";
 import Link from "next/link";
+import ReactCountryFlag from "react-country-flag";
 import Footer from "@/components/footer";
 import {
   Brain,
@@ -87,9 +88,9 @@ export default function Home() {
           <div className="w-full flex flex-col items-center text-center max-w-3xl mx-auto">
             {/* Two tags */}
             <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-              <div className="inline-flex items-center gap-1.5 rounded-full glass-pill px-3.5 py-1.5">
-                <Zap className="h-3 w-3 text-brand-red" />
-                <span className="text-xs font-medium text-brand-navy dark:text-white">
+              <div className="inline-flex items-center gap-2 rounded-full glass-pill px-4 py-2">
+                <ReactCountryFlag countryCode="RO" svg style={{ width: "1rem", height: "1rem" }} />
+                <span className="text-xs font-semibold text-brand-navy dark:text-white whitespace-nowrap">
                   Queen&apos;s University
                 </span>
               </div>
