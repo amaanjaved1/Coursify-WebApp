@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import type { CourseWithStats, GradeDistribution } from "@/types"
 import { redis } from "@/lib/redis"
+import { sortByAcademicTermDescending } from "@/lib/academic-terms"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -62,7 +63,6 @@ export async function GET(
       .from("course_distributions")
       .select("*")
       .eq("course_id", courseId)
-      .order("term", { ascending: false })
 
     if (distError) {
       console.error(`Error fetching distributions for course ${courseCode}:`, distError)
@@ -72,7 +72,9 @@ export async function GET(
       toGradeDistribution(row as Record<string, unknown>)
     )
 
-    const uniqueDistributions = Array.from(new Map(distributions.map((d) => [d.term, d])).values())
+    const uniqueDistributions = sortByAcademicTermDescending(
+      Array.from(new Map(distributions.map((d) => [d.term, d])).values())
+    )
 
     const totalGPA = uniqueDistributions.reduce((sum, dist) => sum + dist.average_gpa, 0)
     const totalEnrollment = uniqueDistributions.reduce((sum, dist) => sum + dist.enrollment, 0)

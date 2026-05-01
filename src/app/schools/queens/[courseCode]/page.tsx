@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useTheme } from "next-themes";
 import { useMotionTier, type MotionTier } from "@/lib/motion-prefs";
+import { sortByAcademicTermAscending, sortByAcademicTermDescending } from "@/lib/academic-terms";
 
 const GRADE_LABELS = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
 
@@ -216,8 +217,9 @@ export default function CourseDetailPage() {
           const uniqueDistributions = Array.from(
             new Map(courseData.distributions.map(dist => [dist.term, dist])).values()
           );
-          courseData.distributions = uniqueDistributions;
-          setSelectedTerm(uniqueDistributions[0].term);
+          const sortedDistributions = sortByAcademicTermDescending(uniqueDistributions);
+          courseData.distributions = sortedDistributions;
+          setSelectedTerm(sortedDistributions[0].term);
         }
         setCourse(courseData);
         setLoading(false);
@@ -266,7 +268,9 @@ export default function CourseDetailPage() {
     : [];
 
   const termGpaData = hasDistributions
-    ? course.distributions.map(dist => ({ term: dist.term, gpa: dist.average_gpa })).reverse()
+    ? sortByAcademicTermAscending(
+        course.distributions.map(dist => ({ term: dist.term, gpa: dist.average_gpa }))
+      )
     : [];
 
   const facultyName = course.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
