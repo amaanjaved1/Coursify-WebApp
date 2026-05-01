@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import { Info, UploadCloud, AlertTriangle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { UploadCloud, AlertTriangle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import Image from "next/image"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AuthModal } from "@/components/auth-modal"
@@ -39,32 +39,44 @@ export default function AddCoursesPage() {
   const doneCount = files.filter(f => f.status === "done").length
   const duplicateCount = files.filter(f => f.status === "duplicate").length
   const errorCount = files.filter(f => f.status === "error").length
+  const queuedCount = files.filter(f => f.status === "queued").length
 
   const appendFiles = (incoming: File[]) => {
-    setFileCountError(null)
     const validFiles = incoming.filter(f => f.type === "application/pdf" || f.name.endsWith(".pdf"))
     const invalidCount = incoming.length - validFiles.length
-    if (invalidCount > 0) {
-      setFileCountError(`${invalidCount} file${invalidCount !== 1 ? "s are" : " is"} not a PDF and was ignored.`)
+
+    const oversizedFiles = validFiles.filter(f => f.size > 5 * 1024 * 1024)
+    const sizeOkFiles = validFiles.filter(f => f.size <= 5 * 1024 * 1024)
+    if (oversizedFiles.length > 0) {
+      setFileCountError(`${oversizedFiles.length} file${oversizedFiles.length !== 1 ? "s exceed" : " exceeds"} the 5 MB limit and was ignored.`)
     }
-    if (files.length + validFiles.length > 5) {
-      setFileCountError("You can upload a maximum of 5 files at a time.")
-      return
-    }
-    const entries: FileEntry[] = validFiles.map(f => ({
-      id: crypto.randomUUID(),
-      file: f,
-      status: "queued",
-      result: null,
-      error: null,
-      duplicateTerm: null,
-      showSkipped: false,
-      showDuplicates: false,
-    }))
-    setFiles(prev => [...prev, ...entries])
+
+    setFiles(prev => {
+      if (prev.length + sizeOkFiles.length > 5) {
+        setFileCountError("You can upload a maximum of 5 files at a time.")
+        return prev
+      }
+      if (invalidCount > 0) {
+        setFileCountError(`${invalidCount} file${invalidCount !== 1 ? "s are" : " is"} not a PDF and was ignored.`)
+      } else if (oversizedFiles.length === 0) {
+        setFileCountError(null)
+      }
+      const entries: FileEntry[] = sizeOkFiles.map(f => ({
+        id: crypto.randomUUID(),
+        file: f,
+        status: "queued",
+        result: null,
+        error: null,
+        duplicateTerm: null,
+        showSkipped: false,
+        showDuplicates: false,
+      }))
+      return [...prev, ...entries]
+    })
   }
 
   const removeFile = (id: string) => {
+    setFileCountError(null)
     setFiles(prev => prev.filter(f => f.id !== id))
   }
 
@@ -103,6 +115,10 @@ export default function AddCoursesPage() {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
+  const handleRetryErrors = () => {
+    setFiles(prev => prev.map(f => f.status === "error" ? { ...f, status: "queued", error: null } : f))
+  }
+
   const handleUploadAll = async () => {
     if (!user) { setIsModalOpen(true); return }
     setIsProcessing(true)
@@ -117,16 +133,17 @@ export default function AddCoursesPage() {
       return
     }
 
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].status !== "queued") continue
+    for (const entry of files) {
+      if (entry.status !== "queued") continue
+      const entryId = entry.id
 
-      setFiles(prev => prev.map((f, idx) =>
-        idx === i ? { ...f, status: "uploading" } : f
+      setFiles(prev => prev.map(f =>
+        f.id === entryId ? { ...f, status: "uploading" } : f
       ))
 
       try {
         const formData = new FormData()
-        formData.append("file", files[i].file)
+        formData.append("file", entry.file)
 
         const response = await fetch("/api/upload-distribution", {
           method: "POST",
@@ -134,24 +151,29 @@ export default function AddCoursesPage() {
           body: formData,
         })
 
-        const result: UploadDistributionResponse = await response.json()
+        let result: Partial<UploadDistributionResponse> = {}
+        try {
+          result = await response.json()
+        } catch {
+          throw new Error("Server returned an unreadable response.")
+        }
 
         if (!response.ok || !result.success) {
           if (result.reason === "already_uploaded") {
-            setFiles(prev => prev.map((f, idx) =>
-              idx === i ? { ...f, status: "duplicate", duplicateTerm: result.term ?? null, result } : f
+            setFiles(prev => prev.map(f =>
+              f.id === entryId ? { ...f, status: "duplicate", duplicateTerm: result.term ?? null, result: result as UploadDistributionResponse } : f
             ))
             continue
           }
           throw new Error(result.errors?.[0] || "Upload failed.")
         }
 
-        setFiles(prev => prev.map((f, idx) =>
-          idx === i ? { ...f, status: "done", result } : f
+        setFiles(prev => prev.map(f =>
+          f.id === entryId ? { ...f, status: "done", result: result as UploadDistributionResponse } : f
         ))
       } catch (error) {
-        setFiles(prev => prev.map((f, idx) =>
-          idx === i
+        setFiles(prev => prev.map(f =>
+          f.id === entryId
             ? { ...f, status: "error", error: error instanceof Error ? error.message : "Upload failed. Please try again." }
             : f
         ))
@@ -184,7 +206,11 @@ export default function AddCoursesPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden mesh-gradient pt-20">
+    <div
+      className="relative min-h-screen overflow-hidden mesh-gradient pt-20"
+      onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+      onDrop={(e) => { e.preventDefault(); e.stopPropagation() }}
+    >
       <div className="container mx-auto py-12 px-4 md:px-6 relative z-10">
         <div className="max-w-2xl mx-auto">
 
@@ -202,7 +228,6 @@ export default function AddCoursesPage() {
             <Dialog>
               <DialogTrigger asChild>
                 <button className="liquid-btn-red text-white px-6 py-2.5 rounded-full inline-flex items-center gap-2 font-medium text-sm">
-                  <Info className="h-4 w-4" />
                   How To Find SOLUS Distribution
                 </button>
               </DialogTrigger>
@@ -284,7 +309,7 @@ export default function AddCoursesPage() {
               {/* ── File queue list ── */}
               {files.length > 0 && (
                 <div className="space-y-2">
-                  {files.map((entry, idx) => (
+                  {files.map((entry) => (
                     <div key={entry.id} className="rounded-2xl border border-brand-navy/10 dark:border-white/10 overflow-hidden">
 
                       {/* File row header */}
@@ -398,7 +423,7 @@ export default function AddCoursesPage() {
                           <p className="text-xs text-amber-700/85 dark:text-amber-400/80">
                             {entry.duplicateTerm
                               ? `You already submitted this term's distribution (${entry.duplicateTerm}). It's already counted toward your contribution.`
-                              : "You already submitted a distribution for this term."}
+                              : "You already submitted a distribution for this term. It's already counted toward your contribution."}
                           </p>
                         </div>
                       )}
@@ -420,7 +445,7 @@ export default function AddCoursesPage() {
                     onClick={handleUploadAll}
                     className="liquid-btn-blue text-white rounded-full px-6 py-2.5 text-sm font-medium"
                   >
-                    Upload {files.filter(f => f.status === "queued").length} file{files.filter(f => f.status === "queued").length !== 1 ? "s" : ""}
+                    Upload {queuedCount} file{queuedCount !== 1 ? "s" : ""}
                   </button>
                 </div>
               )}
@@ -454,7 +479,12 @@ export default function AddCoursesPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center gap-3">
+                    {errorCount > 0 && (
+                      <button onClick={handleRetryErrors} className="liquid-btn-blue text-white rounded-full px-6 py-2.5 text-sm font-medium">
+                        Retry {errorCount} failed
+                      </button>
+                    )}
                     <button onClick={handleReset} className="liquid-btn-red text-white rounded-full px-6 py-2.5 text-sm font-medium">
                       Upload More Files
                     </button>
