@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { AccessStatus } from "@/types"
+import { getCurrentSeasonalDueTerm } from "@/lib/seasonal-term-policy"
 
 type ConfirmedAccessStatusSuccess = {
   ok: true
@@ -33,23 +34,6 @@ export type CalculateAccessStatusInput = {
 export type CalculatedAccessStatus = {
   status: AccessStatus
   semestersCompleted: number | null
-}
-
-function getDueTerm(): string | null {
-  const now = new Date()
-  const month = now.getMonth() + 1
-  const day = now.getDate()
-  const year = now.getFullYear()
-
-  if (month === 2 || month === 3 || (month === 4 && day <= 28)) {
-    return `Fall ${year - 1}`
-  }
-
-  if ((month === 5 && day >= 15) || month === 6 || month === 7 || (month === 8 && day <= 15)) {
-    return `Winter ${year}`
-  }
-
-  return null
 }
 
 function dependencyFailure(context: string, error: unknown): ConfirmedAccessStatusFailure {
@@ -121,7 +105,7 @@ export async function getConfirmedAccessStatus(
   const preliminaryStatus = calculateAccessStatus({
     profile,
     uploadCount: upload_count,
-    dueTerm: getDueTerm(),
+    dueTerm: getCurrentSeasonalDueTerm(),
     hasSeasonalUpload: false,
   })
 

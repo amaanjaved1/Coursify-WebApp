@@ -98,7 +98,7 @@ export interface AccessStatus {
   required_uploads: number;         // 0 = exempt, 1–6 based on semesters completed
   needs_onboarding: boolean;
   pending_seasonal_upload: boolean; // true if due term not yet uploaded
-  due_term: string | null;          // e.g. "Fall 2025"
+  due_term: string | null;          // e.g. "F25"
 }
 
 // PDF Upload Types
