@@ -34,12 +34,12 @@ export function GpaTrendChart({ course, termGpaData, isDark }: GpaTrendChartProp
       </div>
 
       {termGpaData.length > 0 ? (
-        <div className="mt-4 flex min-h-[200px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl chart-area-bg">
+        <div className="relative mt-4 flex min-h-[200px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl chart-area-bg">
           <div className="min-h-0 h-full min-w-0 w-full flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={termGpaData}
-                margin={{ top: 12, right: 12, left: 10, bottom: termGpaData.length > 6 ? 36 : 28 }}
+                margin={{ top: 12, right: 48, left: 0, bottom: termGpaData.length > 6 ? 36 : 28 }}
               >
                 <defs>
                   <linearGradient id={`gpaAreaFill-${course.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -58,8 +58,7 @@ export function GpaTrendChart({ course, termGpaData, isDark }: GpaTrendChartProp
                   tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#9ca3af' }}
                   axisLine={false}
                   tickLine={false}
-                  dy={6}
-                  label={{ value: 'Term', position: 'insideBottom', offset: termGpaData.length > 6 ? -4 : 2, style: { fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 600 } }}
+                  dy={4}
                 />
                 <YAxis
                   domain={GPA_TREND_Y_DOMAIN}
@@ -113,6 +112,9 @@ export function GpaTrendChart({ course, termGpaData, isDark }: GpaTrendChartProp
                 />
               </AreaChart>
             </ResponsiveContainer>
+          </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            Term
           </div>
         </div>
       ) : (

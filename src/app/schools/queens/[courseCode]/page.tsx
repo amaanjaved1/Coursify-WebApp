@@ -15,6 +15,7 @@ import {
   gpaBadgeClass,
   GpaSpectrumBar,
 } from './_lib/gpa-utils'
+import { sortByAcademicTermAscending, sortByAcademicTermDescending } from '@/lib/academic-terms';
 
 function CourseDetailSkeleton() {
   return (
@@ -88,8 +89,9 @@ export default function CourseDetailPage() {
           const uniqueDistributions = Array.from(
             new Map(courseData.distributions.map(dist => [dist.term, dist])).values()
           );
-          courseData.distributions = uniqueDistributions;
-          setSelectedTerm(uniqueDistributions[0].term);
+          const sortedDistributions = sortByAcademicTermDescending(uniqueDistributions);
+          courseData.distributions = sortedDistributions;
+          setSelectedTerm(sortedDistributions[0].term);
         }
         setCourse(courseData);
         setLoading(false);
@@ -106,7 +108,9 @@ export default function CourseDetailPage() {
   const enrollmentBarMax = 600;
   const enrollmentBarPct = Math.min((enrollmentRounded / enrollmentBarMax) * 100, 100);
   const termGpaData = course?.distributions?.length
-    ? course.distributions.map((d) => ({ term: d.term, gpa: d.average_gpa })).reverse()
+    ? sortByAcademicTermAscending(
+        course.distributions.map((d) => ({ term: d.term, gpa: d.average_gpa }))
+      )
     : [];
   const facultyName = course?.department?.replace(/^Offering Faculty:/, '') || 'Faculty of Arts and Science';
 
