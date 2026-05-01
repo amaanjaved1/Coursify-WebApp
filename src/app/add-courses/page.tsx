@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import { UploadCloud, AlertTriangle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { Info, UploadCloud, AlertTriangle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import Image from "next/image"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { AuthModal } from "@/components/auth-modal"
@@ -228,6 +228,7 @@ export default function AddCoursesPage() {
             <Dialog>
               <DialogTrigger asChild>
                 <button className="liquid-btn-red text-white px-6 py-2.5 rounded-full inline-flex items-center gap-2 font-medium text-sm">
+                  <Info className="h-4 w-4" />
                   How To Find SOLUS Distribution
                 </button>
               </DialogTrigger>
