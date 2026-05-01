@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database.types"
 import type { CourseWithStats } from "@/types"
 import { redis } from "@/lib/redis"
+import { sortByAcademicTermDescending } from "@/lib/academic-terms"
 import {
   normalizeCourseCodeFromPath,
   toGradeDistribution,
@@ -52,7 +53,6 @@ export async function GET(
       .from("course_distributions")
       .select("*")
       .eq("course_id", courseId)
-      .order("term", { ascending: false })
 
     if (distError) {
       console.error(`Error fetching distributions for course ${courseCode}:`, distError)
@@ -60,7 +60,9 @@ export async function GET(
 
     const distributions = (distError ? [] : distributionsData || []).map(toGradeDistribution)
 
-    const uniqueDistributions = Array.from(new Map(distributions.map((d) => [d.term, d])).values())
+    const uniqueDistributions = sortByAcademicTermDescending(
+      Array.from(new Map(distributions.map((d) => [d.term, d])).values())
+    )
 
     const totalGPA = uniqueDistributions.reduce((sum, dist) => sum + dist.average_gpa, 0)
     const totalEnrollment = uniqueDistributions.reduce((sum, dist) => sum + dist.enrollment, 0)
