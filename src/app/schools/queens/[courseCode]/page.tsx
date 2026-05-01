@@ -693,8 +693,8 @@ export default function CourseDetailPage() {
                     data={termGpaData}
                     margin={{
                       top: 12,
-                      right: 12,
-                      left: 10,
+                      right: 48,
+                      left: 0,
                       bottom: termGpaData.length > 6 ? 36 : 28,
                     }}
                   >
