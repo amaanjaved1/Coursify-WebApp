@@ -20,9 +20,9 @@ export function toCanonicalTermCode(term: string): string | null {
 }
 
 export function getCurrentSeasonalDueTerm(now = new Date()): string | null {
-  const month = now.getMonth() + 1
-  const day = now.getDate()
-  const year = now.getFullYear()
+  const month = now.getUTCMonth() + 1
+  const day = now.getUTCDate()
+  const year = now.getUTCFullYear()
 
   if (month === 2 || month === 3 || (month === 4 && day <= 28)) {
     return toCanonicalTermCode(`${year - 1} Fall`)
