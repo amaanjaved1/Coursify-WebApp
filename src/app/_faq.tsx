@@ -22,44 +22,44 @@ const faqs = [
   },
   {
     question: "What courses are supported?",
-    answer: "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our data and AI assistant focus exclusively on in-person course offerings.",
+    answer: "Currently, Coursify supports all Queen's University courses. We continuously expand our database to include new courses and updated information each semester.",
+  },
+  {
+    question: "Can I upload grade distributions?",
+    answer: "Yes! If you have access to grade distribution data that isn't currently in our system, you can upload it through your settings page. This helps keep our database comprehensive and up-to-date for all students.",
   },
 ];
 
-const colorClasses = [
-  { iconBg: "bg-brand-red/10", iconText: "text-brand-red" },
-  { iconBg: "bg-brand-navy/10 dark:bg-brand-navy-light/20", iconText: "text-brand-navy dark:text-white" },
-  { iconBg: "bg-brand-gold/10", iconText: "text-brand-gold" },
-];
-
-export function PageFaq() {
-  const [open, setOpen] = useState<number | null>(null);
+export default function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="space-y-3">
-      {faqs.map((faq, index) => {
-        const colors = colorClasses[index % 3];
-        const isOpen = open === index;
-        return (
+    <div className="max-w-3xl mx-auto">
+      <div className="space-y-4">
+        {faqs.map((faq, index) => (
           <div
             key={index}
-            className="glass-accordion rounded-2xl p-6 cursor-pointer select-none"
-            onClick={() => setOpen(isOpen ? null : index)}
+            className="border border-gray-200 rounded-lg overflow-hidden"
           >
-            <div className="flex items-start">
-              <div className={`mr-4 mt-0.5 flex shrink-0 items-center justify-center w-6 h-6 rounded-full ${colors.iconBg} ${colors.iconText}`}>
-                <ChevronDown className={`h-3.5 w-3.5 ${isOpen ? "rotate-180" : ""}`} />
+            <button
+              className="w-full px-6 py-4 text-left bg-white hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors duration-200 flex justify-between items-center"
+              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+            >
+              <span className="font-medium text-gray-900">{faq.question}</span>
+              <ChevronDown
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                  openIndex === index ? "transform rotate-180" : ""
+                }`}
+              />
+            </button>
+            {openIndex === index && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-brand-navy dark:text-white">{faq.question}</h3>
-                {isOpen && (
-                  <p className="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>
-                )}
-              </div>
-            </div>
+            )}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
