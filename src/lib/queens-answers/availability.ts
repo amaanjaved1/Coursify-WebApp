@@ -6,3 +6,8 @@ export const QUEENS_ANSWERS_DISABLED_ERROR =
 export const QUEENS_ANSWERS_DISABLED_DETAIL =
   "Daily question quotas are paused while the feature is disabled."
 
+export const QUEENS_ANSWERS_DISABLED_RESPONSE_BODY = {
+  error: QUEENS_ANSWERS_DISABLED_ERROR,
+  reason: QUEENS_ANSWERS_DISABLED_REASON,
+  detail: QUEENS_ANSWERS_DISABLED_DETAIL,
+} as const

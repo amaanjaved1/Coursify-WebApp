@@ -22,6 +22,7 @@ vi.mock("@/lib/queens-answers/rate-limit", () => ({
 
 const statusRoute = await import("@/app/api/queens-answers/status/route")
 const chatRoute = await import("@/app/api/queens-answers/chat/route")
+const { QUEENS_ANSWERS_DISABLED_RESPONSE_BODY } = await import("@/lib/queens-answers/availability")
 
 function getRequest(): NextRequest {
   return new NextRequest("http://localhost/api/queens-answers/status")
@@ -104,11 +105,7 @@ describe("Queen's Answers status route", () => {
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data).toMatchObject({
-      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
-      reason: "feature_unavailable",
-      detail: "Daily question quotas are paused while the feature is disabled.",
-    })
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
     expect(readUsage).not.toHaveBeenCalled()
   })
 })
@@ -177,11 +174,7 @@ describe("Queen's Answers chat route", () => {
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data).toMatchObject({
-      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
-      reason: "feature_unavailable",
-      detail: "Daily question quotas are paused while the feature is disabled.",
-    })
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 })

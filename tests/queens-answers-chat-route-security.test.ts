@@ -17,6 +17,7 @@ vi.mock("@/app/api/_lib/confirmed-access-status", () => ({
 vi.mock("@/lib/queens-answers/rate-limit", () => ({ consumeQuestion }))
 
 const { POST } = await import("@/app/api/queens-answers/chat/route")
+const { QUEENS_ANSWERS_DISABLED_RESPONSE_BODY } = await import("@/lib/queens-answers/availability")
 
 function request(body: unknown): NextRequest {
   return new NextRequest("http://localhost/api/queens-answers/chat", {
@@ -88,11 +89,7 @@ describe("queens answers chat route validation", () => {
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data).toMatchObject({
-      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
-      reason: "feature_unavailable",
-      detail: "Daily question quotas are paused while the feature is disabled.",
-    })
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
     expect(checkRateLimit).toHaveBeenCalled()
     expect(getConfirmedAccessStatus).toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()

@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status";
 import { checkRateLimit } from "@/app/api/_lib/rate-limit";
-import {
-  QUEENS_ANSWERS_DISABLED_DETAIL,
-  QUEENS_ANSWERS_DISABLED_ERROR,
-  QUEENS_ANSWERS_DISABLED_REASON,
-} from "@/lib/queens-answers/availability";
+import { QUEENS_ANSWERS_DISABLED_RESPONSE_BODY } from "@/lib/queens-answers/availability";
 import { z } from "zod";
 
 const chatQuestionSchema = z.object({
@@ -102,11 +98,7 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json(
-    {
-      error: QUEENS_ANSWERS_DISABLED_ERROR,
-      reason: QUEENS_ANSWERS_DISABLED_REASON,
-      detail: QUEENS_ANSWERS_DISABLED_DETAIL,
-    },
+    QUEENS_ANSWERS_DISABLED_RESPONSE_BODY,
     { status: 503 },
   );
 }
