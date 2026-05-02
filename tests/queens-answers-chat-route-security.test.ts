@@ -48,6 +48,19 @@ describe("queens answers chat route validation", () => {
       remaining: 19,
       resetSeconds: 60,
     })
+    getConfirmedAccessStatus.mockResolvedValue({
+      ok: true,
+      status: {
+        has_access: true,
+        is_exempt: false,
+        upload_count: 2,
+        required_uploads: 2,
+        needs_onboarding: false,
+        pending_seasonal_upload: false,
+        due_term: null,
+      },
+      semestersCompleted: 2,
+    })
   })
 
   it("returns a specific error for malformed JSON", async () => {
@@ -67,6 +80,21 @@ describe("queens answers chat route validation", () => {
     expect(response.status).toBe(400)
     expect(data.error).toBe("Question is required")
     expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
+    expect(consumeQuestion).not.toHaveBeenCalled()
+  })
+
+  it("returns explicit disabled state without consuming quota", async () => {
+    const response = await POST(request({ question: "Which course should I take?" }))
+    const data = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(data).toMatchObject({
+      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
+      reason: "feature_unavailable",
+      detail: "Daily question quotas are paused while the feature is disabled.",
+    })
+    expect(checkRateLimit).toHaveBeenCalled()
+    expect(getConfirmedAccessStatus).toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 })

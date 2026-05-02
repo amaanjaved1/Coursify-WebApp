@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
 import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status";
 import { checkRateLimit } from "@/app/api/_lib/rate-limit";
-import { consumeQuestion } from "@/lib/queens-answers/rate-limit";
+import {
+  QUEENS_ANSWERS_DISABLED_DETAIL,
+  QUEENS_ANSWERS_DISABLED_ERROR,
+  QUEENS_ANSWERS_DISABLED_REASON,
+} from "@/lib/queens-answers/availability";
 import { z } from "zod";
 
 const chatQuestionSchema = z.object({
@@ -97,38 +101,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const consumeResult = await consumeQuestion(supabase, user.id, accessResult.semestersCompleted);
-  if (!consumeResult.ok && consumeResult.reason === "dependency_failure") {
-    return NextResponse.json(
-      {
-        error: consumeResult.error,
-        reason: consumeResult.reason,
-        dependency: consumeResult.dependency,
-      },
-      { status: 503 },
-    );
-  }
-
-  if (!consumeResult.ok && consumeResult.reason === "rate_limit") {
-    return NextResponse.json(
-      {
-        error: `You've used your ${consumeResult.usage.dailyLimit} daily questions. Resets within 24 hours.`,
-        reason: "rate_limit",
-      },
-      { status: 429 },
-    );
-  }
-
-  // TODO: Replace with Gemini 2.0 Flash call.
-  // If the AI API returns a rate limit error, return:
-  // { answer: "API rate limit achieved for the system. It resets daily.", remaining: Math.max(0, tierLimit - newUserCount) }
-  const delay = 1500 + Math.random() * 1000;
-  await new Promise((resolve) => setTimeout(resolve, delay));
-  const answer =
-    "Queen's Answers is still in the works — we're aiming to have it ready in time for Fall '26 course selection. In the meantime, view all our available courses and upload your grade distributions to help build the database!";
-
-  return NextResponse.json({
-    answer,
-    remaining: consumeResult.usage.remaining,
-  });
+  return NextResponse.json(
+    {
+      error: QUEENS_ANSWERS_DISABLED_ERROR,
+      reason: QUEENS_ANSWERS_DISABLED_REASON,
+      detail: QUEENS_ANSWERS_DISABLED_DETAIL,
+    },
+    { status: 503 },
+  );
 }

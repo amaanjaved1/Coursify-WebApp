@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase"
 import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status"
-import { readUsage } from "@/lib/queens-answers/rate-limit"
+import {
+  QUEENS_ANSWERS_DISABLED_DETAIL,
+  QUEENS_ANSWERS_DISABLED_ERROR,
+  QUEENS_ANSWERS_DISABLED_REASON,
+} from "@/lib/queens-answers/availability"
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthenticatedSupabaseFromRequest(request)
@@ -44,21 +48,12 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const usageResult = await readUsage(supabase, user.id, accessResult.semestersCompleted)
-  if (!usageResult.ok) {
-    return NextResponse.json(
-      {
-        error: usageResult.error,
-        reason: usageResult.reason,
-        dependency: usageResult.dependency,
-      },
-      { status: 503 },
-    )
-  }
-
-  return NextResponse.json({
-    dailyLimit: usageResult.usage.dailyLimit,
-    used: usageResult.usage.used,
-    remaining: usageResult.usage.remaining,
-  })
+  return NextResponse.json(
+    {
+      error: QUEENS_ANSWERS_DISABLED_ERROR,
+      reason: QUEENS_ANSWERS_DISABLED_REASON,
+      detail: QUEENS_ANSWERS_DISABLED_DETAIL,
+    },
+    { status: 503 },
+  )
 }

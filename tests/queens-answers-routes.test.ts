@@ -48,10 +48,6 @@ describe("Queen's Answers status route", () => {
       status: { has_access: true },
       semestersCompleted: 4,
     })
-    readUsage.mockResolvedValue({
-      ok: true,
-      usage: { dailyLimit: 3, used: 1, remaining: 2 },
-    })
   })
 
   it("returns unauthorized without checking entitlement or usage", async () => {
@@ -103,17 +99,17 @@ describe("Queen's Answers status route", () => {
     })
   })
 
-  it("returns current quota usage for entitled users", async () => {
+  it("returns disabled state for entitled users without reading quota", async () => {
     const response = await statusRoute.GET(getRequest())
     const data = await response.json()
 
-    expect(response.status).toBe(200)
-    expect(data).toEqual({
-      dailyLimit: 3,
-      used: 1,
-      remaining: 2,
+    expect(response.status).toBe(503)
+    expect(data).toMatchObject({
+      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
+      reason: "feature_unavailable",
+      detail: "Daily question quotas are paused while the feature is disabled.",
     })
-    expect(readUsage).toHaveBeenCalledWith(expect.anything(), "user-1", 4)
+    expect(readUsage).not.toHaveBeenCalled()
   })
 })
 
@@ -135,10 +131,6 @@ describe("Queen's Answers chat route", () => {
       ok: true,
       status: { has_access: true },
       semestersCompleted: 5,
-    })
-    consumeQuestion.mockResolvedValue({
-      ok: true,
-      usage: { dailyLimit: 4, used: 2, remaining: 2 },
     })
   })
 
@@ -180,58 +172,16 @@ describe("Queen's Answers chat route", () => {
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 
-  it("returns dependency failure when the quota helper cannot consume a question", async () => {
-    consumeQuestion.mockResolvedValueOnce({
-      ok: false,
-      reason: "dependency_failure",
-      dependency: "supabase",
-      error: "Queen's Answers quota is temporarily unavailable.",
-    })
-
+  it("returns disabled state without consuming quota", async () => {
     const response = await chatRoute.POST(chatRequest({ question: "Can I take CISC 124?" }))
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data).toEqual({
-      error: "Queen's Answers quota is temporarily unavailable.",
-      reason: "dependency_failure",
-      dependency: "supabase",
+    expect(data).toMatchObject({
+      error: "Queen's Answers is temporarily unavailable while we finish preparing it for launch.",
+      reason: "feature_unavailable",
+      detail: "Daily question quotas are paused while the feature is disabled.",
     })
-  })
-
-  it("returns daily question rate-limit denial from the quota helper", async () => {
-    consumeQuestion.mockResolvedValueOnce({
-      ok: false,
-      reason: "rate_limit",
-      usage: { dailyLimit: 4, used: 4, remaining: 0 },
-    })
-
-    const response = await chatRoute.POST(chatRequest({ question: "Can I take CISC 124?" }))
-    const data = await response.json()
-
-    expect(response.status).toBe(429)
-    expect(data).toEqual({
-      error: "You've used your 4 daily questions. Resets within 24 hours.",
-      reason: "rate_limit",
-    })
-  })
-
-  it("returns the current placeholder answer and remaining quota on success", async () => {
-    vi.useFakeTimers()
-    try {
-      const responsePromise = chatRoute.POST(chatRequest({ question: "Can I take CISC 124?" }))
-      await vi.advanceTimersByTimeAsync(3000)
-      const response = await responsePromise
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data).toEqual({
-        answer: expect.stringContaining("Queen's Answers is still in the works"),
-        remaining: 2,
-      })
-      expect(consumeQuestion).toHaveBeenCalledWith(expect.anything(), "user-1", 5)
-    } finally {
-      vi.useRealTimers()
-    }
+    expect(consumeQuestion).not.toHaveBeenCalled()
   })
 })
