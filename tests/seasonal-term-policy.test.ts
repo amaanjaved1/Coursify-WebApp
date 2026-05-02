@@ -28,4 +28,11 @@ describe("seasonal term policy", () => {
     expect(getCurrentSeasonalDueTerm(new Date("2026-04-29T12:00:00Z"))).toBeNull()
     expect(getCurrentSeasonalDueTerm(new Date("2026-08-16T12:00:00Z"))).toBeNull()
   })
+
+  it("uses UTC calendar boundaries for seasonal windows", () => {
+    expect(getCurrentSeasonalDueTerm(new Date("2026-04-28T23:59:59Z"))).toBe("F25")
+    expect(getCurrentSeasonalDueTerm(new Date("2026-04-29T00:00:00Z"))).toBeNull()
+    expect(getCurrentSeasonalDueTerm(new Date("2026-05-14T23:59:59Z"))).toBeNull()
+    expect(getCurrentSeasonalDueTerm(new Date("2026-05-15T00:00:00Z"))).toBe("W26")
+  })
 })

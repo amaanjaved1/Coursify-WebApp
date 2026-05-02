@@ -20,6 +20,7 @@ export function toCanonicalTermCode(term: string): string | null {
 }
 
 export function getCurrentSeasonalDueTerm(now = new Date()): string | null {
+  // Evaluate seasonal windows in UTC so API behavior does not depend on host timezone.
   const month = now.getUTCMonth() + 1
   const day = now.getUTCDate()
   const year = now.getUTCFullYear()
