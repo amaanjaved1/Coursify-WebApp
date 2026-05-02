@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 type RagRow = {
   text: string
@@ -21,9 +21,6 @@ const createClient = vi.hoisted(() => vi.fn())
 const redisGet = vi.hoisted(() => vi.fn())
 const redisSet = vi.hoisted(() => vi.fn())
 
-process.env.NEXT_PUBLIC_SUPABASE_URL = "https://supabase.test"
-process.env.SUPABASE_SERVICE_KEY = "service-key"
-
 vi.mock("@supabase/supabase-js", () => ({ createClient }))
 vi.mock("@/lib/redis", () => ({
   redis: {
@@ -32,7 +29,31 @@ vi.mock("@/lib/redis", () => ({
   },
 }))
 
-const commentsRoute = await import("@/app/api/courses/[courseCode]/comments/route")
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const originalSupabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+
+function setSupabaseEnv() {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://supabase.test"
+  process.env.SUPABASE_SERVICE_KEY = "service-key"
+}
+
+function restoreSupabaseEnv() {
+  if (originalSupabaseUrl === undefined) {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+  } else {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl
+  }
+
+  if (originalSupabaseServiceKey === undefined) {
+    delete process.env.SUPABASE_SERVICE_KEY
+  } else {
+    process.env.SUPABASE_SERVICE_KEY = originalSupabaseServiceKey
+  }
+}
+
+async function loadCommentsRoute() {
+  return import("@/app/api/courses/[courseCode]/comments/route")
+}
 
 function request(path: string): NextRequest {
   return new NextRequest(`http://localhost${path}`)
@@ -123,12 +144,19 @@ const rmpRows: RagRow[] = [
 
 describe("course comments API route", () => {
   beforeEach(() => {
+    vi.resetModules()
     vi.clearAllMocks()
+    setSupabaseEnv()
     redisGet.mockResolvedValue(null)
     redisSet.mockResolvedValue(undefined)
   })
 
+  afterEach(() => {
+    restoreSupabaseEnv()
+  })
+
   it("returns preview slices with aggregate totals for both comment sources", async () => {
+    const commentsRoute = await loadCommentsRoute()
     const calls: QueryCall[] = []
     createClient.mockReturnValue(
       createSupabase(
@@ -159,6 +187,7 @@ describe("course comments API route", () => {
   })
 
   it("paginates comments, tags source type, and builds professor counts from the selected source", async () => {
+    const commentsRoute = await loadCommentsRoute()
     const calls: QueryCall[] = []
     createClient.mockReturnValue(
       createSupabase(
@@ -198,6 +227,7 @@ describe("course comments API route", () => {
   })
 
   it("filters paginated comments by professor without changing source aggregate totals", async () => {
+    const commentsRoute = await loadCommentsRoute()
     const calls: QueryCall[] = []
     createClient.mockReturnValue(
       createSupabase(
@@ -230,6 +260,7 @@ describe("course comments API route", () => {
   })
 
   it("returns empty successful shapes when comment sources are empty", async () => {
+    const commentsRoute = await loadCommentsRoute()
     const calls: QueryCall[] = []
     createClient.mockReturnValue(
       createSupabase(
@@ -257,6 +288,7 @@ describe("course comments API route", () => {
   })
 
   it("rejects malformed pagination query parameters before creating a Supabase client", async () => {
+    const commentsRoute = await loadCommentsRoute()
     const response = await commentsRoute.GET(
       request("/api/courses/cisc-124/comments?page=0"),
       params("cisc-124"),

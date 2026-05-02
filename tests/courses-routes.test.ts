@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 type DbError = { message: string }
 type DbResult = { data: unknown; count?: number | null; error: DbError | null }
@@ -9,9 +9,6 @@ const createClient = vi.hoisted(() => vi.fn())
 const redisGet = vi.hoisted(() => vi.fn())
 const redisSet = vi.hoisted(() => vi.fn())
 
-process.env.NEXT_PUBLIC_SUPABASE_URL = "https://supabase.test"
-process.env.SUPABASE_SERVICE_KEY = "service-key"
-
 vi.mock("@supabase/supabase-js", () => ({ createClient }))
 vi.mock("@/lib/redis", () => ({
   redis: {
@@ -20,8 +17,35 @@ vi.mock("@/lib/redis", () => ({
   },
 }))
 
-const coursesRoute = await import("@/app/api/courses/route")
-const courseDetailRoute = await import("@/app/api/courses/[courseCode]/route")
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const originalSupabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+
+function setSupabaseEnv() {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://supabase.test"
+  process.env.SUPABASE_SERVICE_KEY = "service-key"
+}
+
+function restoreSupabaseEnv() {
+  if (originalSupabaseUrl === undefined) {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+  } else {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl
+  }
+
+  if (originalSupabaseServiceKey === undefined) {
+    delete process.env.SUPABASE_SERVICE_KEY
+  } else {
+    process.env.SUPABASE_SERVICE_KEY = originalSupabaseServiceKey
+  }
+}
+
+async function loadCoursesRoute() {
+  return import("@/app/api/courses/route")
+}
+
+async function loadCourseDetailRoute() {
+  return import("@/app/api/courses/[courseCode]/route")
+}
 
 function request(path: string): NextRequest {
   return new NextRequest(`http://localhost${path}`)
@@ -86,12 +110,19 @@ function selectFrom(chains: Record<string, ReturnType<typeof createQuery>>) {
 
 describe("courses API route", () => {
   beforeEach(() => {
+    vi.resetModules()
     vi.clearAllMocks()
+    setSupabaseEnv()
     redisGet.mockResolvedValue(null)
     redisSet.mockResolvedValue(undefined)
   })
 
+  afterEach(() => {
+    restoreSupabaseEnv()
+  })
+
   it("returns a stable course list response and applies validated filters", async () => {
+    const coursesRoute = await loadCoursesRoute()
     const listChain = createQuery({
       data: [
         {
@@ -155,6 +186,7 @@ describe("courses API route", () => {
   })
 
   it("rejects malformed course list query parameters before creating a Supabase client", async () => {
+    const coursesRoute = await loadCoursesRoute()
     const response = await coursesRoute.GET(request("/api/courses?gpa_min=4&gpa_max=1"))
     const data = await response.json()
 
@@ -166,12 +198,19 @@ describe("courses API route", () => {
 
 describe("course detail API route", () => {
   beforeEach(() => {
+    vi.resetModules()
     vi.clearAllMocks()
+    setSupabaseEnv()
     redisGet.mockResolvedValue(null)
     redisSet.mockResolvedValue(undefined)
   })
 
+  afterEach(() => {
+    restoreSupabaseEnv()
+  })
+
   it("normalizes slug course codes and returns short-code terms in academic order", async () => {
+    const courseDetailRoute = await loadCourseDetailRoute()
     const courseChain = createQuery({
       data: {
         id: "course-1",
@@ -244,6 +283,7 @@ describe("course detail API route", () => {
   })
 
   it("rejects unsafe course code path segments", async () => {
+    const courseDetailRoute = await loadCourseDetailRoute()
     const response = await courseDetailRoute.GET(request("/api/courses/..%2F..%2Fetc%2Fpasswd"), params("../../../etc/passwd"))
     const data = await response.json()
 
@@ -253,6 +293,7 @@ describe("course detail API route", () => {
   })
 
   it("returns the current null-course 404 shape when a course is not found", async () => {
+    const courseDetailRoute = await loadCourseDetailRoute()
     const courseChain = createQuery({
       data: null,
       error: { message: "No rows returned" },
