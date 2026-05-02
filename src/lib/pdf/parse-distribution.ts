@@ -1,4 +1,5 @@
 import type { ParsedCourseRow } from "@/types";
+import { toCanonicalTermCode } from "@/lib/seasonal-term-policy";
 
 // Queen's University GPA scale
 const GPA_SCALE = [4.3, 4.0, 3.7, 3.3, 3.0, 2.7, 2.3, 2.0, 1.7, 1.3, 1.0, 0.7, 0.0];
@@ -7,17 +8,6 @@ export interface ValidationResult {
   valid: boolean;
   term?: string;
   error?: string;
-}
-
-/**
- * Convert a full term string like "2024 Winter" to short format "W24".
- * Matches existing DB convention: W=Winter, F=Fall, S=Summer.
- */
-function formatTerm(fullTerm: string): string {
-  const [year, season] = fullTerm.split(/\s+/);
-  const shortYear = year.slice(-2);
-  const prefix = season.charAt(0).toUpperCase(); // W, F, or S
-  return `${prefix}${shortYear}`;
 }
 
 /**
@@ -42,7 +32,12 @@ export function validateSolusFormat(text: string): ValidationResult {
     return { valid: false, error: "Could not find the grade distribution table in the PDF." };
   }
 
-  return { valid: true, term: formatTerm(termMatch[1]) };
+  const term = toCanonicalTermCode(termMatch[1]);
+  if (!term) {
+    return { valid: false, error: "Could not normalize the SOLUS term." };
+  }
+
+  return { valid: true, term };
 }
 
 /**

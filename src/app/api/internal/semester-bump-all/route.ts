@@ -1,26 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { redis } from "@/lib/redis"
+import { getCurrentSeasonalDueTerm } from "@/lib/seasonal-term-policy"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ""
-
-function getDueTerm(): string | null {
-  const now = new Date()
-  const month = now.getMonth() + 1 // 1–12
-  const day = now.getDate()
-  const year = now.getFullYear()
-
-  // Window 1: Feb 1 – Apr 28 → Fall of previous year
-  if (month === 2 || month === 3 || (month === 4 && day <= 28)) {
-    return `Fall ${year - 1}`
-  }
-  // Window 2: May 15 – Aug 15 → Winter of current year
-  if ((month === 5 && day >= 15) || month === 6 || month === 7 || (month === 8 && day <= 15)) {
-    return `Winter ${year}`
-  }
-  return null // free period
-}
 
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
@@ -34,7 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const due_term = getDueTerm()
+  const due_term = getCurrentSeasonalDueTerm()
   if (!due_term) {
     return NextResponse.json({ skipped: true, reason: "Outside seasonal window" })
   }

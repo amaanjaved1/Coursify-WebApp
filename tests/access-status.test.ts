@@ -6,7 +6,7 @@ describe("calculateAccessStatus", () => {
     const { status, semestersCompleted } = calculateAccessStatus({
       profile: null,
       uploadCount: 0,
-      dueTerm: "Fall 2025",
+      dueTerm: "F25",
       hasSeasonalUpload: false,
     })
 
@@ -26,7 +26,7 @@ describe("calculateAccessStatus", () => {
     const { status } = calculateAccessStatus({
       profile: { onboarding_completed: true, semesters_completed: 0 },
       uploadCount: 0,
-      dueTerm: "Winter 2026",
+      dueTerm: "W26",
       hasSeasonalUpload: false,
     })
 
@@ -74,14 +74,14 @@ describe("calculateAccessStatus", () => {
     const { status } = calculateAccessStatus({
       profile: { onboarding_completed: true, semesters_completed: 4 },
       uploadCount: 4,
-      dueTerm: "Fall 2025",
+      dueTerm: "F25",
       hasSeasonalUpload: false,
     })
 
     expect(status).toMatchObject({
       has_access: false,
       pending_seasonal_upload: true,
-      due_term: "Fall 2025",
+      due_term: "F25",
     })
   })
 
@@ -89,14 +89,14 @@ describe("calculateAccessStatus", () => {
     const { status } = calculateAccessStatus({
       profile: { onboarding_completed: true, semesters_completed: 4 },
       uploadCount: 4,
-      dueTerm: "Fall 2025",
+      dueTerm: "F25",
       hasSeasonalUpload: true,
     })
 
     expect(status).toMatchObject({
       has_access: true,
       pending_seasonal_upload: false,
-      due_term: "Fall 2025",
+      due_term: "F25",
     })
   })
 })
