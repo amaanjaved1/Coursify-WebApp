@@ -49,19 +49,6 @@ describe("queens answers chat route validation", () => {
       remaining: 19,
       resetSeconds: 60,
     })
-    getConfirmedAccessStatus.mockResolvedValue({
-      ok: true,
-      status: {
-        has_access: true,
-        is_exempt: false,
-        upload_count: 2,
-        required_uploads: 2,
-        needs_onboarding: false,
-        pending_seasonal_upload: false,
-        due_term: null,
-      },
-      semestersCompleted: 2,
-    })
   })
 
   it("returns a specific error for malformed JSON", async () => {
@@ -91,7 +78,7 @@ describe("queens answers chat route validation", () => {
     expect(response.status).toBe(503)
     expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
     expect(checkRateLimit).toHaveBeenCalled()
-    expect(getConfirmedAccessStatus).toHaveBeenCalled()
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 })

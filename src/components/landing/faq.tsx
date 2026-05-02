@@ -10,7 +10,7 @@ const faqs = [
   },
   {
     question: "Where does the chatbot get its information?",
-    answer: "Our AI advisor is trained on thousands of student reviews from Queen's course catalogs, Reddit discussions, and RateMyProfessors reviews to provide you with comprehensive insights about courses and professors.",
+    answer: "Queen's Answers is temporarily unavailable while we finish preparing it for launch. For now, use course pages to compare grade data, student comments, and professor context.",
   },
   {
     question: "How up-to-date is the grade data?",
@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: "What courses are supported?",
-    answer: "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our data and AI assistant focus exclusively on in-person course offerings.",
+    answer: "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our course data focuses exclusively on in-person course offerings.",
   },
 ];
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSupabaseFromRequest } from "@/app/api/_lib/authenticated-supabase";
-import { getConfirmedAccessStatus } from "@/app/api/_lib/confirmed-access-status";
 import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 import { QUEENS_ANSWERS_DISABLED_RESPONSE_BODY } from "@/lib/queens-answers/availability";
 import { z } from "zod";
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { supabase, user } = auth;
+  const { user } = auth;
 
   const burstLimit = await checkRateLimit({
     keyPrefix: "queens-answers:chat:user",
@@ -72,28 +71,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: parsedBody.error.issues[0]?.message ?? "Invalid request body" },
       { status: 400 },
-    );
-  }
-
-  const accessResult = await getConfirmedAccessStatus(supabase, user.id);
-  if (!accessResult.ok) {
-    return NextResponse.json(
-      {
-        error: accessResult.error,
-        reason: accessResult.reason,
-        dependency: accessResult.dependency,
-      },
-      { status: 503 },
-    );
-  }
-
-  if (!accessResult.status.has_access) {
-    return NextResponse.json(
-      {
-        error: "Queen's Answers access is locked until your contribution requirements are met.",
-        reason: "entitlement_required",
-      },
-      { status: 403 },
     );
   }
 

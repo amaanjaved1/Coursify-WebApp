@@ -1,6 +1,3 @@
-"use client"
-
-import { Suspense } from "react"
 import Link from "next/link"
 import { Brain, Clock, UploadCloud } from "lucide-react"
 import {
@@ -8,18 +5,7 @@ import {
   QUEENS_ANSWERS_DISABLED_ERROR,
 } from "@/lib/queens-answers/availability"
 
-function QueensAnswersSuspenseFallback() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center bg-[var(--page-bg)] p-6">
-      <div
-        className="h-12 w-12 animate-spin rounded-full border-4 border-brand-navy/20 border-t-brand-navy dark:border-blue-400/20 dark:border-t-blue-400"
-        aria-label="Loading"
-      />
-    </div>
-  )
-}
-
-function AIFeatures() {
+export default function QueensAnswersPage() {
   return (
     <main className="min-h-screen bg-[var(--page-bg)] px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
       <section className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-3xl flex-col justify-center">
@@ -62,13 +48,5 @@ function AIFeatures() {
         </div>
       </section>
     </main>
-  )
-}
-
-export default function QueensAnswersPage() {
-  return (
-    <Suspense fallback={<QueensAnswersSuspenseFallback />}>
-      <AIFeatures />
-    </Suspense>
   )
 }

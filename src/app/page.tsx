@@ -3,7 +3,6 @@ import Link from "next/link";
 import ReactCountryFlag from "react-country-flag";
 import Footer from "@/components/footer";
 import {
-  Brain,
   Info,
   Zap,
   Award,
@@ -59,8 +58,8 @@ const steps = [
   },
   {
     num: "04",
-    title: "Ask Our AI",
-    desc: "Chat with the AI assistant for personalized course and professor recommendations.",
+    title: "Plan With Confidence",
+    desc: "Use course data and student context to compare options before enrollment.",
     icon: <Sparkles className="h-6 w-6" />,
     color: "#d62839",
   },
@@ -106,7 +105,7 @@ export default function Home() {
 
             {/* Subheading */}
             <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 mb-10 max-w-lg leading-relaxed">
-              Real grade distributions, professor reviews, and an AI assistant
+              Real grade distributions, professor reviews, and course context
             </p>
 
             {/* Search bar — primary CTA */}
@@ -115,14 +114,6 @@ export default function Home() {
               placeholder="Search courses by code or name..."
             />
 
-            {/* Secondary action */}
-            <Link
-              href="/queens-answers"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-navy/60 dark:text-white/50 hover:text-brand-red dark:hover:text-brand-red transition-colors duration-200"
-            >
-              <Brain className="h-4 w-4" />
-              Or ask the AI Assistant
-            </Link>
           </div>
         </div>
       </section>

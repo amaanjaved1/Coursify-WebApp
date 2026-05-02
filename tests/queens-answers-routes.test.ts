@@ -44,11 +44,6 @@ describe("Queen's Answers status route", () => {
       user: { id: "user-1", email: "ada@queensu.ca" },
       supabase: { from: vi.fn() },
     })
-    getConfirmedAccessStatus.mockResolvedValue({
-      ok: true,
-      status: { has_access: true },
-      semestersCompleted: 4,
-    })
   })
 
   it("returns unauthorized without checking entitlement or usage", async () => {
@@ -63,7 +58,7 @@ describe("Queen's Answers status route", () => {
     expect(readUsage).not.toHaveBeenCalled()
   })
 
-  it("denies access when contribution entitlement is locked", async () => {
+  it("returns disabled state without checking contribution entitlement", async () => {
     getConfirmedAccessStatus.mockResolvedValueOnce({
       ok: true,
       status: { has_access: false },
@@ -73,15 +68,13 @@ describe("Queen's Answers status route", () => {
     const response = await statusRoute.GET(getRequest())
     const data = await response.json()
 
-    expect(response.status).toBe(403)
-    expect(data).toEqual({
-      error: "Queen's Answers access is locked until your contribution requirements are met.",
-      reason: "entitlement_required",
-    })
+    expect(response.status).toBe(503)
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(readUsage).not.toHaveBeenCalled()
   })
 
-  it("returns dependency failure when confirmed access status cannot be loaded", async () => {
+  it("does not surface access-status dependency failures while disabled", async () => {
     getConfirmedAccessStatus.mockResolvedValueOnce({
       ok: false,
       error: "Access status is temporarily unavailable.",
@@ -93,11 +86,8 @@ describe("Queen's Answers status route", () => {
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data).toEqual({
-      error: "Access status is temporarily unavailable.",
-      reason: "dependency_failure",
-      dependency: "supabase",
-    })
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
   })
 
   it("returns disabled state for entitled users without reading quota", async () => {
@@ -106,6 +96,7 @@ describe("Queen's Answers status route", () => {
 
     expect(response.status).toBe(503)
     expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(readUsage).not.toHaveBeenCalled()
   })
 })
@@ -123,11 +114,6 @@ describe("Queen's Answers chat route", () => {
       limit: 20,
       remaining: 19,
       resetSeconds: 60,
-    })
-    getConfirmedAccessStatus.mockResolvedValue({
-      ok: true,
-      status: { has_access: true },
-      semestersCompleted: 5,
     })
   })
 
@@ -151,7 +137,7 @@ describe("Queen's Answers chat route", () => {
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 
-  it("denies chat when contribution entitlement is locked", async () => {
+  it("returns disabled state without checking contribution entitlement", async () => {
     getConfirmedAccessStatus.mockResolvedValueOnce({
       ok: true,
       status: { has_access: false },
@@ -161,11 +147,9 @@ describe("Queen's Answers chat route", () => {
     const response = await chatRoute.POST(chatRequest({ question: "Can I take CISC 124?" }))
     const data = await response.json()
 
-    expect(response.status).toBe(403)
-    expect(data).toEqual({
-      error: "Queen's Answers access is locked until your contribution requirements are met.",
-      reason: "entitlement_required",
-    })
+    expect(response.status).toBe(503)
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 
@@ -175,6 +159,7 @@ describe("Queen's Answers chat route", () => {
 
     expect(response.status).toBe(503)
     expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()
   })
 })

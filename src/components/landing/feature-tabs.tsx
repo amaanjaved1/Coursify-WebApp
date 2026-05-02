@@ -12,7 +12,7 @@ import {
 import {
   GradeDistributionMockup,
   StudentReviewsMockup,
-  AIAssistantMockup,
+  QueensAnswersUnavailableMockup,
   CourseAnalyticsMockup,
 } from "@/components/landing-mockups";
 import { cn } from "@/lib/utils";
@@ -33,11 +33,11 @@ const featureTabs = [
       "Read comments pulled from Reddit and RateMyProfessors, filtered for relevance to Queen's courses. Get the full picture of what students actually think.",
   },
   {
-    label: "AI Assistant",
+    label: "Queen's Answers",
     icon: <Brain className="h-5 w-5" />,
-    title: "Your personal course advisor, powered by AI",
+    title: "Queen's Answers is temporarily unavailable",
     description:
-      "Ask anything about courses, professors, teaching styles, and workload. Our AI is trained on thousands of student experiences to give you personalized, instant answers.",
+      "We're keeping Queen's Answers paused while we finish preparing it for launch, so there are no live answers or daily question quotas right now.",
   },
   {
     label: "Course Analytics",
@@ -96,14 +96,14 @@ export function FeatureTabs() {
               }
               className="inline-flex items-center gap-2 text-sm font-semibold text-brand-red"
             >
-              {activeFeatureTab === 2 ? "Try AI Assistant" : "Explore Courses"}
+              {activeFeatureTab === 2 ? "View availability" : "Explore Courses"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="flex w-full max-w-xl items-center justify-center rounded-2xl subpixel-antialiased md:mx-auto md:max-w-lg lg:max-w-xl">
             {activeFeatureTab === 0 && <GradeDistributionMockup />}
             {activeFeatureTab === 1 && <StudentReviewsMockup />}
-            {activeFeatureTab === 2 && <AIAssistantMockup />}
+            {activeFeatureTab === 2 && <QueensAnswersUnavailableMockup />}
             {activeFeatureTab === 3 && <CourseAnalyticsMockup />}
           </div>
         </div>

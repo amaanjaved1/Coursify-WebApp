@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Brain, ArrowUp } from "lucide-react";
+import { Brain } from "lucide-react";
 
 const GRADE_COLORS: Record<string, string> = {
   "A+": "#4CAF50",
@@ -275,18 +275,16 @@ export function StudentReviewsMockup({
 }
 
 /* ─────────────────────────────────────────────
-   3. AI Assistant
+   3. Queen's Answers unavailable
    ───────────────────────────────────────────── */
 
-export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
+export function QueensAnswersUnavailableMockup({ compact = false }: { compact?: boolean }) {
   const pad = compact ? "p-3" : "p-6";
   const textSm = compact ? "text-[10px]" : "text-sm";
-  const inputText = compact ? "text-[9px]" : "text-xs";
-  const inputPad = compact ? "py-0.5" : "py-1.5";
 
   return (
     <div
-      className={`glass-card rounded-2xl ${pad} w-full h-full flex flex-col select-none`}
+      className={`glass-card rounded-2xl ${pad} w-full h-full flex flex-col justify-center select-none`}
     >
       <div className="flex items-center gap-2 mb-3">
         <div
@@ -294,27 +292,13 @@ export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
         >
           Queen&apos;s Answers
         </div>
-        <div className="h-1.5 w-1.5 rounded-full bg-green-400 ml-auto" />
+        <div className="h-1.5 w-1.5 rounded-full bg-amber-400 ml-auto" />
         <span className={`${compact ? "text-[9px]" : "text-xs"} text-gray-400`}>
-          Online
+          Paused
         </span>
       </div>
 
-      {/* User message */}
-      <div className="flex justify-end mb-3">
-        <div
-          className={`${compact ? "max-w-[85%]" : "max-w-[80%]"} bg-brand-navy dark:bg-brand-navy-light text-white rounded-2xl rounded-tr-sm ${compact ? "px-3 py-2" : "px-4 py-3"}`}
-        >
-          <p className={`${textSm} leading-relaxed`}>
-            {compact
-              ? "Which CISC elective is the easiest?"
-              : "I'm in second year CompSci — which CISC elective has the highest GPA and best professor reviews?"}
-          </p>
-        </div>
-      </div>
-
-      {/* AI response */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2">
         <div
           className={`${compact ? "w-6 h-6" : "w-8 h-8"} rounded-full bg-brand-red flex items-center justify-center flex-shrink-0`}
         >
@@ -326,40 +310,9 @@ export function AIAssistantMockup({ compact = false }: { compact?: boolean }) {
           <p
             className={`${textSm} text-brand-navy dark:text-white leading-relaxed`}
           >
-            Based on grade data and reviews,{" "}
-            <span className="font-semibold">CISC 204</span> (Logic) has the
-            highest avg GPA at{" "}
-            <span className="font-semibold text-green-600 dark:text-green-400">
-              3.62
-            </span>
-            . Students say Prof. Li is &ldquo;clear and organized.&rdquo;
+            Queen&apos;s Answers is temporarily unavailable while we finish
+            preparing it for launch. Daily question quotas are paused.
           </p>
-        </div>
-      </div>
-
-      {/* Static input bar */}
-      <div
-        className={`mt-auto flex items-center gap-1.5 rounded-[1.35rem] border border-white/70 bg-white/65 shadow-[0_1px_3px_rgba(0,48,95,0.06)] backdrop-blur-sm dark:border-white/[0.1] dark:bg-white/[0.06] dark:shadow-[0_1px_4px_rgba(0,0,0,0.2)] ${
-          compact ? "px-2.5 py-1" : "px-3 py-1.5"
-        }`}
-      >
-        <span
-          className={`min-w-0 flex-1 py-1 text-gray-400 ${inputText} ${inputPad}`}
-        >
-          Ask about any course or professor…
-        </span>
-        <div
-          className={`flex shrink-0 items-center justify-center rounded-full bg-brand-red text-white shadow-sm shadow-brand-red/25 ${
-            compact ? "h-7 w-7" : "h-9 w-9"
-          }`}
-        >
-          <ArrowUp
-            className={compact ? "h-3.5 w-3.5" : "h-[18px] w-[18px]"}
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          />
         </div>
       </div>
     </div>
