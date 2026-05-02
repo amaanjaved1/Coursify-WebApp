@@ -14,7 +14,7 @@ export function toCanonicalTermCode(term: string): string | null {
 
   const year = match[1] ?? match[4]
   const seasonInput = match[2] ?? match[3]
-  const season = seasonInput[0].toUpperCase() + seasonInput.slice(1).toLowerCase() as Season
+  const season = (seasonInput[0].toUpperCase() + seasonInput.slice(1).toLowerCase()) as Season
 
   return `${SEASON_CODES[season]}${year.slice(-2)}`
 }
