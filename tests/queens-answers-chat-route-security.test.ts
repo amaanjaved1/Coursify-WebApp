@@ -17,6 +17,7 @@ vi.mock("@/app/api/_lib/confirmed-access-status", () => ({
 vi.mock("@/lib/queens-answers/rate-limit", () => ({ consumeQuestion }))
 
 const { POST } = await import("@/app/api/queens-answers/chat/route")
+const { QUEENS_ANSWERS_DISABLED_RESPONSE_BODY } = await import("@/lib/queens-answers/availability")
 
 function request(body: unknown): NextRequest {
   return new NextRequest("http://localhost/api/queens-answers/chat", {
@@ -66,6 +67,17 @@ describe("queens answers chat route validation", () => {
 
     expect(response.status).toBe(400)
     expect(data.error).toBe("Question is required")
+    expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
+    expect(consumeQuestion).not.toHaveBeenCalled()
+  })
+
+  it("returns explicit disabled state without consuming quota", async () => {
+    const response = await POST(request({ question: "Which course should I take?" }))
+    const data = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(data).toEqual(QUEENS_ANSWERS_DISABLED_RESPONSE_BODY)
+    expect(checkRateLimit).toHaveBeenCalled()
     expect(getConfirmedAccessStatus).not.toHaveBeenCalled()
     expect(consumeQuestion).not.toHaveBeenCalled()
   })

@@ -1207,17 +1207,18 @@ export default function QueensCourses() {
               <CourseSearchBar />
             </div>
 
-            {/* AI helper */}
+            {/* Queen's Answers availability */}
             <div className="mt-4 p-6 glass-card-deep rounded-xl relative overflow-hidden">
               <h3 className="text-lg font-bold text-brand-navy dark:text-white mb-3">
-                Need Help Choosing?
+                Queen&apos;s Answers unavailable
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
-                Our AI assistant can provide personalized course recommendations
-                based on your interests, learning style, and academic goals.
+                Queen&apos;s Answers is temporarily unavailable while we finish
+                preparing it for launch. Use course search and filters here for
+                now.
               </p>
               <Button asChild className="liquid-btn-red border-0 text-white">
-                <a href="/queens-answers">Ask AI Assistant</a>
+                <a href="/queens-answers">View availability</a>
               </Button>
             </div>
           </div>
