@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAuthRedirect } from "@/lib/auth/use-auth-redirect";
 import { getSupabaseClient } from "@/lib/supabase/client";
@@ -10,8 +9,7 @@ import {
   QUEENS_ANSWERS_DISABLED_DETAIL,
   QUEENS_ANSWERS_DISABLED_ERROR,
 } from "@/lib/queens-answers/availability";
-import type { UserProfile, AccessStatus } from "@/types";
-import { StatusBadge } from "./_components/status-badge";
+import type { UserProfile } from "@/types";
 import { UploadHistory, type UploadRow } from "./_components/upload-history";
 import { SemesterEditor } from "./_components/semester-editor";
 
@@ -19,8 +17,6 @@ export default function SettingsPage() {
   const { user, isLoading: authLoading } = useAuth();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
-  const [accessStatusError, setAccessStatusError] = useState<string | null>(null);
   const [uploads, setUploads] = useState<UploadRow[]>([]);
   const [uploadsError, setUploadsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,43 +32,21 @@ export default function SettingsPage() {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const readError = async (response: Response, fallback: string) => {
-        const body = await response.json().catch(() => ({} as { error?: string; reason?: string }))
-        return {
-          error: typeof body.error === "string" ? body.error : fallback,
-          reason: typeof body.reason === "string" ? body.reason : undefined,
-        }
-      }
-
       const { data: session } = await getSupabaseClient().auth.getSession();
       const token = session?.session?.access_token;
       if (!token) return;
 
-      setAccessStatusError(null);
       setUploadsError(null);
 
       const headers = { Authorization: `Bearer ${token}` };
-      const [profileRes, statusRes, uploadsRes] = await Promise.all([
+      const [profileRes, uploadsRes] = await Promise.all([
         fetch("/api/me/academic-profile", { headers }),
-        fetch("/api/me/access-status", { headers }),
         fetch("/api/me/uploads", { headers }),
       ]);
 
       if (profileRes.ok) {
         const { profile: p } = await profileRes.json();
         setProfile(p);
-      }
-      if (statusRes.ok) {
-        setAccessStatus(await statusRes.json());
-        setAccessStatusError(null);
-      } else {
-        const statusError = await readError(statusRes, "Unable to load access status.")
-        setAccessStatus(null);
-        setAccessStatusError(
-          statusError.reason === "dependency_failure"
-            ? "Queen's Answers access status is temporarily unavailable."
-            : statusError.error
-        );
       }
       if (uploadsRes.ok) {
         const { uploads: u } = await uploadsRes.json();
@@ -122,17 +96,6 @@ export default function SettingsPage() {
       setProfile(updated);
       setEditing(false);
 
-      const statusRes = await fetch("/api/me/access-status", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (statusRes.ok) {
-        setAccessStatus(await statusRes.json());
-        setAccessStatusError(null);
-      } else {
-        setAccessStatus(null);
-        setAccessStatusError("Queen's Answers access status is temporarily unavailable.");
-      }
-
       toast({ title: "Profile updated", variant: "success" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
@@ -158,38 +121,6 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold text-brand-navy dark:text-white tracking-tight">Settings</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user.email}</p>
-        </div>
-
-        {/* Queen's Answers Access */}
-        <div className="glass-card rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-            Queen&apos;s Answers Access
-          </h2>
-          {accessStatus ? (
-            <div className="flex flex-col gap-3">
-              <StatusBadge status={accessStatus} />
-              {!accessStatus.needs_onboarding && (
-                <>
-                  {!accessStatus.has_access && accessStatus.upload_count < accessStatus.required_uploads && (
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                      You need {accessStatus.required_uploads - accessStatus.upload_count} more grade distribution{accessStatus.required_uploads - accessStatus.upload_count === 1 ? "" : "s"} to unlock Queen&apos;s Answers.{" "}
-                      <Link href="/add-courses" className="font-medium underline hover:opacity-80">Upload now →</Link>
-                    </p>
-                  )}
-                  {accessStatus.pending_seasonal_upload && accessStatus.upload_count >= accessStatus.required_uploads && (
-                    <p className="text-sm text-orange-600 dark:text-orange-400">
-                      Your {accessStatus.due_term} grade distribution is now available on SOLUS. Upload it to maintain your Queen&apos;s Answers access.{" "}
-                      <Link href="/add-courses" className="font-medium underline hover:opacity-80">Upload now →</Link>
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-          ) : accessStatusError ? (
-            <p className="text-sm text-red-600 dark:text-red-400">{accessStatusError}</p>
-          ) : (
-            <span className="text-sm text-gray-400">Loading…</span>
-          )}
         </div>
 
         {/* Queen's Answers Availability */}

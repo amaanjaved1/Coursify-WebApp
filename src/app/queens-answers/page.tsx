@@ -1,12 +1,8 @@
 "use client"
 
-import { Suspense, useMemo } from "react"
+import { Suspense } from "react"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
 import { Brain, Clock, UploadCloud } from "lucide-react"
-import { useAuth } from "@/lib/auth/auth-context"
-import { useAuthRedirect } from "@/lib/auth/use-auth-redirect"
-import { buildAuthHref } from "@/lib/auth/safe-redirect"
 import {
   QUEENS_ANSWERS_DISABLED_DETAIL,
   QUEENS_ANSWERS_DISABLED_ERROR,
@@ -24,36 +20,6 @@ function QueensAnswersSuspenseFallback() {
 }
 
 function AIFeatures() {
-  const { user, isLoading: authLoading } = useAuth()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  const search = searchParams?.toString() ?? ""
-  const redirectPath = useMemo(() => {
-    return search ? `${pathname}?${search}` : pathname ?? "/queens-answers"
-  }, [pathname, search])
-
-  const signInHref = useMemo(
-    () => buildAuthHref("/sign-in", redirectPath),
-    [redirectPath],
-  )
-
-  useAuthRedirect(signInHref)
-
-  if (authLoading || !user) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--page-bg)] px-4 text-center">
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-4 border-brand-navy/20 border-t-brand-navy dark:border-blue-400/20 dark:border-t-blue-400"
-          aria-hidden="true"
-        />
-        <p className="text-sm text-gray-600 dark:text-gray-400" role="status" aria-live="polite">
-          Redirecting to sign in...
-        </p>
-      </div>
-    )
-  }
-
   return (
     <main className="min-h-screen bg-[var(--page-bg)] px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
       <section className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-3xl flex-col justify-center">

@@ -54,7 +54,7 @@ export function UploadHistory({ uploads, uploadsError, refreshing, onRefresh }: 
       ) : uploads.length === 0 ? (
         <div className="text-center py-6">
           <p className="text-sm text-brand-navy/60 dark:text-white/50 mb-3">
-            No uploads yet — upload your SOLUS distribution to unlock Queen&apos;s Answers.
+            No uploads yet — uploaded SOLUS distributions will appear here.
           </p>
           <Link href="/add-courses" className="liquid-btn-red inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium text-white">
             <UploadCloud className="w-4 h-4" />
