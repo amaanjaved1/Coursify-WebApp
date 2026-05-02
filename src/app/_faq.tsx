@@ -22,44 +22,52 @@ const faqs = [
   },
   {
     question: "What courses are supported?",
-    answer: "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our data and AI assistant focus exclusively on in-person course offerings.",
+    answer: "Currently, Coursify supports all undergraduate and graduate courses offered at Queen's University. Our database includes course information from all faculties and departments.",
   },
 ];
 
-const colorClasses = [
-  { iconBg: "bg-brand-red/10", iconText: "text-brand-red" },
-  { iconBg: "bg-brand-navy/10 dark:bg-brand-navy-light/20", iconText: "text-brand-navy dark:text-white" },
-  { iconBg: "bg-brand-gold/10", iconText: "text-brand-gold" },
-];
+export default function FAQ() {
+  const [openItems, setOpenItems] = useState<number[]>([]);
 
-export function PageFaq() {
-  const [open, setOpen] = useState<number | null>(null);
+  const toggleItem = (index: number) => {
+    setOpenItems(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
 
   return (
-    <div className="space-y-3">
-      {faqs.map((faq, index) => {
-        const colors = colorClasses[index % 3];
-        const isOpen = open === index;
-        return (
-          <div
-            key={index}
-            className="glass-accordion rounded-2xl p-6 cursor-pointer select-none"
-            onClick={() => setOpen(isOpen ? null : index)}
-          >
-            <div className="flex items-start">
-              <div className={`mr-4 mt-0.5 flex shrink-0 items-center justify-center w-6 h-6 rounded-full ${colors.iconBg} ${colors.iconText}`}>
-                <ChevronDown className={`h-3.5 w-3.5 ${isOpen ? "rotate-180" : ""}`} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-brand-navy dark:text-white">{faq.question}</h3>
-                {isOpen && (
-                  <p className="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>
+    <section className="py-16 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm border">
+                <button
+                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+                  onClick={() => toggleItem(index)}
+                >
+                  <span className="font-medium text-gray-900">{faq.question}</span>
+                  <ChevronDown 
+                    className={`w-5 h-5 text-gray-500 transition-transform ${
+                      openItems.includes(index) ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {openItems.includes(index) && (
+                  <div className="px-6 pb-4">
+                    <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                  </div>
                 )}
               </div>
-            </div>
+            ))}
           </div>
-        );
-      })}
-    </div>
+        </div>
+      </div>
+    </section>
   );
 }
