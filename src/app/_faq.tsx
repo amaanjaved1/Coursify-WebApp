@@ -24,6 +24,14 @@ const faqs = [
     question: "What courses are supported?",
     answer: "Currently, Coursify only supports on-campus courses at Queen's University. We're working on adding support for online courses in the future, but for now, our data and AI assistant focus exclusively on in-person course offerings.",
   },
+  {
+    question: "Is Coursify affiliated with Queen's University?",
+    answer: "Coursify is not officially affiliated with Queen's University, but it was built by Queen's students for Queen's students.",
+  },
+  {
+    question: "Should I use my Queen's email to sign up?",
+    answer: "We recommend using your personal/non-Queen's email to sign up for Coursify.",
+  },
 ];
 
 const colorClasses = [
