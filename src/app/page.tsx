@@ -12,7 +12,7 @@ import {
   Eye,
   Sparkles,
 } from "lucide-react";
-import { StudentCountBadge } from "@/components/landing/student-count-badge";
+import { StudentCountBadge } from "@/components/landing/StudentCountBadge";
 import { FeatureTabs } from "@/components/landing/feature-tabs";
 import { PageFaq } from "@/components/landing/faq";
 import { CourseSearchBar } from "@/components/course-search-bar";
