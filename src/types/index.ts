@@ -121,6 +121,7 @@ export interface UploadDistributionResponse {
   term?: string;
   inserted: number;
   skipped: string[];
+  /** Course codes for which a stub DB entry was auto-created during this upload. */
   stubs_created: string[];
   duplicates: string[];
   errors: string[];

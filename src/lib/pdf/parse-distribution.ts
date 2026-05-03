@@ -77,6 +77,8 @@ function parseCourseLine(line: string): ParsedCourseRow | null {
   if (!codeMatch) return null;
 
   const rawCode = codeMatch[1];
+  // Strip any trailing letter (e.g. "MATH 121A", "MATH 121B" → "MATH 121").
+  // B specifically marks full-year part-B courses in SOLUS, which carry 6 units.
   const courseCode = rawCode.replace(/[A-Z]$/, "");
   const is_full_year_part_b = /B$/.test(rawCode);
   const rest = trimmed.slice(codeMatch[0].length).trim();
