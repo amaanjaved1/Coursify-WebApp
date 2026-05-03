@@ -586,11 +586,12 @@ export default function AddCoursesPage() {
                                 className="flex items-center justify-between w-full text-left px-3 py-2"
                               >
                                 <span className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                                  Grade data already on file for{" "}
                                   {entry.result.duplicates.length} course
                                   {entry.result.duplicates.length !== 1
                                     ? "s"
                                     : ""}{" "}
-                                  already have data for this term
+                                  this term
                                 </span>
                                 {entry.showDuplicates ? (
                                   <ChevronUp className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />

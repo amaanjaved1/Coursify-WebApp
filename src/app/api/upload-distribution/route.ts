@@ -230,7 +230,6 @@ export async function POST(request: NextRequest) {
       course_description: null,
       course_requirements: null,
       course_units: row.is_full_year_part_b ? 6 : 3,
-      course_level: deriveCourseLevel(row.course_code),
       offering_faculty: "Unknown",
     }));
 
