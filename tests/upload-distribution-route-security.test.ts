@@ -21,6 +21,9 @@ vi.mock("@/lib/pdf/parse-distribution", () => ({
   validateSolusFormat,
 }))
 vi.mock("@/lib/redis", () => ({ redis: { del: redisDel, delPattern: redisDelPattern } }))
+vi.mock("@/lib/github/create-issue", () => ({
+  createGitHubIssue: vi.fn().mockResolvedValue(undefined),
+}))
 
 const { POST } = await import("@/app/api/upload-distribution/route")
 
@@ -60,6 +63,8 @@ function createQuery(table: string, result: DbResult, calls: UploadCall[]) {
 function createSupabase(options?: {
   existingUpload?: DbResult
   courseLookup?: DbResult
+  stubUpsert?: DbResult
+  stubIdLookup?: DbResult
   existingDistributions?: DbResult
   distributionInsert?: DbResult
   uploadRecordInsert?: DbResult
@@ -69,12 +74,16 @@ function createSupabase(options?: {
   const settings = {
     existingUpload: { data: null, error: null },
     courseLookup: { data: [{ id: "course-1", course_code: "CISC 124" }], error: null },
+    stubUpsert: { data: null, error: null },
+    stubIdLookup: { data: [{ id: "course-2", course_code: "MATH 121" }], error: null },
     existingDistributions: { data: [], error: null },
     distributionInsert: { error: null },
     uploadRecordInsert: { error: null },
     duplicateAuditInsert: { error: null },
     ...options,
   } satisfies Required<NonNullable<Parameters<typeof createSupabase>[0]>>
+
+  let coursesSelectCallCount = 0
 
   const supabase = {
     from: vi.fn((table: string) => {
@@ -96,7 +105,14 @@ function createSupabase(options?: {
         return {
           select: vi.fn((...args: unknown[]) => {
             calls.push({ table, method: "select", args })
-            return createQuery(table, settings.courseLookup, calls)
+            coursesSelectCallCount++
+            // First call: initial code lookup; second call: post-upsert stub ID fetch
+            const result = coursesSelectCallCount === 1 ? settings.courseLookup : settings.stubIdLookup
+            return createQuery(table, result, calls)
+          }),
+          upsert: vi.fn(async (...args: unknown[]) => {
+            calls.push({ table, method: "upsert", args })
+            return settings.stubUpsert
           }),
         }
       }
@@ -199,18 +215,21 @@ describe("upload distribution route request validation", () => {
     expect(data).toEqual({
       success: true,
       term: "F25",
-      inserted: 1,
-      skipped: ["MATH 121"],
+      inserted: 2,
+      skipped: [],
+      stubs_created: ["MATH 121"],
       duplicates: [],
       errors: [],
     })
-    expect(calls).toContainEqual({ table: "distribution_uploads", method: "eq", args: ["term", "F25"] })
+    expect(calls).toContainEqual({ table: "courses", method: "upsert", args: [
+      expect.arrayContaining([expect.objectContaining({ course_code: "MATH 121", offering_faculty: "Unknown" })]),
+      expect.objectContaining({ onConflict: "course_code", ignoreDuplicates: true }),
+    ]})
     expect(calls).toContainEqual({ table: "course_distributions", method: "insert", args: [expect.arrayContaining([
       expect.objectContaining({ course_id: "course-1", term: "F25" }),
+      expect.objectContaining({ course_id: "course-2", term: "F25" }),
     ])] })
     expect(redisDelPattern).toHaveBeenCalledWith("courses:*")
-    expect(redisDel).toHaveBeenCalledWith("course:CISC 124")
-    expect(redisDel).toHaveBeenCalledWith("course:MATH 121")
   })
 
   it("returns the confirmed duplicate response and records the duplicate audit row", async () => {
@@ -231,6 +250,7 @@ describe("upload distribution route request validation", () => {
       success: false,
       inserted: 0,
       skipped: [],
+      stubs_created: [],
       duplicates: [],
       term: "F25",
       errors: ["You have already submitted a grade distribution for F25. Each term can only be submitted once."],
@@ -261,6 +281,7 @@ describe("upload distribution route request validation", () => {
       success: false,
       inserted: 0,
       skipped: [],
+      stubs_created: [],
       duplicates: [],
       term: "F25",
       errors: ["We couldn't verify whether you've already uploaded this term. Please try again shortly."],
@@ -286,6 +307,7 @@ describe("upload distribution route request validation", () => {
       success: false,
       inserted: 0,
       skipped: [],
+      stubs_created: [],
       duplicates: [],
       term: "F25",
       errors: ["We couldn't verify the uploaded courses right now. Please try again shortly."],
@@ -309,8 +331,9 @@ describe("upload distribution route request validation", () => {
     expect(response.status).toBe(503)
     expect(data).toEqual({
       success: false,
-      inserted: 1,
-      skipped: ["MATH 121"],
+      inserted: 2,
+      skipped: [],
+      stubs_created: ["MATH 121"],
       duplicates: [],
       term: "F25",
       errors: [
@@ -318,5 +341,36 @@ describe("upload distribution route request validation", () => {
       ],
       reason: "partial_failure",
     })
+  })
+
+  it("creates a stub with 6 course_units for a full-year part-B course", async () => {
+    const bSuffixRows: ParsedCourseRow[] = [
+      {
+        course_code: "MATH 121",
+        description: "Differential and Integral Calculus",
+        enrollment: 200,
+        grade_percentages: [10, 20, 20, 20, 10, 10, 5, 5, 0, 0, 0, 0, 0],
+        computed_gpa: 3.25,
+        is_full_year_part_b: true,
+      },
+    ]
+    parseCourseRows.mockReturnValueOnce(bSuffixRows)
+
+    const { supabase, calls } = createSupabase({
+      courseLookup: { data: [], error: null },
+      stubIdLookup: { data: [{ id: "stub-1", course_code: "MATH 121" }], error: null },
+    })
+    authenticate.mockResolvedValueOnce({
+      ok: true,
+      user: { id: "user-1", email: "ada@queensu.ca" },
+      supabase,
+    })
+
+    await POST(pdfRequest())
+
+    expect(calls).toContainEqual({ table: "courses", method: "upsert", args: [
+      [expect.objectContaining({ course_code: "MATH 121", course_units: 6 })],
+      expect.objectContaining({ onConflict: "course_code", ignoreDuplicates: true }),
+    ]})
   })
 })
