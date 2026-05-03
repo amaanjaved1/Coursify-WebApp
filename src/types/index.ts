@@ -120,6 +120,7 @@ export interface UploadDistributionResponse {
   term?: string;
   inserted: number;
   skipped: string[];
+  stubs_created: string[];
   duplicates: string[];
   errors: string[];
 }

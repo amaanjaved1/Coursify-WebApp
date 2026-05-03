@@ -8,8 +8,8 @@ import { redis } from "@/lib/redis";
 export const runtime = "nodejs";
 
 function failureResponse(
-  response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "duplicates" | "errors"> &
-    Partial<Pick<UploadDistributionResponse, "inserted" | "skipped" | "duplicates">> & {
+  response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "stubs_created" | "duplicates" | "errors"> &
+    Partial<Pick<UploadDistributionResponse, "inserted" | "skipped" | "stubs_created" | "duplicates">> & {
       errors: string[];
       reason?: UploadDistributionResponse["reason"];
     },
@@ -20,6 +20,7 @@ function failureResponse(
       success: false,
       inserted: response.inserted ?? 0,
       skipped: response.skipped ?? [],
+      stubs_created: response.stubs_created ?? [],
       duplicates: response.duplicates ?? [],
       ...response,
     },
