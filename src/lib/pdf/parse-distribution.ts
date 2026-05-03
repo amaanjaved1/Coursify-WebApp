@@ -76,8 +76,11 @@ function parseCourseLine(line: string): ParsedCourseRow | null {
   const codeMatch = trimmed.match(/^([A-Z]{2,5}\s+\d{3,4}[A-Z]?)\s+/);
   if (!codeMatch) return null;
 
-  // Strip trailing letter suffix from full-year courses (e.g. "MATH 121B" → "MATH 121")
-  const courseCode = codeMatch[1].replace(/[A-Z]$/, "");
+  const rawCode = codeMatch[1];
+  // Strip any trailing letter (e.g. "MATH 121A", "MATH 121B" → "MATH 121").
+  // B specifically marks full-year part-B courses in SOLUS, which carry 6 units.
+  const courseCode = rawCode.replace(/[A-Z]$/, "");
+  const is_full_year_part_b = /B$/.test(rawCode);
   const rest = trimmed.slice(codeMatch[0].length).trim();
 
   const tokens = rest.split(/\s+/);
@@ -117,6 +120,7 @@ function parseCourseLine(line: string): ParsedCourseRow | null {
     enrollment,
     grade_percentages: gradePercentages,
     computed_gpa: calculateGpa(gradePercentages),
+    is_full_year_part_b,
   };
 }
 

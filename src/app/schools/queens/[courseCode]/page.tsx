@@ -352,8 +352,8 @@ export default function CourseDetailPage() {
                             .split(/\n/)
                             .find(line =>
                               line.toLowerCase().includes('prerequisite') || line.toLowerCase().includes('prereq')
-                            ) || 'No prerequisites on file.'
-                        : 'No prerequisites on file.'}
+                            ) || 'We currently do not have requirements for this course.'
+                        : 'We currently do not have requirements for this course.'}
                   </p>
                 </div>
               </div>

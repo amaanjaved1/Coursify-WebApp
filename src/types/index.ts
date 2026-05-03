@@ -112,6 +112,7 @@ export interface ParsedCourseRow {
   enrollment: number;
   grade_percentages: number[];
   computed_gpa: number;
+  is_full_year_part_b: boolean;
 }
 
 export interface UploadDistributionResponse {
@@ -120,6 +121,8 @@ export interface UploadDistributionResponse {
   term?: string;
   inserted: number;
   skipped: string[];
+  /** Course codes for which a stub DB entry was auto-created during this upload. */
+  stubs_created: string[];
   duplicates: string[];
   errors: string[];
 }

@@ -4,12 +4,19 @@ import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 import { extractTextFromPdf, validateSolusFormat, parseCourseRows } from "@/lib/pdf/parse-distribution";
 import type { UploadDistributionResponse } from "@/types";
 import { redis } from "@/lib/redis";
+import { createGitHubIssue } from "@/lib/github/create-issue";
 
 export const runtime = "nodejs";
 
+function deriveCourseLevel(code: string): number {
+  const match = code.match(/[A-Z]\s+(\d)/);
+  const level = match ? parseInt(match[1], 10) : 1;
+  return Math.min(Math.max(level, 1), 6);
+}
+
 function failureResponse(
-  response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "duplicates" | "errors"> &
-    Partial<Pick<UploadDistributionResponse, "inserted" | "skipped" | "duplicates">> & {
+  response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "stubs_created" | "duplicates" | "errors"> &
+    Partial<Pick<UploadDistributionResponse, "inserted" | "skipped" | "stubs_created" | "duplicates">> & {
       errors: string[];
       reason?: UploadDistributionResponse["reason"];
     },
@@ -20,6 +27,7 @@ function failureResponse(
       success: false,
       inserted: response.inserted ?? 0,
       skipped: response.skipped ?? [],
+      stubs_created: response.stubs_created ?? [],
       duplicates: response.duplicates ?? [],
       ...response,
     },
@@ -211,6 +219,44 @@ export async function POST(request: NextRequest) {
   const codeToId = new Map<string, string>();
   matchedCourses?.forEach((c) => codeToId.set(c.course_code, c.id));
 
+  // Create stub courses for any codes not already in the DB
+  const unmatchedRows = parsedCourses.filter((row) => !codeToId.has(row.course_code));
+  const stubbedCodes: string[] = [];
+
+  if (unmatchedRows.length > 0) {
+    const stubsToInsert = unmatchedRows.map((row) => ({
+      course_code: row.course_code,
+      course_name: row.description,
+      course_description: null,
+      course_requirements: null,
+      course_units: row.is_full_year_part_b ? 6 : 3,
+      offering_faculty: "Unknown",
+    }));
+
+    const { error: stubUpsertError } = await supabase
+      .from("courses")
+      .upsert(stubsToInsert, { onConflict: "course_code", ignoreDuplicates: true });
+
+    if (stubUpsertError) {
+      console.error("[upload-distribution] stub course upsert failed:", stubUpsertError.message);
+    } else {
+      const unmatchedCodes = unmatchedRows.map((r) => r.course_code);
+      const { data: stubIds, error: stubSelectError } = await supabase
+        .from("courses")
+        .select("id, course_code")
+        .in("course_code", unmatchedCodes);
+
+      if (stubSelectError) {
+        console.error("[upload-distribution] stub ID fetch failed:", stubSelectError.message);
+      } else {
+        stubIds?.forEach((s) => {
+          codeToId.set(s.course_code, s.id);
+          stubbedCodes.push(s.course_code);
+        });
+      }
+    }
+  }
+
   // 9. Check for existing distributions for this term
   const matchedIds = Array.from(codeToId.values());
   let existingSet = new Set<string>();
@@ -299,6 +345,7 @@ export async function POST(request: NextRequest) {
         term,
         inserted,
         skipped,
+        stubs_created: stubbedCodes,
         duplicates,
         errors: [
           inserted > 0
@@ -318,8 +365,8 @@ export async function POST(request: NextRequest) {
         term,
         inserted,
         skipped,
+        stubs_created: stubbedCodes,
         duplicates,
-        // Return only user-safe messages; raw Supabase details are logged server-side above
         errors: ["Some distributions could not be saved. Please try again shortly."],
         reason: "dependency_failure",
       },
@@ -332,6 +379,7 @@ export async function POST(request: NextRequest) {
     term,
     inserted,
     skipped,
+    stubs_created: stubbedCodes,
     duplicates,
     errors,
   };
@@ -346,6 +394,18 @@ export async function POST(request: NextRequest) {
     invalidations.push(redis.del(`course:${code}`));
   }
   await Promise.all(invalidations);
+
+  // Fire-and-forget: open a GitHub issue so the team knows to fetch real metadata for stub courses
+  if (stubbedCodes.length > 0) {
+    const titleCodes = stubbedCodes.length <= 5
+      ? stubbedCodes.join(", ")
+      : `${stubbedCodes.slice(0, 5).join(", ")} (+${stubbedCodes.length - 5} more)`;
+    createGitHubIssue({
+      title: `[Retrieve Course Info] ${titleCodes}`,
+      body: `The following courses were referenced in a grade distribution upload for **${term}** but were not found in the database. Stub entries have been created automatically.\n\n${stubbedCodes.map((c) => `- ${c}`).join("\n")}`,
+      labels: ["retrieve-course-info"],
+    }).catch((err) => console.error("[upload-distribution] GitHub issue creation failed:", err));
+  }
 
   return NextResponse.json(response);
 }

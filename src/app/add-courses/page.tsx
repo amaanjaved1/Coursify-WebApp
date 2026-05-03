@@ -35,8 +35,8 @@ type FileEntry = {
   result: UploadDistributionResponse | null;
   error: string | null;
   duplicateTerm: string | null;
-  showSkipped: boolean;
   showDuplicates: boolean;
+  showStubsCreated: boolean;
 };
 
 export default function AddCoursesPage() {
@@ -91,8 +91,8 @@ export default function AddCoursesPage() {
         result: null,
         error: null,
         duplicateTerm: null,
-        showSkipped: false,
         showDuplicates: false,
+        showStubsCreated: false,
       }));
       return [...prev, ...entries];
     });
@@ -103,11 +103,9 @@ export default function AddCoursesPage() {
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const toggleShowSkipped = (id: string) => {
+  const toggleShowStubsCreated = (id: string) => {
     setFiles((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, showSkipped: !f.showSkipped } : f,
-      ),
+      prev.map((f) => (f.id === id ? { ...f, showStubsCreated: !f.showStubsCreated } : f))
     );
   };
 
@@ -588,11 +586,12 @@ export default function AddCoursesPage() {
                                 className="flex items-center justify-between w-full text-left px-3 py-2"
                               >
                                 <span className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                                  Grade data already on file for{" "}
                                   {entry.result.duplicates.length} course
                                   {entry.result.duplicates.length !== 1
                                     ? "s"
                                     : ""}{" "}
-                                  already in DB
+                                  this term
                                 </span>
                                 {entry.showDuplicates ? (
                                   <ChevronUp className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -608,26 +607,26 @@ export default function AddCoursesPage() {
                             </div>
                           )}
 
-                          {entry.result.skipped.length > 0 && (
+                          {entry.result.stubs_created.length > 0 && (
                             <div className="rounded-xl bg-brand-navy/5 dark:bg-white/[0.06] border border-brand-navy/10 dark:border-white/10 overflow-hidden">
                               <button
-                                onClick={() => toggleShowSkipped(entry.id)}
+                                onClick={() => toggleShowStubsCreated(entry.id)}
                                 className="flex items-center justify-between w-full text-left px-3 py-2"
                               >
                                 <span className="text-xs font-medium text-brand-navy/80 dark:text-white/70">
-                                  {entry.result.skipped.length} course
-                                  {entry.result.skipped.length !== 1 ? "s" : ""}{" "}
-                                  not in our DB yet
+                                  {entry.result.stubs_created.length} new course
+                                  {entry.result.stubs_created.length !== 1 ? "s" : ""}{" "}
+                                  added to the database (grade data captured, details pending)
                                 </span>
-                                {entry.showSkipped ? (
+                                {entry.showStubsCreated ? (
                                   <ChevronUp className="h-3.5 w-3.5 text-brand-navy/50 dark:text-white/40 shrink-0" />
                                 ) : (
                                   <ChevronDown className="h-3.5 w-3.5 text-brand-navy/50 dark:text-white/40 shrink-0" />
                                 )}
                               </button>
-                              {entry.showSkipped && (
+                              {entry.showStubsCreated && (
                                 <div className="px-3 pb-2 text-xs text-brand-navy/60 dark:text-white/50">
-                                  {entry.result.skipped.join(", ")}
+                                  {entry.result.stubs_created.join(", ")}
                                 </div>
                               )}
                             </div>
