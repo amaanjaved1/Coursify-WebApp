@@ -8,6 +8,12 @@ import { createGitHubIssue } from "@/lib/github/create-issue";
 
 export const runtime = "nodejs";
 
+function deriveCourseLevel(code: string): number {
+  const match = code.match(/[A-Z]\s+(\d)/);
+  const level = match ? parseInt(match[1], 10) : 1;
+  return Math.min(Math.max(level, 1), 6);
+}
+
 function failureResponse(
   response: Omit<UploadDistributionResponse, "success" | "inserted" | "skipped" | "stubs_created" | "duplicates" | "errors"> &
     Partial<Pick<UploadDistributionResponse, "inserted" | "skipped" | "stubs_created" | "duplicates">> & {
@@ -213,13 +219,6 @@ export async function POST(request: NextRequest) {
   const codeToId = new Map<string, string>();
   matchedCourses?.forEach((c) => codeToId.set(c.course_code, c.id));
 
-  // Derive course level from first digit of numeric part (e.g. MATH 121 → 1, CISC 365 → 3)
-  function deriveCourseLevel(code: string): number {
-    const match = code.match(/\s(\d)/);
-    const level = match ? parseInt(match[1], 10) : 1;
-    return Math.min(Math.max(level, 1), 6);
-  }
-
   // Create stub courses for any codes not already in the DB
   const unmatchedRows = parsedCourses.filter((row) => !codeToId.has(row.course_code));
   const stubbedCodes: string[] = [];
@@ -399,8 +398,11 @@ export async function POST(request: NextRequest) {
 
   // Fire-and-forget: open a GitHub issue so the team knows to fetch real metadata for stub courses
   if (stubbedCodes.length > 0) {
+    const titleCodes = stubbedCodes.length <= 5
+      ? stubbedCodes.join(", ")
+      : `${stubbedCodes.slice(0, 5).join(", ")} (+${stubbedCodes.length - 5} more)`;
     createGitHubIssue({
-      title: `[Retrieve Course Info] ${stubbedCodes.join(", ")}`,
+      title: `[Retrieve Course Info] ${titleCodes}`,
       body: `The following courses were referenced in a grade distribution upload for **${term}** but were not found in the database. Stub entries have been created automatically.\n\n${stubbedCodes.map((c) => `- ${c}`).join("\n")}`,
       labels: ["retrieve-course-info"],
     }).catch((err) => console.error("[upload-distribution] GitHub issue creation failed:", err));
