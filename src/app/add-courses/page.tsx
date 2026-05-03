@@ -590,7 +590,7 @@ export default function AddCoursesPage() {
                                   {entry.result.duplicates.length !== 1
                                     ? "s"
                                     : ""}{" "}
-                                  already in DB
+                                  already have data for this term
                                 </span>
                                 {entry.showDuplicates ? (
                                   <ChevronUp className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
