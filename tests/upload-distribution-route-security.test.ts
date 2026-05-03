@@ -128,6 +128,7 @@ const parsedRows: ParsedCourseRow[] = [
     enrollment: 120,
     grade_percentages: [20, 20, 20, 10, 10, 10, 5, 5, 0, 0, 0, 0, 0],
     computed_gpa: 3.51,
+    is_full_year_part_b: false,
   },
   {
     course_code: "MATH 121",
@@ -135,6 +136,7 @@ const parsedRows: ParsedCourseRow[] = [
     enrollment: 200,
     grade_percentages: [10, 20, 20, 20, 10, 10, 5, 5, 0, 0, 0, 0, 0],
     computed_gpa: 3.25,
+    is_full_year_part_b: false,
   },
 ]
 
