@@ -47,7 +47,7 @@ export function CourseHeader({ course, courseCode, facultyName }: CourseHeaderPr
             </div>
             <div className="bg-white/8 border border-white/10 rounded-xl p-4 backdrop-blur-sm">
               <p className="text-white/85 text-sm leading-relaxed">
-                {course.description ?? 'No description available for this course.'}
+                {course.description ?? 'We currently do not have a description for this course.'}
               </p>
             </div>
           </div>
